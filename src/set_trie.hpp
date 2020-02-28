@@ -42,16 +42,19 @@ public:
     node->flag_last_ = true;
   }
 
-  bool Search(const std::vector<int> &word) {
+  Node *Search(const std::vector<int> &word) {
     assert(IsAscending(word));
     Node *node = &root_;
-    auto it = word.begin();
     for (auto n : word) {
       node = node->FindChild(n);
       if (node == nullptr)
-        return false;
+        return nullptr;
     }
-    return node->flag_last_ == true;
+
+    if (node->flag_last_)
+      return node;
+    else
+      return nullptr;
   }
 
   bool HasSubset(const std::vector<int> &word) {
