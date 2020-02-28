@@ -1,6 +1,13 @@
+CPPFLAGS=-std=c++17 -O3 -Wall
 
-set_trie_test: set_trie_test.cpp set_trie.hpp
-	g++ set_trie_test.cpp -o set_trie_test -std=c++17 -O3 -g
+set_trie_test: set_trie_test.o set_trie.o
+	g++ -o $@ $^
 
 clean:
-	rm set_trie_test
+	rm set_trie_test *.o
+
+%.o : %.cpp
+	g++ $(CPPFLAGS) -c $< -o $@
+	g++ -MM $(CPPFLAGS) $*.cpp > $*.d
+
+-include *.d
