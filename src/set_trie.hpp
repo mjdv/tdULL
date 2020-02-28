@@ -88,7 +88,7 @@ protected:
       return true;
     bool found = false;
     for (auto &[num, child] : node->children_) {
-      // NOTE: If we assume the childrens are sorted we could break.
+      // NOTE: If we assume the children are sorted we could break.
       if (num > word[idx])
         continue;
 
