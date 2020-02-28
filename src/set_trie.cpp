@@ -29,41 +29,43 @@ Node *SetTrie::Search(const std::vector<int> &word) {
     return nullptr;
 }
 
+// Recursive impl.
+bool HasSubset(Node *node, const std::vector<int> &word, int idx) {
+  if (node->flag_last_) return true;
+  if (idx >= word.size()) return false;
+  bool found = false;
+  Node *next_node = node->FindChild(word[idx]);
+  if (next_node) found = HasSubset(next_node, word, idx + 1);
+  if (!found)
+    return HasSubset(node, word, idx + 1);
+  else
+    return true;
+}
+
 bool SetTrie::HasSubset(const std::vector<int> &word) {
   assert(IsAscending(word));
-  std::stack<std::pair<Node *, int>, std::vector<std::pair<Node *, int>>> stack;
-  stack.emplace(&root_, 0);
+  return ::HasSubset(&root_, word, 0);
+}
 
-  while (!stack.empty()) {
-    auto [node, idx] = stack.top();
-    stack.pop();
-    if (node->flag_last_) return true;
-    if (idx >= word.size()) continue;
-    stack.emplace(node, idx + 1);
-    Node *next_node = node->FindChild(word[idx]);
-    if (next_node) stack.emplace(next_node, idx + 1);
+// Recursive impl.
+bool HasSuperset(Node *node, const std::vector<int> &word, int idx) {
+  if (idx >= word.size()) return true;
+  bool found = false;
+  for (auto &[num, child] : node->children_) {
+    // NOTE: If we assume the children are sorted we could break.
+    if (num > word[idx]) continue;
+
+    if (num == word[idx])
+      found = HasSuperset(&child, word, idx + 1);
+    else
+      found = HasSuperset(&child, word, idx);
+
+    if (found) break;
   }
-  return false;
+  return found;
 }
 
 bool SetTrie::HasSuperset(const std::vector<int> &word) {
   assert(IsAscending(word));
-  std::stack<std::pair<Node *, int>, std::vector<std::pair<Node *, int>>> stack;
-  stack.emplace(&root_, 0);
-
-  while (!stack.empty()) {
-    auto [node, idx] = stack.top();
-    stack.pop();
-    if (idx >= word.size()) return true;
-    for (auto &[num, child] : node->children_) {
-      // NOTE: If we assume the children are sorted we could break.
-      if (num > word[idx]) continue;
-
-      if (num == word[idx])
-        stack.emplace(&child, idx + 1);
-      else
-        stack.emplace(&child, idx);
-    }
-  }
-  return false;
+  return ::HasSuperset(&root_, word, 0);
 }
