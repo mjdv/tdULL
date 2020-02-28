@@ -2,6 +2,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <cassert>
 
 bool IsAscending(const std::vector<int> &word) {
   for (int i = 1; i < word.size(); ++i)
