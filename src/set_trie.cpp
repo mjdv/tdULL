@@ -69,3 +69,26 @@ bool SetTrie::HasSuperset(const std::vector<int> &word) {
   assert(IsAscending(word));
   return ::HasSuperset(&root_, word, 0);
 }
+
+//
+void AllSubsets(Node *node, const std::vector<int> &word, int idx,
+                std::vector<Node *> &result) {
+  if (node->flag_last_) result.push_back(node);
+  if (idx >= word.size()) return;
+  for (auto &[num, child] : node->children_)
+    for (int j = idx; j < word.size(); ++j) {
+      // TODO: If children_ is sorted we can break earlier.
+      // if (num < word[j]) break;
+
+      if (num == word[j]) {
+        AllSubsets(&child, word, j, result);
+        break;
+      }
+    }
+}
+
+std::vector<Node *> SetTrie::AllSubsets(const std::vector<int> &word) {
+  std::vector<Node *> result;
+  ::AllSubsets(&root_, word, 0, result);
+  return result;
+}

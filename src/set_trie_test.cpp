@@ -13,6 +13,7 @@ int main() {
   assert(cache.Search({5, 8, 15}));
   assert(!cache.Search({5, 8, 20}));
 
+  assert(cache.HasSubset({5, 8, 15}));
   assert(cache.HasSubset({5, 8, 15, 20}));
   assert(cache.HasSubset({5, 8, 10, 15}));
   assert(!cache.HasSubset({5, 8, 10}));
@@ -22,6 +23,15 @@ int main() {
   assert(cache.HasSuperset({5}));
   assert(cache.HasSuperset({5, 15}));
   assert(!cache.HasSuperset({5, 20}));
+
+  cache.Insert({5});
+  cache.Insert({5, 8});
+  cache.Insert({8, 15});
+  for (auto node : cache.AllSubsets({5, 7, 8, 9, 15})) {
+    std::cout << "{";
+    for (auto l : node->Word()) std::cout << l << " ";
+    std::cout << "}" << std::endl;
+  }
 
   return 0;
 }
