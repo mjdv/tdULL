@@ -31,7 +31,7 @@ struct Node {
   std::vector<int> Word() const {
     std::vector<int> word;
     auto node = this;
-    while (node) {
+    while (node && node->parent_) {
       word.push_back(node->n_);
       node = node->parent_;
     }
