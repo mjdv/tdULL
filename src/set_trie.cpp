@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-bool IsAscending(const std::vector<int> &word) {
+bool isascending(const std::vector<int> &word) {
   for (int i = 1; i < word.size(); ++i)
     if (word[i - 1] >= word[i]) return false;
   return true;
@@ -88,6 +88,7 @@ void AllSubsets(Node *node, const std::vector<int> &word, int idx,
 }
 
 std::vector<Node *> SetTrie::AllSubsets(const std::vector<int> &word) {
+  assert(IsAscending(word));
   std::vector<Node *> result;
   ::AllSubsets(&root_, word, 0, result);
   return result;
@@ -109,6 +110,7 @@ void AllSupersets(Node *node, const std::vector<int> &word, int idx,
 }
 
 std::vector<Node *> SetTrie::AllSupersets(const std::vector<int> &word) {
+  assert(IsAscending(word));
   std::vector<Node *> result;
   ::AllSupersets(&root_, word, 0, result);
   return result;
