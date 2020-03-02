@@ -92,3 +92,24 @@ std::vector<Node *> SetTrie::AllSubsets(const std::vector<int> &word) {
   ::AllSubsets(&root_, word, 0, result);
   return result;
 }
+
+void AllSupersets(Node *node, const std::vector<int> &word, int idx,
+                  std::vector<Node *> &result) {
+  if (idx >= word.size()) result.push_back(node);
+  int current_letter = idx < word.size() ? word[idx] : INT_MAX;
+  for (auto &[num, child] : node->children_) {
+    // TODO: If children_ is sorted we can break.
+    if (num > current_letter) continue;
+
+    if (num == current_letter)
+      AllSupersets(&child, word, idx + 1, result);
+    else
+      AllSupersets(&child, word, idx, result);
+  }
+}
+
+std::vector<Node *> SetTrie::AllSupersets(const std::vector<int> &word) {
+  std::vector<Node *> result;
+  ::AllSupersets(&root_, word, 0, result);
+  return result;
+}

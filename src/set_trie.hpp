@@ -50,6 +50,7 @@ class SetTrie {
   bool HasSuperset(const std::vector<int> &word);
 
   std::vector<Node *> AllSubsets(const std::vector<int> &word);
+  std::vector<Node *> AllSupersets(const std::vector<int> &word);
 
  protected:
   Node root_;

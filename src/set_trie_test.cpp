@@ -27,8 +27,20 @@ int main() {
   cache.Insert({5});
   cache.Insert({5, 8});
   cache.Insert({8, 15});
+
+  std::cout << "Subsets{5, 7, 8, 9, 15}:" << std::endl;
   for (auto node : cache.AllSubsets({5, 7, 8, 9, 15})) {
-    std::cout << "{";
+    std::cout << "\t{";
+    for (auto l : node->Word()) std::cout << l << " ";
+    std::cout << "}" << std::endl;
+  }
+
+  assert(cache.HasSuperset({8}));
+  assert(cache.HasSuperset({5, 8, 15}));
+  assert(cache.HasSuperset({8, 15}));
+  std::cout << "Supersets{8}:" << std::endl;
+  for (auto node : cache.AllSupersets({8})) {
+    std::cout << "\t{";
     for (auto l : node->Word()) std::cout << l << " ";
     std::cout << "}" << std::endl;
   }
