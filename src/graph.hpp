@@ -28,6 +28,8 @@ struct SubGraph {
 
   // Create a new subgraph withouth the given vertex.
   SubGraph WithoutVertex(Vertex *v);
+
+  // Get all the connected components.
   std::vector<SubGraph> ConnectedComponents();
 };
 
