@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-bool isascending(const std::vector<int> &word) {
+bool IsAscending(const std::vector<int> &word) {
   for (int i = 1; i < word.size(); ++i)
     if (word[i - 1] >= word[i]) return false;
   return true;
