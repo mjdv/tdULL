@@ -1,1 +1,4 @@
 set_trie_test
+graph_test
+*.o
+*.d
