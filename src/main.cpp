@@ -117,5 +117,8 @@ int main(int argc, char **argv) {
   LoadGraph(input);
   input.close();
 
-  std::cout << treedepth_trivial(full_graph_as_sub) << std::endl;
+  std::cout << treedepth(full_graph_as_sub, 1,
+                         full_graph_as_sub.vertices.size())
+                   .second
+            << std::endl;
 }
