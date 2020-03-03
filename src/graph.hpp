@@ -40,6 +40,7 @@ struct SubGraph {
     std::vector<int> result;
     result.reserve(vertices.size());
     for (Vertex *v : vertices) result.emplace_back(v->n);
+    std::sort(result.begin(), result.end());
     return result;
   }
 };
