@@ -6,7 +6,7 @@
 
 SetTrie cache;
 
-void CacheInsert(const SubGraph &G, int lower, int upper, int root) {
+void CacheUpdate(const SubGraph &G, int lower, int upper, int root) {
   auto node = cache.Insert(G);
   node->data.lower_bound = lower;
   node->data.upper_bound = upper;
@@ -16,7 +16,7 @@ void CacheInsert(const SubGraph &G, int lower, int upper, int root) {
 std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
                               int search_ubnd) {
   if (search_ubnd <= 1 || search_lbnd >= G.vertices.size()) {
-    CacheInsert(G, 1, G.vertices.size(), G.vertices[0]->n);
+    CacheUpdate(G, 1, G.vertices.size(), G.vertices[0]->n);
     return std::make_pair(1, G.vertices.size());
   }
 
@@ -37,7 +37,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   }
 
   if (search_ubnd <= lower || search_lbnd >= upper) {
-    CacheInsert(G, lower, upper, current_root);
+    CacheUpdate(G, lower, upper, current_root);
     return std::make_pair(lower, upper);
   }
 
@@ -82,7 +82,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   lower = std::min(lower, new_lower);
 
-  CacheInsert(G, lower, upper, best_root);
+  CacheUpdate(G, lower, upper, best_root);
   return std::make_pair(lower, upper);
 }
 
