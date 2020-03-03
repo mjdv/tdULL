@@ -1,12 +1,12 @@
 #pragma once
-#include <iostream>
-#include <vector>
 #include <algorithm>
+#include <iostream>
+#include <unordered_map>
+#include <vector>
 
 struct Vertex {
-  int n;                      // The index of this vertex.
-  std::vector<Vertex *> adj;  // The adjacency list of this vertex.
-  bool visited;               // Field for DFS/BFS.
+  int n;         // The index of this vertex.
+  bool visited;  // Field for DFS/BFS.
 
   Vertex(int n) : n(n) {}
 };
@@ -15,6 +15,8 @@ struct Graph {
   int N;                         // Number of vertices in this graph
   int M;                         // Number of edges in this graph.
   std::vector<Vertex> vertices;  // Vector containing all vertices.
+  std::vector<std::vector<Vertex *>>
+      adj;  // The adjacency lists for the full graph.
 
   Graph(std::istream &stream);
   Graph() : N(0), M(0) {}
@@ -23,12 +25,13 @@ struct Graph {
 struct SubGraph {
   std::vector<Vertex *> vertices;  // List of vertices inside this subgraph.
   std::vector<bool> mask;  // Bitset of the vertices inside this subgraph.
+  std::unordered_map<Vertex *, std::vector<Vertex *>> adj;
 
-  SubGraph(std::vector<Vertex *> &&vertices, std::vector<bool> &&mask);
+  // Create an empty SubGraph.
   SubGraph();
 
-  // Get the adjacency for a vertex inside this subgraph.
-  std::vector<Vertex *> Adj(Vertex *v) const;
+  // Get the adjacency list for a given vertex.
+  const std::vector<Vertex *> &Adj(Vertex *v) const;
 
   // Create a new subgraph withouth the given vertex.
   SubGraph WithoutVertex(Vertex *v) const;
