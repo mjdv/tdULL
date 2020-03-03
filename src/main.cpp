@@ -4,17 +4,22 @@
 #include "graph.hpp"
 #include "set_trie.hpp"
 
-// SetTrie cache;
+SetTrie cache;
 
-std::pair<int, int> treedepth(SubGraph G, int search_lbnd, int search_ubnd) {
+std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
+                              int search_ubnd) {
   if (search_ubnd <= 1 || search_lbnd >= G.vertices.size()) {
+    auto node = cache.Insert(G);
+    node->data.lower_bound = 12337;
+    node->data.upper_bound = 152534;
+    node->data.root = G.vertices[0]->n;
     // cache.Insert(...) skip caching for now
     return std::make_pair(1, G.vertices.size());
   }
   assert(false);
 }
 
-int treedepth_trivial(SubGraph G) {
+int treedepth_trivial(const SubGraph &G) {
   if (G.vertices.size() == 1) return 1;
 
   int td = G.vertices.size();

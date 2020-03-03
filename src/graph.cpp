@@ -36,7 +36,7 @@ SubGraph::SubGraph(std::vector<Vertex *> &&v, std::vector<bool> &&m)
 }
 SubGraph::SubGraph() : mask(full_graph.N, false) {}
 
-std::vector<Vertex *> SubGraph::Adj(Vertex *v) {
+std::vector<Vertex *> SubGraph::Adj(Vertex *v) const {
   assert(mask[v->n]);
   std::vector<Vertex *> result;
   for (Vertex *child : v->adj)
@@ -44,7 +44,7 @@ std::vector<Vertex *> SubGraph::Adj(Vertex *v) {
   return result;
 }
 
-SubGraph SubGraph::WithoutVertex(Vertex *v) {
+SubGraph SubGraph::WithoutVertex(Vertex *v) const {
   SubGraph result;
   result.vertices.reserve(vertices.size());
   for (Vertex *vertex : vertices)
@@ -57,7 +57,7 @@ SubGraph SubGraph::WithoutVertex(Vertex *v) {
   return result;
 }
 
-std::vector<SubGraph> SubGraph::ConnectedComponents() {
+std::vector<SubGraph> SubGraph::ConnectedComponents() const {
   std::vector<SubGraph> cc;
   std::vector<Vertex *> stack;
 

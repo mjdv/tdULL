@@ -27,13 +27,21 @@ struct SubGraph {
   SubGraph();
 
   // Get the adjacency for a vertex inside this subgraph.
-  std::vector<Vertex *> Adj(Vertex *v);
+  std::vector<Vertex *> Adj(Vertex *v) const;
 
   // Create a new subgraph withouth the given vertex.
-  SubGraph WithoutVertex(Vertex *v);
+  SubGraph WithoutVertex(Vertex *v) const;
 
   // Get all the connected components.
-  std::vector<SubGraph> ConnectedComponents();
+  std::vector<SubGraph> ConnectedComponents() const;
+
+  // Explicit conversion to vector of ints.
+  operator std::vector<int>() const {
+    std::vector<int> result;
+    result.reserve(vertices.size());
+    for (Vertex *v : vertices) result.emplace_back(v->n);
+    return result;
+  }
 };
 
 extern Graph full_graph;  // The datastructure containing the full graph.
