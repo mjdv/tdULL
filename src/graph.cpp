@@ -1,4 +1,5 @@
 #include "graph.hpp"
+#include <cassert>
 
 Graph full_graph;
 SubGraph full_graph_as_sub;

@@ -1,5 +1,5 @@
 #include "graph.hpp"
-
+#include <cassert>
 #include <sstream>
 
 int main() {

@@ -1,5 +1,5 @@
 #include "set_trie.hpp"
-
+#include <climits>
 #include <iostream>
 
 bool IsAscending(const std::vector<int> &word) {
