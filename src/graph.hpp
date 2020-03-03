@@ -3,25 +3,25 @@
 #include <vector>
 
 struct Vertex {
-  int n_;                      // The index of this vertex.
-  std::vector<Vertex *> adj_;  // The adjacency list of this vertex.
-  bool visited_;               // Field for DFS/BFS.
+  int n;                      // The index of this vertex.
+  std::vector<Vertex *> adj;  // The adjacency list of this vertex.
+  bool visited;               // Field for DFS/BFS.
 
-  Vertex(int n) : n_(n) {}
+  Vertex(int n) : n(n) {}
 };
 
 struct Graph {
-  int N_;                         // Number of vertices in this graph
-  int M_;                         // Number of edges in this graph.
-  std::vector<Vertex> vertices_;  // Vector containing all vertices.
+  int N;                         // Number of vertices in this graph
+  int M;                         // Number of edges in this graph.
+  std::vector<Vertex> vertices;  // Vector containing all vertices.
 
   Graph(std::istream &stream);
-  Graph() : N_(0), M_(0) {}
+  Graph() : N(0), M(0) {}
 };
 
 struct SubGraph {
-  std::vector<Vertex *> vertices_;  // List of vertices inside this subgraph.
-  std::vector<bool> mask_;  // Bitset of the vertices inside this subgraph.
+  std::vector<Vertex *> vertices;  // List of vertices inside this subgraph.
+  std::vector<bool> mask;  // Bitset of the vertices inside this subgraph.
 
   SubGraph(std::vector<Vertex *> &&vertices, std::vector<bool> &&mask);
   SubGraph();

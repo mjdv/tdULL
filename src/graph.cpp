@@ -1,4 +1,5 @@
 #include "graph.hpp"
+
 #include <cassert>
 
 Graph full_graph;
@@ -10,41 +11,41 @@ Graph::Graph(std::istream &stream) {
   assert(str == "p");
   stream >> str;
   assert(str == "tdp");
-  stream >> N_ >> M_;
+  stream >> N >> M;
 
   // Create the vector of vertices.
-  vertices_.reserve(N_);
-  for (int v = 0; v < N_; v++) vertices_.emplace_back(v);
+  vertices.reserve(N);
+  for (int v = 0; v < N; v++) vertices.emplace_back(v);
 
-  for (int e = 0; e < M_; e++) {
+  for (int e = 0; e < M; e++) {
     int a, b;
     stream >> a >> b;
 
     // Make them zero indexed.
     a--, b--;
 
-    vertices_[a].adj_.emplace_back(&vertices_[b]);
-    vertices_[b].adj_.emplace_back(&vertices_[a]);
+    vertices[a].adj.emplace_back(&vertices[b]);
+    vertices[b].adj.emplace_back(&vertices[a]);
   }
 }
 
-SubGraph::SubGraph(std::vector<Vertex *> &&vertices, std::vector<bool> &&mask)
-    : vertices_(std::move(vertices)), mask_(std::move(mask)) {
-  assert(vertices_.size());
-  assert(mask_.size() == full_graph.N_);
+SubGraph::SubGraph(std::vector<Vertex *> &&v, std::vector<bool> &&m)
+    : vertices(std::move(v)), mask(std::move(m)) {
+  assert(vertices.size());
+  assert(mask.size() == full_graph.N);
 }
-SubGraph::SubGraph() : mask_(full_graph.N_, false) {}
+SubGraph::SubGraph() : mask(full_graph.N, false) {}
 
 SubGraph SubGraph::WithoutVertex(Vertex *v) {
   SubGraph result;
-  result.vertices_.reserve(vertices_.size());
-  for (Vertex *vertex : vertices_)
+  result.vertices.reserve(vertices.size());
+  for (Vertex *vertex : vertices)
     if (vertex != v) {
-      result.vertices_.emplace_back(vertex);
-      result.mask_[vertex->n_] = true;
+      result.vertices.emplace_back(vertex);
+      result.mask[vertex->n] = true;
     }
   // Verify that we indeed remove something.
-  assert(result.vertices_.size() < vertices_.size());
+  assert(result.vertices.size() < vertices.size());
   return result;
 }
 
@@ -53,33 +54,33 @@ std::vector<SubGraph> SubGraph::ConnectedComponents() {
   std::vector<Vertex *> stack;
 
   // Initiate a DFS from all of the vertices inside this subgraph.
-  for (auto root : vertices_)
-    if (!root->visited_) {
+  for (auto root : vertices)
+    if (!root->visited) {
       SubGraph component;
-      component.vertices_.reserve(vertices_.size());
+      component.vertices.reserve(vertices.size());
 
       stack.emplace_back(root);
-      root->visited_ = true;
+      root->visited = true;
       while (!stack.empty()) {
         Vertex *v = stack.back();
         stack.pop_back();
 
         // Add this vertex to the component.
-        component.vertices_.emplace_back(v);
-        component.mask_[v->n_] = true;
+        component.vertices.emplace_back(v);
+        component.mask[v->n] = true;
 
         // Recurse.
-        for (Vertex *child : v->adj_)
-          if (mask_[child->n_] && !child->visited_) {
+        for (Vertex *child : v->adj)
+          if (mask[child->n] && !child->visited) {
             stack.emplace_back(child);
-            child->visited_ = true;
+            child->visited = true;
           }
       }
       cc.emplace_back(std::move(component));
     }
 
   // Reset the visited field.
-  for (auto vtx : vertices_) vtx->visited_ = false;
+  for (auto vtx : vertices) vtx->visited = false;
   return cc;
 }
 
@@ -87,12 +88,12 @@ void LoadGraph(std::istream &stream) {
   full_graph = Graph(stream);
 
   // Create the subgraph.
-  std::vector<bool> mask(full_graph.N_, true);
+  std::vector<bool> mask(full_graph.N, true);
   std::vector<Vertex *> vertices;
-  vertices.reserve(full_graph.N_);
-  for (Vertex &vertex : full_graph.vertices_) vertices.emplace_back(&vertex);
+  vertices.reserve(full_graph.N);
+  for (Vertex &vertex : full_graph.vertices) vertices.emplace_back(&vertex);
   full_graph_as_sub = SubGraph(std::move(vertices), std::move(mask));
 
-  std::cout << "Initalized a graph having " << full_graph.N_
-            << " vertices with " << full_graph.M_ << " edges. " << std::endl;
+  std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
+            << full_graph.M << " edges. " << std::endl;
 }

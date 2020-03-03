@@ -1,6 +1,9 @@
-CPPFLAGS=-std=c++17 -O3 -Wall
+CPPFLAGS=-std=c++17 -O3 -Wall -g
 
-all: set_trie_test graph_test
+all: set_trie_test graph_test main
+
+main: main.o graph.o set_trie.o
+	g++ -o $@ $^
 
 set_trie_test: set_trie_test.o set_trie.o
 	g++ -o $@ $^

@@ -1,4 +1,5 @@
 #include "set_trie.hpp"
+
 #include <climits>
 #include <iostream>
 
@@ -8,11 +9,12 @@ bool IsAscending(const std::vector<int> &word) {
   return true;
 }
 
-void SetTrie::Insert(const std::vector<int> &word) {
+Node *SetTrie::Insert(const std::vector<int> &word) {
   assert(IsAscending(word));
   Node *node = &root_;
   for (auto n : word) node = node->FindOrCreateChild(n);
-  node->flag_last_ = true;
+  node->flag_last = true;
+  return node;
 }
 
 Node *SetTrie::Search(const std::vector<int> &word) {
@@ -23,7 +25,7 @@ Node *SetTrie::Search(const std::vector<int> &word) {
     if (node == nullptr) return nullptr;
   }
 
-  if (node->flag_last_)
+  if (node->flag_last)
     return node;
   else
     return nullptr;
@@ -31,7 +33,7 @@ Node *SetTrie::Search(const std::vector<int> &word) {
 
 // Recursive impl.
 bool HasSubset(Node *node, const std::vector<int> &word, int idx) {
-  if (node->flag_last_) return true;
+  if (node->flag_last) return true;
   if (idx >= word.size()) return false;
   bool found = false;
   Node *next_node = node->FindChild(word[idx]);
@@ -51,7 +53,7 @@ bool SetTrie::HasSubset(const std::vector<int> &word) {
 bool HasSuperset(Node *node, const std::vector<int> &word, int idx) {
   if (idx >= word.size()) return true;
   bool found = false;
-  for (auto &[num, child] : node->children_) {
+  for (auto &[num, child] : node->children) {
     // NOTE: If we assume the children are sorted we could break.
     if (num > word[idx]) continue;
 
@@ -73,11 +75,11 @@ bool SetTrie::HasSuperset(const std::vector<int> &word) {
 //
 void AllSubsets(Node *node, const std::vector<int> &word, int idx,
                 std::vector<Node *> &result) {
-  if (node->flag_last_) result.push_back(node);
+  if (node->flag_last) result.push_back(node);
   if (idx >= word.size()) return;
-  for (auto &[num, child] : node->children_)
+  for (auto &[num, child] : node->children)
     for (int j = idx; j < word.size(); ++j) {
-      // TODO: If children_ is sorted we can break earlier.
+      // TODO: If children is sorted we can break earlier.
       // if (num < word[j]) break;
 
       if (num == word[j]) {
@@ -98,8 +100,8 @@ void AllSupersets(Node *node, const std::vector<int> &word, int idx,
                   std::vector<Node *> &result) {
   if (idx >= word.size()) result.push_back(node);
   int current_letter = idx < word.size() ? word[idx] : INT_MAX;
-  for (auto &[num, child] : node->children_) {
-    // TODO: If children_ is sorted we can break.
+  for (auto &[num, child] : node->children) {
+    // TODO: If children is sorted we can break.
     if (num > current_letter) continue;
 
     if (num == current_letter)

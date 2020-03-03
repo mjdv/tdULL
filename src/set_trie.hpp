@@ -5,37 +5,47 @@
 #include <stack>
 #include <vector>
 
+// The data that we will store inside the Set Trie.
+struct Data {
+  int upper_bound = INT_MAX;
+  int lower_bound = 0;
+  int root = -1;
+};
+
 struct Node {
-  bool flag_last_ = false;
-  int n_;  // The letter of this node.
+  Data data;  // Store the data and make it publicly available.
+  int n;      // The number of this node.
 
   // TODO: Is std::map the best datastructure? Sorting does help.
-  std::map<int, Node> children_;
-  Node *parent_;
+  std::map<int, Node> children;
+  Node *parent;
+  bool flag_last = false;
 
-  Node(int n, Node *parent) : n_(n), parent_(parent) {}
-
-  // Find a child with the given letter, creates one if it doesn't yet exist.
-  Node *FindOrCreateChild(int n) {
-    return &children_.emplace(n, Node{n, this}).first->second;
-  }
-
-  // Returns pointer to child, and nullptr if it doesn't exist.
-  Node *FindChild(int n) {
-    auto result = children_.find(n);
-    if (result == children_.end()) return nullptr;
-    return &result->second;
-  }
+  Node(int n, Node *parent, const Data &data)
+      : data(data), n(n), parent(parent) {}
+  Node(int n, Node *parent) : Node(n, parent, {}) {}
 
   // Returns the word associated to this node.
   std::vector<int> Word() const {
     std::vector<int> word;
     auto node = this;
-    while (node && node->parent_) {
-      word.push_back(node->n_);
-      node = node->parent_;
+    while (node && node->parent) {
+      word.push_back(node->n);
+      node = node->parent;
     }
     return {word.rbegin(), word.rend()};
+  }
+
+  // Returns pointer to child, and nullptr if it doesn't exist.
+  Node *FindChild(int n) {
+    auto result = children.find(n);
+    if (result == children.end()) return nullptr;
+    return &result->second;
+  }
+
+  // Find a child with the given letter, creates one if it doesn't yet exist.
+  Node *FindOrCreateChild(int n) {
+    return &children.emplace(n, Node{n, this}).first->second;
   }
 };
 
@@ -43,7 +53,7 @@ class SetTrie {
  public:
   SetTrie() : root_(-1, nullptr) {}
 
-  void Insert(const std::vector<int> &word);
+  Node *Insert(const std::vector<int> &word);
   Node *Search(const std::vector<int> &word);
 
   bool HasSubset(const std::vector<int> &word);
