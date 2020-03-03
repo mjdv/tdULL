@@ -36,6 +36,14 @@ SubGraph::SubGraph(std::vector<Vertex *> &&v, std::vector<bool> &&m)
 }
 SubGraph::SubGraph() : mask(full_graph.N, false) {}
 
+std::vector<Vertex *> SubGraph::Adj(Vertex *v) {
+  assert(mask[v->n]);
+  std::vector<Vertex *> result;
+  for (Vertex *child : v->adj)
+    if (mask[child->n]) result.emplace_back(child);
+  return result;
+}
+
 SubGraph SubGraph::WithoutVertex(Vertex *v) {
   SubGraph result;
   result.vertices.reserve(vertices.size());

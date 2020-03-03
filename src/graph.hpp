@@ -26,6 +26,9 @@ struct SubGraph {
   SubGraph(std::vector<Vertex *> &&vertices, std::vector<bool> &&mask);
   SubGraph();
 
+  // Get the adjacency for a vertex inside this subgraph.
+  std::vector<Vertex *> Adj(Vertex *v);
+
   // Create a new subgraph withouth the given vertex.
   SubGraph WithoutVertex(Vertex *v);
 
