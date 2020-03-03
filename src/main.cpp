@@ -49,7 +49,10 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
             [&](Vertex *v1, Vertex *v2) {
               return G.Adj(v1).size() > G.Adj(v2).size();
             });
-  assert(G.Adj(sorted_vertices[0]).size() >= G.Adj(sorted_vertices[1]).size());
+  if (sorted_vertices.size() >= 2)
+    assert(G.Adj(sorted_vertices[0]).size() >=
+           G.Adj(sorted_vertices[1]).size());
+
   for (auto v : sorted_vertices) {
     int search_ubnd_v = std::min(search_ubnd - 1, upper - 1);
     int search_lbnd_v = search_lbnd - 1;
