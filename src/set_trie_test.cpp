@@ -1,7 +1,7 @@
 #include "set_trie.hpp"
 
 #include <assert.h>
-
+#include <climits>
 #include <iostream>
 
 int main() {

@@ -1,4 +1,4 @@
-CPPFLAGS=-std=c++17 -O3 -Wall -g
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare
 
 all: set_trie_test graph_test main
 
