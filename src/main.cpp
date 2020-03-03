@@ -15,25 +15,19 @@ void CacheInsert(const SubGraph &G, int lower, int upper, int root) {
 
 std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
                               int search_ubnd) {
-    if (search_ubnd <= 1 || search_lbnd >= G.vertices.size()) {
+    /*if (search_ubnd <= 1 || search_lbnd >= G.vertices.size()) {
         CacheInsert(G, 1, G.vertices.size(), G.vertices[0]->n);
         return std::make_pair(1, G.vertices.size());
-    }
+    }*/
 
     int lower = 1, upper = G.vertices.size();
-    int current_root = -1;
-    for(auto node : cache.AllSubsets(G)) {
-        if(node->data.lower_bound > lower) {
-            lower = node->data.lower_bound;
-            current_root = node->data.root;
-        }
-    }
-    for(auto node : cache.AllSupersets(G)) {
-        if(node->data.upper_bound < upper) {
-            upper = node->data.upper_bound;
-            // TODO: This may not make sense.
-            current_root = node->data.root;
-        }
+    int current_root = G.vertices[0]->n;
+
+    auto node = cache.Search(G);
+    if(node != nullptr) {
+        lower = node->data.lower_bound; 
+        upper = node->data.upper_bound;
+        current_root = node->data.root;
     }
 
     if(search_ubnd <= lower || search_lbnd >= upper) {
@@ -42,11 +36,9 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     }
 
     int new_lower = 0;
-
-    int best_root = -1;
     for(auto v : G.vertices) {
         int search_ubnd_v = std::min(search_ubnd - 1, upper - 1);
-        int search_lbnd_v = search_lbnd - 1;
+        int search_lbnd_v = std::max(search_lbnd - 1, lower - 1);
 
         int upper_from_v = 0;
         int lower_from_v = lower - 1;
@@ -74,7 +66,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
     lower = std::min(lower, new_lower);
 
-    CacheInsert(G, lower, upper, best_root);
+    CacheInsert(G, lower, upper, current_root);
     return std::make_pair(lower, upper);
 }
 

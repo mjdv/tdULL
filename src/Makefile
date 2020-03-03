@@ -12,7 +12,7 @@ graph_test: graph_test.o graph.o
 	g++ -o $@ $^
 
 clean:
-	rm set_trie_test *.o graph_test
+	rm set_trie_test *.o graph_test main *.d
 
 %.o : %.cpp
 	g++ $(CPPFLAGS) -c $< -o $@
