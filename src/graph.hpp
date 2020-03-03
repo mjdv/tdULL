@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 struct Vertex {
   int n;                      // The index of this vertex.
