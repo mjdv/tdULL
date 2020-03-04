@@ -1,6 +1,7 @@
 #include "graph.hpp"
 
 #include <cassert>
+#include <queue>
 
 Graph full_graph;
 SubGraph full_graph_as_sub;
@@ -16,7 +17,7 @@ Graph::Graph(std::istream &stream) {
   // Create the vector of vertices.
   vertices.reserve(N);
   for (int v = 0; v < N; v++) vertices.emplace_back(v);
-
+  adj.resize(N);
   for (int e = 0; e < M; e++) {
     int a, b;
     stream >> a >> b;
@@ -24,48 +25,31 @@ Graph::Graph(std::istream &stream) {
     // Make them zero indexed.
     a--, b--;
 
-    vertices[a].adj.emplace_back(&vertices[b]);
-    vertices[b].adj.emplace_back(&vertices[a]);
+    adj[a].emplace_back(&vertices[b]);
+    adj[b].emplace_back(&vertices[a]);
   }
 }
 
-SubGraph::SubGraph(std::vector<Vertex *> &&v, std::vector<bool> &&m)
-    : vertices(std::move(v)), mask(std::move(m)) {
-  assert(vertices.size());
-  assert(mask.size() == full_graph.N);
-}
 SubGraph::SubGraph() : mask(full_graph.N, false) {}
 
-std::vector<Vertex *> SubGraph::Adj(Vertex *v) const {
+const std::vector<Vertex *> &SubGraph::Adj(Vertex *v) const {
   assert(mask[v->n]);
-  std::vector<Vertex *> result;
-  for (Vertex *child : v->adj)
-    if (mask[child->n]) result.emplace_back(child);
-  return result;
+  return adj.at(v);
 }
 
-SubGraph SubGraph::WithoutVertex(Vertex *v) const {
-  SubGraph result;
-  result.vertices.reserve(vertices.size());
-  for (Vertex *vertex : vertices)
-    if (vertex != v) {
-      result.vertices.emplace_back(vertex);
-      result.mask[vertex->n] = true;
-    }
-  // Verify that we indeed remove something.
-  assert(result.vertices.size() < vertices.size());
-  return result;
-}
-
-std::vector<SubGraph> SubGraph::ConnectedComponents() const {
+std::vector<SubGraph> SubGraph::WithoutVertex(Vertex *w) const {
+  assert(mask[w->n]);
   std::vector<SubGraph> cc;
-  std::vector<Vertex *> stack;
+  static std::vector<Vertex *> stack;
 
   // Initiate a DFS from all of the vertices inside this subgraph.
-  for (auto root : vertices)
+  int vertices_left = vertices.size();
+  for (auto root : vertices) {
+    if (vertices_left == 0) break;
+    if (root == w) continue;
     if (!root->visited) {
       SubGraph component;
-      component.vertices.reserve(vertices.size());
+      component.vertices.reserve(vertices_left);
 
       stack.emplace_back(root);
       root->visited = true;
@@ -73,34 +57,75 @@ std::vector<SubGraph> SubGraph::ConnectedComponents() const {
         Vertex *v = stack.back();
         stack.pop_back();
 
-        // Add this vertex to the component.
+        // Insert this vertex into the component.
         component.vertices.emplace_back(v);
         component.mask[v->n] = true;
+        vertices_left--;
+
+        // Find the (trimmed) adjacency list for vertex.
+        std::vector<Vertex *> nghbrs;
+        nghbrs.reserve(Adj(v).size());
+        for (Vertex *nghb : Adj(v))
+          if (nghb != w) nghbrs.emplace_back(nghb);
+
+        // Insert this adjacency list into the component.
+        component.M += nghbrs.size();
+        auto [it, inserted] = component.adj.emplace(v, std::move(nghbrs));
+        assert(inserted);
 
         // Recurse.
-        for (Vertex *child : v->adj)
-          if (mask[child->n] && !child->visited) {
-            stack.emplace_back(child);
-            child->visited = true;
+        for (Vertex *nghb : it->second)
+          if (!nghb->visited) {
+            stack.emplace_back(nghb);
+            nghb->visited = true;
           }
       }
+
+      assert(component.M % 2 == 0);
+      component.M /= 2;
       cc.emplace_back(std::move(component));
     }
+  }
 
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
   return cc;
 }
 
+std::vector<Vertex *> SubGraph::Bfs(Vertex *root) const {
+  assert(mask[root->n]);
+
+  std::vector<Vertex *> result;
+  result.reserve(vertices.size());
+
+  static std::queue<Vertex *> queue;
+  queue.push(root);
+  root->visited = true;
+  while (!queue.empty()) {
+    Vertex *v = queue.front();
+    queue.pop();
+    result.emplace_back(v);
+    for (Vertex *nghb : Adj(v))
+      if (!nghb->visited) {
+        queue.push(nghb);
+        nghb->visited = true;
+      }
+  }
+  // Reset the visited field.
+  for (auto v : result) v->visited = false;
+  return result;
+}
+
 void LoadGraph(std::istream &stream) {
   full_graph = Graph(stream);
 
   // Create the subgraph.
-  std::vector<bool> mask(full_graph.N, true);
-  std::vector<Vertex *> vertices;
-  vertices.reserve(full_graph.N);
-  for (Vertex &vertex : full_graph.vertices) vertices.emplace_back(&vertex);
-  full_graph_as_sub = SubGraph(std::move(vertices), std::move(mask));
+  full_graph_as_sub.mask = std::vector<bool>(full_graph.N, true);
+  for (Vertex &vertex : full_graph.vertices) {
+    full_graph_as_sub.vertices.emplace_back(&vertex);
+    full_graph_as_sub.adj.emplace(&vertex, full_graph.adj.at(vertex.n));
+  }
+  full_graph_as_sub.M = full_graph.M;
 
   std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
             << full_graph.M << " edges. " << std::endl;
