@@ -54,7 +54,7 @@ class SetTrie {
  public:
   SetTrie() : root_(-1, nullptr) {}
 
-  Node *Insert(const std::vector<int> &word);
+  std::pair<Node *, bool> Insert(const std::vector<int> &word);
   Node *Search(const std::vector<int> &word);
 
   bool HasSubset(const std::vector<int> &word);

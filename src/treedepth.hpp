@@ -22,6 +22,15 @@
 //   removed is also in the cache.
 SetTrie cache;
 
+// Little helper function to update information in the cache.
+std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
+                                int root) {
+  node->data.lower_bound = lower_bound;
+  node->data.upper_bound = upper_bound;
+  node->data.root = root;
+  return std::pair{lower_bound, upper_bound};
+};
+
 // The function treedepth computes Treedepth bounds on subgraphs of the global
 // graph.
 //
@@ -53,16 +62,20 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   int lower = G.M / N + 1, upper = N;
 
-  // Check whether this graph is in the cache.
-  auto node = cache.Search(G);
-  if (node != nullptr) {
-    lower = node->data.lower_bound;
-    upper = node->data.upper_bound;
-  } else {
-    node = cache.Insert(G);
+  // Add this graph to the cache.
+  Node *node;
+  bool inserted;
+  std::tie(node, inserted) = cache.Insert(G);
+
+  if (inserted) {
+    // If this graph wasn't in the cache, store the trivial bounds.
     node->data.lower_bound = lower;
     node->data.upper_bound = upper;
     node->data.root = G.vertices[0]->n;
+  } else {
+    // This graph was in the cache, retrieve lower/upper bounds.
+    lower = node->data.lower_bound;
+    upper = node->data.upper_bound;
   }
 
   // If the trivial or previously found bounds suffice, we are done.
@@ -70,22 +83,14 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     return {lower, upper};
   }
 
-  // Little helper function to add lower/upper/root to cache.
-  auto CacheInsert = [node](int lower_bound, int upper_bound, int root) {
-    node->data.lower_bound = lower_bound;
-    node->data.upper_bound = upper_bound;
-    node->data.root = root;
-    return std::pair{lower_bound, upper_bound};
-  };
-
   // We do a quick check for special cases we can answer exactly and
   // immediately.
-  if (G.IsCompleteGraph()) return CacheInsert(N, N, G.vertices[0]->n);
+  if (G.IsCompleteGraph()) return CacheUpdate(node, N, N, G.vertices[0]->n);
   if (G.IsStarGraph()) {
     // Find node with max_degree.
     for (int v = 0; v < G.vertices.size(); ++v)
       if (G.Adj(v).size() == G.max_degree)
-        return CacheInsert(2, 2, G.vertices[v]->n);
+        return CacheUpdate(node, 2, 2, G.vertices[v]->n);
   }
   if (G.IsPathGraph()) {
     // Find the bound
@@ -96,7 +101,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     for (int v = 0; v < G.vertices.size(); ++v)
       if (G.Adj(v).size() == 1) {
         auto bfs = G.Bfs(v);
-        return CacheInsert(bnd, bnd, G.vertices[bfs[bfs.size() / 2]]->n);
+        return CacheUpdate(node, bnd, bnd, G.vertices[bfs[bfs.size() / 2]]->n);
       }
   }
 

@@ -9,12 +9,15 @@ bool IsAscending(const std::vector<int> &word) {
   return true;
 }
 
-Node *SetTrie::Insert(const std::vector<int> &word) {
+std::pair<Node *, bool> SetTrie::Insert(const std::vector<int> &word) {
   assert(IsAscending(word));
   Node *node = &root_;
   for (auto n : word) node = node->FindOrCreateChild(n);
+
+  // Check whether a new set was added to the cache.
+  bool inserted = (node->flag_last == false);
   node->flag_last = true;
-  return node;
+  return {node, inserted};
 }
 
 Node *SetTrie::Search(const std::vector<int> &word) {
