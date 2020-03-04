@@ -5,6 +5,8 @@
 #include "graph.hpp"
 #include "set_trie.hpp"
 
+#include <ctime>
+
 SetTrie cache;
 
 std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
@@ -21,10 +23,22 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     }
 
     // If the trivial or previously found bounds suffice, we are done.
-    if (search_ubnd <= lower || search_lbnd >= upper) {
+    if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
         return std::make_pair(lower, upper);
     }
 
+    // Try to find a better lower bound by looking at cached subsets.
+    for(auto subset : cache.AllSubsets(G)) {
+        lower = std::max(lower, subset->data.lower_bound);
+    }
+
+    // Was this bound sufficient for our current purposes?
+    if (search_ubnd <= lower || lower == upper) {
+        node = cache.Insert(G);
+        node->data.lower_bound = lower;
+        node->data.upper_bound = upper;
+        return std::make_pair(lower, upper);
+    }
 
     // Main loop: try every vertex as root.
     // new_lower tries to find a new treedepth lower bound on this subgraph.
@@ -63,10 +77,10 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
             upper = upper_v + 1;
         }
 
-        if(upper <= search_lbnd) {
+        if(upper <= search_lbnd || lower == upper) {
             // Choosing root v already gives us a treedepth decomposition which
-            // is good enough (a sister branch is at least this long) so we can
-            // use v as our root for now.
+            // is good enough (a sister branch is at least this long) or
+            // optimal (lower == upper) so we can use v as our root for now.
             node = cache.Insert(G);
             node->data.lower_bound = lower;
             node->data.upper_bound = upper;
@@ -116,12 +130,24 @@ int main(int argc, char **argv) {
     input.open(argv[1], std::ios::in);
     LoadGraph(input);
     input.close();
+
+    time_t start, end;
+
     std::cout << "treedepth_trivial gives result:" << std::endl;
+
+    time(&start);
     std::cout << treedepth_trivial(full_graph_as_sub) << std::endl;
+    time(&end);
+    std::cout << "Elapsed time is " << difftime(end, start) << " seconds.\n";
+
     cache = SetTrie();
+
     std::cout << "treedepth gives result:" << std::endl;
+
+    time(&start);
     std::cout << treedepth(full_graph_as_sub, 1,
-                           full_graph_as_sub.vertices.size())
-              .second
+                           full_graph_as_sub.vertices.size()).second
               << std::endl;
+    time(&end);
+    std::cout << "Elapsed time is " << difftime(end, start) << " seconds.\n";
 }
