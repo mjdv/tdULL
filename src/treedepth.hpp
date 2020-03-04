@@ -73,7 +73,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   // If the trivial or previously found bounds suffice, we are done.
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
-    return std::make_pair(lower, upper);
+    return {lower, upper};
   }
 
   // Create vector with numbers 0 .. N - 1
@@ -131,7 +131,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       node = cache.Insert(G);
       node->data.lower_bound = lower;
       node->data.upper_bound = upper;
-      return std::make_pair(lower, upper);
+      return {lower, upper};
     }
   }
 
@@ -140,7 +140,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   node->data.lower_bound = lower;
   node->data.upper_bound = upper;
 
-  return std::make_pair(lower, upper);
+  return {lower, upper};
 }
 
 // Little helper function that returns the treedepth for the given graph.
