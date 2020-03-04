@@ -1,7 +1,7 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
-
+#include <ctime>
 #include "graph.hpp"
 #include "set_trie.hpp"
 
@@ -44,8 +44,11 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   // Main loop: try every vertex as root.
   // new_lower tries to find a new treedepth lower bound on this subgraph.
+  bool skip_leaves = G.vertices.size() > 2;
   int new_lower = N;
   for (auto v : sorted_vertices) {
+    if(skip_leaves && G.Adj(v).size() == 1)
+        continue;
     int search_ubnd_v = std::min(search_ubnd - 1, upper - 1);
     int search_lbnd_v = std::max(search_lbnd - 1, 1);
 
@@ -95,29 +98,6 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   return std::make_pair(lower, upper);
 }
 
-int treedepth_trivial(const SubGraph &G) {
-  if (G.vertices.size() == 1) return 1;
-
-  auto node = cache.Search(G);
-  if (node != nullptr) {
-    return node->data.upper_bound;
-  }
-
-  int td = G.vertices.size();
-  for (auto v : G.vertices) {
-    int td_for_this_root = 0;
-
-    for (auto cc : G.WithoutVertex(v)) {
-      td_for_this_root = std::max(td_for_this_root, treedepth_trivial(cc) + 1);
-    }
-    td = std::min(td, td_for_this_root);
-  }
-
-  node = cache.Insert(G);
-  node->data.upper_bound = td;
-  return td;
-}
-
 int main(int argc, char **argv) {
   if (argc != 3) {
     // std::cerr << "Expecting 2 arguments." << std::endl;
@@ -128,12 +108,14 @@ int main(int argc, char **argv) {
   input.open(argv[1], std::ios::in);
   LoadGraph(input);
   input.close();
+
+  time_t start, end;
+  time(&start);
   std::cout << "treedepth gives result:" << std::endl;
   std::cout << treedepth(full_graph_as_sub, 1,
                          full_graph_as_sub.vertices.size())
                    .second
             << std::endl;
-  cache = SetTrie();
-  std::cout << "treedepth_trivial gives result:" << std::endl;
-  std::cout << treedepth_trivial(full_graph_as_sub) << std::endl;
+  time(&end);
+  std::cout << "Elapsed time is " << difftime(end, start) << " seconds.\n";
 }
