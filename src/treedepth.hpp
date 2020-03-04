@@ -50,19 +50,8 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
                               int search_ubnd) {
   int N = G.vertices.size();
 
-  // We do a quick check for special cases we can answer exactly and
-  // immediately.
-  if (G.IsCompleteGraph()) return {N, N};
-  if (G.IsPathGraph()) {
-    int bnd = 1;
-    while (N >>= 1) bnd++;
-    return {bnd, bnd};
-  }
-  if (G.IsStarGraph()) {
-    return {2, 2};
-  }
 
-  int lower = 1, upper = N;
+  int lower = G.M/N + 1, upper = N;
 
   // Check whether this graph is in the cache.
   auto node = cache.Search(G);
@@ -74,6 +63,18 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // If the trivial or previously found bounds suffice, we are done.
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
     return {lower, upper};
+  }
+
+  // We do a quick check for special cases we can answer exactly and
+  // immediately.
+  if (G.IsCompleteGraph()) return {N, N};
+  if (G.IsPathGraph()) {
+    int bnd = 1;
+    while (N >>= 1) bnd++;
+    return {bnd, bnd};
+  }
+  if (G.IsStarGraph()) {
+    return {2, 2};
   }
 
   // Create vector with numbers 0 .. N - 1
