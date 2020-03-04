@@ -1,84 +1,87 @@
 #include <fstream>
 #include <iostream>
+#include <cassert>
 
 #include "graph.hpp"
 #include "set_trie.hpp"
 
 SetTrie cache;
 
-void CacheInsert(const SubGraph &G, int lower, int upper, int root) {
-    auto node = cache.Insert(G);
-    node->data.lower_bound = lower;
-    node->data.upper_bound = upper;
-    node->data.root = root;
-}
-
 std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
                               int search_ubnd) {
-    /*if (search_ubnd <= 1 || search_lbnd >= G.vertices.size()) {
-        CacheInsert(G, 1, G.vertices.size(), G.vertices[0]->n);
-        return std::make_pair(1, G.vertices.size());
-    }*/
 
     int lower = 1, upper = G.vertices.size();
-    int current_root = G.vertices[0]->n;
 
+    // If you are already in the cache (exact match) we can use the lower and
+    // upper from where we left off.
     auto node = cache.Search(G);
-    if(node != nullptr) {
+    if (node != nullptr) {
         lower = node->data.lower_bound;
         upper = node->data.upper_bound;
-        current_root = node->data.root;
     }
 
+    // If the trivial or previously found bounds suffice, we are done.
     if (search_ubnd <= lower || search_lbnd >= upper) {
-        CacheInsert(G, lower, upper, current_root);
         return std::make_pair(lower, upper);
     }
 
-    int new_lower = 0;
-    auto sorted_vertices = G.vertices;
-    std::sort(sorted_vertices.begin(), sorted_vertices.end(),
-    [&](Vertex *v1, Vertex *v2) {
-        return G.Adj(v1).size() > G.Adj(v2).size();
-    });
-    assert(G.Adj(sorted_vertices[0]).size() >= G.Adj(sorted_vertices[1]).size());
-    for(auto v : G.vertices) {
-        int search_ubnd_v = std::min(search_ubnd - 1, upper - 1);
-        int search_lbnd_v = std::max(search_lbnd - 1, lower - 1);
 
-        int upper_from_v = 0;
-        int lower_from_v = lower - 1;
+    // Main loop: try every vertex as root.
+    // new_lower tries to find a new treedepth lower bound on this subgraph.
+    int new_lower = G.vertices.size();
+    for (auto v : G.vertices) {
+        int search_ubnd_v = std::min(search_ubnd - 1, upper - 1);
+        int search_lbnd_v = std::max(search_lbnd - 1, 1);
+
+        int upper_v = 0;
+        int lower_v = lower - 1;
+
+        bool early_break = false;
 
         for (auto H : G.WithoutVertex(v).ConnectedComponents()) {
-            auto pr = treedepth(H, search_lbnd - 1, search_ubnd_v);
+            auto pr = treedepth(H, search_lbnd_v, search_ubnd_v);
             int lower_H = pr.first;
             int upper_H = pr.second;
 
-            if (lower_H >= search_ubnd_v) break;
-
-            upper_from_v = std::max(upper_from_v, upper_H);
-            lower_from_v = std::min(lower_from_v, lower_H);
+            upper_v = std::max(upper_v, upper_H);
+            lower_v = std::max(lower_v, lower_H);
 
             search_lbnd_v = std::max(search_lbnd_v, lower_H);
+
+            if (lower_H >= search_ubnd_v) {
+                // This component already shows that there's no reason to
+                // continue trying with vertex v.
+                early_break = true;
+                break;
+            }
         }
 
-        new_lower = std::max(new_lower, lower_from_v + 1);
-        if (upper <= upper_from_v) {
-            upper = upper_from_v;
-            current_root = v->n;
+        new_lower = std::min(new_lower, lower_v + 1);
+        // The upper bound we found for v is only meaningful if we didn't break
+        // early.
+        if (upper >= upper_v + 1 && !early_break) {
+            upper = upper_v + 1;
         }
 
-        if(search_lbnd >= upper || lower == upper) {
-            CacheInsert(G, lower, upper, current_root);
+        if(upper <= search_lbnd) {
+            // Choosing root v already gives us a treedepth decomposition which
+            // is good enough (a sister branch is at least this long) so we can
+            // use v as our root for now.
+            node = cache.Insert(G);
+            node->data.lower_bound = lower;
+            node->data.upper_bound = upper;
             return std::make_pair(lower, upper);
         }
     }
 
-    lower = std::min(lower, new_lower);
+    lower = std::max(lower, new_lower);
+    node = cache.Insert(G);
+    node->data.lower_bound = lower;
+    node->data.upper_bound = upper;
 
-    CacheInsert(G, lower, upper, current_root);
     return std::make_pair(lower, upper);
 }
+
 
 int treedepth_trivial(const SubGraph &G) {
     if (G.vertices.size() == 1) return 1;
@@ -105,7 +108,7 @@ int treedepth_trivial(const SubGraph &G) {
 
 int main(int argc, char **argv) {
     if (argc != 3) {
-        std::cerr << "Expecting 2 arguments." << std::endl;
+        //std::cerr << "Expecting 2 arguments." << std::endl;
         return 1;
     }
 
@@ -113,6 +116,12 @@ int main(int argc, char **argv) {
     input.open(argv[1], std::ios::in);
     LoadGraph(input);
     input.close();
-
-    std::cout << treedepth(full_graph_as_sub, 1, full_graph_as_sub.vertices.size()).second << std::endl;
+    std::cout << "treedepth_trivial gives result:" << std::endl;
+    std::cout << treedepth_trivial(full_graph_as_sub) << std::endl;
+    cache = SetTrie();
+    std::cout << "treedepth gives result:" << std::endl;
+    std::cout << treedepth(full_graph_as_sub, 1,
+                           full_graph_as_sub.vertices.size())
+              .second
+              << std::endl;
 }
