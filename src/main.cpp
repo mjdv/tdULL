@@ -2,6 +2,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 
 #include "graph.hpp"
 #include "set_trie.hpp"
@@ -36,12 +37,14 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     return std::make_pair(lower, upper);
   }
 
-  // Sort the vertices of G on their degree.
-  auto sorted_vertices = G.vertices;
-  std::sort(sorted_vertices.begin(), sorted_vertices.end(),
-            [&](Vertex *v1, Vertex *v2) {
-              return G.Adj(v1).size() > G.Adj(v2).size();
-            });
+  // Create vector with numbers 0 .. N - 1
+  std::vector<int> sorted_vertices(G.vertices.size());
+  std::iota(sorted_vertices.begin(), sorted_vertices.end(), 0);
+
+  // Sort the vertices based on the degree.
+  std::sort(
+      sorted_vertices.begin(), sorted_vertices.end(),
+      [&](int v1, int v2) { return G.Adj(v1).size() > G.Adj(v2).size(); });
 
   // Main loop: try every vertex as root.
   // new_lower tries to find a new treedepth lower bound on this subgraph.
