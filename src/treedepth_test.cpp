@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
   time(&start_total);
   for (auto [fn, true_depth] : truth_values) {
     time_t start, end;
+    std::cout << "Loading example " << fn << "." << std::endl;
     time(&start);
     std::ifstream input(root + fn, std::ios::in);
     LoadGraph(input);
@@ -25,8 +26,9 @@ int main(int argc, char **argv) {
       return 1;
     }
     time(&end);
-    std::cout << "Example " << fn << " took " << difftime(end, start)
-              << " seconds." << std::endl;
+    std::cout << "Example took " << difftime(end, start) << " seconds."
+              << std::endl
+              << std::endl;
   }
   time(&end_total);
   std::cout << "All examples took " << difftime(end_total, start_total)
