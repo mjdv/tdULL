@@ -1,2 +1,4 @@
 
 *.dSYM
+tags
+*.swp
