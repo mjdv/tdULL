@@ -12,7 +12,7 @@ else
 fi
 
 INPUTDIR="../input/exact/"
-OUTPUTDIR="../output/"
+OUTPUTDIR="../output/exact/"
 GO=0
 
 
@@ -28,11 +28,10 @@ for f in ${INPUTDIR}*; do
     if [ "$GO" == 1 ] ; then
       echo "Graph ${graph}"
       ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree;
+      ./verify ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree;
     fi
 
     if [ "${graph}" = "$UNTIL" ] ; then
       break;
     fi
-done  
-
-
+done
