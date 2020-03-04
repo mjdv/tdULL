@@ -2,6 +2,9 @@
 CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare
 
 N=001
+F=001
+T=199
+
 INPUT_DIR=../input/exact
 OUTPUT_DIR=../output
 
@@ -11,7 +14,10 @@ instance: main
 	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
 
 until: main
-	bash until.sh $N
+	bash from_to.sh $(N)
+
+fromto: main
+	bash from_to.sh $(F) $(T)
 
 main: main.o graph.o set_trie.o
 	g++ -o $@ $^
