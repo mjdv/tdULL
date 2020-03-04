@@ -68,7 +68,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     // early.
     if (!early_break) upper = std::min(upper, upper_v + 1);
 
-    if (upper <= search_lbnd) {
+    if (upper <= search_lbnd || lower == upper) {
       // Choosing root v already gives us a treedepth decomposition which
       // is good enough (a sister branch is at least this long) so we can
       // use v as our root for now.
