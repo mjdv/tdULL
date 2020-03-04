@@ -23,7 +23,7 @@ struct Graph {
 };
 
 struct SubGraph {
-  int M;  // Number of edges in this subgraph.
+  int M = 0;  // Number of edges in this subgraph.
 
   std::vector<Vertex *> vertices;  // List of vertices inside this subgraph.
   std::vector<bool> mask;  // Bitset of the vertices inside this subgraph.
@@ -35,11 +35,23 @@ struct SubGraph {
   // Get the adjacency list for a given vertex.
   const std::vector<Vertex *> &Adj(Vertex *v) const;
 
-  // Create a new subgraph withouth the given vertex.
-  SubGraph WithoutVertex(Vertex *v) const;
+  // Create a connected components of the subgraph without the given vertex.
+  std::vector<SubGraph> WithoutVertex(Vertex *v) const;
 
-  // Get all the connected components.
-  std::vector<SubGraph> ConnectedComponents() const;
+  // Do a BFS from the given vertex.
+  std::vector<Vertex *> Bfs(Vertex *v) const;
+
+  // Returns whether this is a complete graph.
+  bool IsCompleteGraph() const {
+    int N = vertices.size();
+    return N * (N - 1) == 2 * M;
+  }
+
+  // Returns whether this is a path graph.
+  bool IsPathGraph() const {
+    int N = vertices.size();
+    return N - 1 == M;
+  }
 
   // Explicit conversion to vector of ints.
   operator std::vector<int>() const {

@@ -15,15 +15,13 @@ int main() {
       << "Removing one vertex at and check number of connected componenets"
       << std::endl;
   for (Vertex* vtx : full_graph_as_sub.vertices) {
-    SubGraph sub = full_graph_as_sub.WithoutVertex(vtx);
-    auto cc = sub.ConnectedComponents();
+    auto cc = full_graph_as_sub.WithoutVertex(vtx);
 
-    std::cout << "\tG\\{" << vtx->n << "} has " << sub.vertices.size()
-              << " vertices and " << cc.size()
+    std::cout << "\tG\\{" << vtx->n << "} has " << cc.size()
               << " connnected components:" << std::endl;
     for (int c = 0; c < cc.size(); c++)
       std::cout << "\t\tComponent " << c << " has " << cc[c].vertices.size()
-                << " vertices." << std::endl;
+                << " vertices and " << cc[c].M << " edges " << std::endl;
   }
 
   return 0;
