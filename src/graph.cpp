@@ -70,6 +70,7 @@ std::vector<SubGraph> SubGraph::WithoutVertex(Vertex *w) const {
 
         // Insert this adjacency list into the component.
         component.M += nghbrs.size();
+        component.max_degree = std::max(component.max_degree, nghbrs.size());
         auto [it, inserted] = component.adj.emplace(v, std::move(nghbrs));
         assert(inserted);
 
@@ -120,12 +121,14 @@ void LoadGraph(std::istream &stream) {
   full_graph = Graph(stream);
 
   // Create the subgraph.
+  full_graph_as_sub.M = full_graph.M;
   full_graph_as_sub.mask = std::vector<bool>(full_graph.N, true);
   for (Vertex &vertex : full_graph.vertices) {
     full_graph_as_sub.vertices.emplace_back(&vertex);
     full_graph_as_sub.adj.emplace(&vertex, full_graph.adj.at(vertex.n));
+    full_graph_as_sub.max_degree = std::max(full_graph_as_sub.max_degree,
+                                            full_graph.adj.at(vertex.n).size());
   }
-  full_graph_as_sub.M = full_graph.M;
 
   std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
             << full_graph.M << " edges. " << std::endl;

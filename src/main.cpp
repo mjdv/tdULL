@@ -11,6 +11,14 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
                               int search_ubnd) {
   int N = G.vertices.size();
   if (G.IsCompleteGraph()) return {N, N};
+  if (G.IsPathGraph()) {
+    int bnd = 1;
+    while (N >>= 1) bnd++;
+    return {bnd, bnd};
+  }
+  if (G.IsStarGraph()) {
+    return {2, 2};
+  }
 
   int lower = 1, upper = N;
 
