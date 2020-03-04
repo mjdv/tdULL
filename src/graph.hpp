@@ -8,7 +8,7 @@ struct Vertex {
   int n;         // The index of this vertex.
   bool visited;  // Field for DFS/BFS.
 
-  Vertex(int n) : n(n) {}
+  Vertex(int n) : n(n), visited(false) {}
 };
 
 struct Graph {

@@ -1,10 +1,10 @@
 #pragma once
 #include <cassert>
+#include <climits>
 #include <map>
 #include <memory>
 #include <stack>
 #include <vector>
-#include <climits>
 
 // The data that we will store inside the Set Trie.
 struct Data {

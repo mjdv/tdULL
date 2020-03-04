@@ -136,6 +136,7 @@ std::vector<int> SubGraph::Bfs(int root) const {
 }
 
 void LoadGraph(std::istream &stream) {
+  full_graph_as_sub = SubGraph();
   full_graph = Graph(stream);
 
   // Create the subgraph.
