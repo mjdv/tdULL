@@ -5,17 +5,55 @@
 #include "graph.hpp"
 #include "set_trie.hpp"
 
+// The global cache (a SetTrie) is what we use to store bounds on treedepths
+// for subsets of the global graph (which correspond to induced subgraphs).
+// Every subgraph that is in the cache comes with three data: a lower_bound, an
+// upper_bound, and a root.
+//
+// The following is expect to be true of the cache and must be maintained:
+// - It contains only connected subgraphs of the connected graph.
+// - The lower_bound contains a proven lower bound on the subgraph.
+// - The upper_bound contains a proven upper bound on the subgraph, where
+// - The root is an element of the subgraph which witnesses this upper_bound,
+//   and furthermore each connected component of the subgraph with the root
+//   removed is also in the cache.
 SetTrie cache;
 
+// The function treedepth computes Treedepth bounds on subgraphs of the global
+// graph.
+//
+// Parameters:
+// - SubGraph G, the graph for which we try to compute treedepth bounds.
+// - int search_lbnd, the lower bound of which treedepths are useful.
+// - int search_ubnd, the upper bound of which treedepths are useful.
+//
+// Returns (as pair<int, int>):
+// - lower: a lower bound on the treedepth of the graph.
+// - upper: an upper bound on the treedepth of the graph.
+//
+// Explanation of the search upper bound: the instance of treedepth that has
+// called this instance may already have a decomposition of depth d of the
+// graph it is decomposing. Then there is no reason to continue the search for
+// this subgraph if its treedepth lower bound exceeds d - 1 (= search_lbnd).
+// Thus we can exit as soon as lower comes above search_ubnd.
+//
+// Explanation of the search lower bound: the instance of treedepth that has
+// called this instance will possibly be calling it on multiple components. If
+// one sister component already has a lower bound on its treedepth of d, then
+// there is no reason to try to get the treedepth of this subgraph any lower
+// than d. Thus if we find a decomposition that can has depth at most d, i.e.
+// upper is at most search_lbnd, we are done.
 std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
                               int search_ubnd) {
   int N = G.vertices.size();
+
+  // We do a quick check for special cases we can answer exactly and
+  // immediately.
   if (G.IsCompleteGraph()) return {N, N};
 
   int lower = 1, upper = N;
 
-  // If you are already in the cache (exact match) we can use the lower and
-  // upper from where we left off.
+  // Check whether this graph is in the cache.
   auto node = cache.Search(G);
   if (node != nullptr) {
     lower = node->data.lower_bound;
@@ -36,8 +74,10 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   // Main loop: try every vertex as root.
   // new_lower tries to find a new treedepth lower bound on this subgraph.
-  bool skip_leaves = G.vertices.size() > 2;
   int new_lower = N;
+  // If the graph has at least 3 vertices, we never want a leaf (degree 1 node)
+  // as a root.
+  bool skip_leaves = G.vertices.size() > 2;
   for (auto v : sorted_vertices) {
     if(skip_leaves && G.Adj(v).size() == 1)
         continue;
@@ -72,9 +112,10 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     if (!early_break) upper = std::min(upper, upper_v + 1);
 
     if (upper <= search_lbnd || lower == upper) {
-      // Choosing root v already gives us a treedepth decomposition which
-      // is good enough (a sister branch is at least this long) so we can
-      // use v as our root for now.
+      // Choosing root v already gives us a treedepth decomposition which is
+      // good enough (either a sister branch is at least this long, or it
+      // matches a previously proved lower bound for this subgraph) so we can
+      // use v as our root.
       node = cache.Insert(G);
       node->data.lower_bound = lower;
       node->data.upper_bound = upper;
@@ -92,7 +133,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
 int main(int argc, char **argv) {
   if (argc != 3) {
-    // std::cerr << "Expecting 2 arguments." << std::endl;
+    std::cerr << "Expecting 2 arguments." << std::endl;
     return 1;
   }
 
