@@ -23,7 +23,8 @@ struct Graph {
 };
 
 struct SubGraph {
-  int M = 0;  // Number of edges in this subgraph.
+  size_t max_degree = 0;  // Max degree of nodes inside this graph.
+  int M = 0;              // Number of edges in this subgraph.
 
   std::vector<Vertex *> vertices;  // List of vertices inside this subgraph.
   std::vector<bool> mask;  // Bitset of the vertices inside this subgraph.
@@ -50,7 +51,13 @@ struct SubGraph {
   // Returns whether this is a path graph.
   bool IsPathGraph() const {
     int N = vertices.size();
-    return N - 1 == M;
+    return (N - 1 == M) && (max_degree < 3);
+  }
+
+  // Returns whether this is a star graph.
+  bool IsStarGraph() const {
+    int N = vertices.size();
+    return (N - 1 == M) && (M == max_degree);
   }
 
   // Explicit conversion to vector of ints.

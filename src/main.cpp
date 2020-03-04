@@ -1,7 +1,8 @@
 #include <cassert>
+#include <ctime>
 #include <fstream>
 #include <iostream>
-#include <ctime>
+
 #include "graph.hpp"
 #include "set_trie.hpp"
 
@@ -50,6 +51,14 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // We do a quick check for special cases we can answer exactly and
   // immediately.
   if (G.IsCompleteGraph()) return {N, N};
+  if (G.IsPathGraph()) {
+    int bnd = 1;
+    while (N >>= 1) bnd++;
+    return {bnd, bnd};
+  }
+  if (G.IsStarGraph()) {
+    return {2, 2};
+  }
 
   int lower = 1, upper = N;
 
@@ -79,8 +88,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // as a root.
   bool skip_leaves = G.vertices.size() > 2;
   for (auto v : sorted_vertices) {
-    if(skip_leaves && G.Adj(v).size() == 1)
-        continue;
+    if (skip_leaves && G.Adj(v).size() == 1) continue;
     int search_ubnd_v = std::min(search_ubnd - 1, upper - 1);
     int search_lbnd_v = std::max(search_lbnd - 1, 1);
 
