@@ -51,7 +51,7 @@ struct SubGraph {
   // Returns whether this is a path graph.
   bool IsPathGraph() const {
     int N = vertices.size();
-    return (N - 1 == M) && max_degree < 3;
+    return (N - 1 == M) && (max_degree < 3);
   }
 
   // Returns whether this is a star graph.

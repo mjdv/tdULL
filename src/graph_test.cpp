@@ -21,7 +21,8 @@ int main() {
               << " connnected components:" << std::endl;
     for (int c = 0; c < cc.size(); c++)
       std::cout << "\t\tComponent " << c << " has " << cc[c].vertices.size()
-                << " vertices and " << cc[c].M << " edges " << std::endl;
+                << " vertices and " << cc[c].M << " edges with max_degree "
+                << cc[c].max_degree << std::endl;
   }
 
   return 0;
