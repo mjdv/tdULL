@@ -97,11 +97,19 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     int bnd = 1;
     while (N >>= 1) bnd++;
 
-    // Find a leaf, do BFS and find middle node.
+    // Find a leaf and then find the middle node.
     for (int v = 0; v < G.vertices.size(); ++v)
       if (G.Adj(v).size() == 1) {
-        auto bfs = G.Bfs(v);
-        return CacheUpdate(node, bnd, bnd, G.vertices[bfs[bfs.size() / 2]]->n);
+        int prev = v;
+        v = G.adj[v][0];
+
+        // Find the middle node.
+        for (int i = 1; i < G.vertices.size() / 2; i++) {
+          int tmp = v;
+          v = (prev ^ G.adj[v][0] ^ G.adj[v][1]);
+          prev = tmp;
+        }
+        return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
       }
   }
 
