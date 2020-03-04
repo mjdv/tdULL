@@ -1,6 +1,17 @@
+
 CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare
 
+N=001
+INPUT_DIR=../input/exact
+OUTPUT_DIR=../output
+
 all: set_trie_test graph_test main
+
+instance: main
+	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
+
+until: main
+	bash until.sh $N
 
 main: main.o graph.o set_trie.o
 	g++ -o $@ $^
@@ -19,3 +30,4 @@ clean:
 	g++ -MM $(CPPFLAGS) $*.cpp > $*.d
 
 -include *.d
+
