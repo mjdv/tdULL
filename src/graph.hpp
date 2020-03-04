@@ -1,22 +1,21 @@
 #pragma once
 #include <algorithm>
 #include <iostream>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 struct Vertex {
   int n;         // The index of this vertex.
   bool visited;  // Field for DFS/BFS.
 
-  Vertex(int n) : n(n) {}
+  Vertex(int n) : n(n), visited(false) {}
 };
 
 struct Graph {
-  int N;                         // Number of vertices in this graph
-  int M;                         // Number of edges in this graph.
-  std::vector<Vertex> vertices;  // Vector containing all vertices.
-  std::vector<std::vector<Vertex *>>
-      adj;  // The adjacency lists for the full graph.
+  int N;                              // Number of vertices in this graph
+  int M;                              // Number of edges in this graph.
+  std::vector<Vertex> vertices;       // Vector containing all vertices.
+  std::vector<std::vector<int>> adj;  // The adjacency lists for the full graph.
 
   Graph(std::istream &stream);
   Graph() : N(0), M(0) {}
@@ -28,19 +27,19 @@ struct SubGraph {
 
   std::vector<Vertex *> vertices;  // List of vertices inside this subgraph.
   std::vector<bool> mask;  // Bitset of the vertices inside this subgraph.
-  std::unordered_map<Vertex *, std::vector<Vertex *>> adj;  // Adjacency list.
+  std::vector<std::vector<int>> adj;  // Adjacency list in local indexing.
 
   // Create an empty SubGraph.
   SubGraph();
 
   // Get the adjacency list for a given vertex.
-  const std::vector<Vertex *> &Adj(Vertex *v) const;
+  const std::vector<int> &Adj(int v) const;
 
   // Create a connected components of the subgraph without the given vertex.
-  std::vector<SubGraph> WithoutVertex(Vertex *v) const;
+  std::vector<SubGraph> WithoutVertex(int v) const;
 
   // Do a BFS from the given vertex.
-  std::vector<Vertex *> Bfs(Vertex *v) const;
+  std::vector<int> Bfs(int v) const;
 
   // Returns whether this is a complete graph.
   bool IsCompleteGraph() const {

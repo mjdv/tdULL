@@ -14,11 +14,11 @@ int main() {
   std::cout
       << "Removing one vertex at and check number of connected componenets"
       << std::endl;
-  for (Vertex* vtx : full_graph_as_sub.vertices) {
-    auto cc = full_graph_as_sub.WithoutVertex(vtx);
+  for (int v = 0; v < full_graph_as_sub.vertices.size(); ++v) {
+    auto cc = full_graph_as_sub.WithoutVertex(v);
 
-    std::cout << "\tG\\{" << vtx->n << "} has " << cc.size()
-              << " connnected components:" << std::endl;
+    std::cout << "\tG\\{" << full_graph_as_sub.vertices[v]->n << "} has "
+              << cc.size() << " connnected components:" << std::endl;
     for (int c = 0; c < cc.size(); c++)
       std::cout << "\t\tComponent " << c << " has " << cc[c].vertices.size()
                 << " vertices and " << cc[c].M << " edges with max_degree "
