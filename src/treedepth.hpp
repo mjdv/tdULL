@@ -113,9 +113,9 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
         }
         return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
       }
-  } else if (G.IsTreeGraph()) {
-    auto [td, root] = treedepth_tree(G);
-    return CacheUpdate(node, td, td, root);
+  // } else if (G.IsTreeGraph()) {
+  //   auto [td, root] = treedepth_tree(G);
+  //   return CacheUpdate(node, td, td, root);
   }
 
   // Create vector with numbers 0 .. N - 1
