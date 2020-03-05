@@ -8,7 +8,7 @@ struct Vertex {
   int n;         // The index of this vertex.
   bool visited;  // Field for DFS/BFS.
 
-  int rank; // field for treedepth on tree calculation
+  int rank;  // field for treedepth on tree calculation
 
   Vertex(int n) : n(n), visited(false) {}
 };
@@ -43,6 +43,10 @@ struct SubGraph {
   // Do a BFS from the given vertex.
   std::vector<int> Bfs(int v) const;
 
+  SubGraph BfsTree(int v) const;
+
+  SubGraph DfsTree(int v) const;
+
   // Returns whether this is a complete graph.
   bool IsCompleteGraph() const {
     int N = vertices.size();
@@ -59,6 +63,12 @@ struct SubGraph {
   bool IsStarGraph() const {
     int N = vertices.size();
     return (N - 1 == M) && (M == max_degree);
+  }
+
+  // Returns whether this is a tree.
+  bool IsTreeGraph() const {
+    int N = vertices.size();
+    return N - 1 == M;
   }
 
   // Explicit conversion to vector of ints.
