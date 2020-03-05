@@ -63,6 +63,8 @@ class SetTrie {
   std::vector<Node *> AllSubsets(const std::vector<int> &word);
   std::vector<Node *> AllSupersets(const std::vector<int> &word);
 
+  std::vector<Node *> BigSubsets(const std::vector<int> &word, int gap);
+
  protected:
   Node root_;
 };

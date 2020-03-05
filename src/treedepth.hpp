@@ -8,6 +8,17 @@
 #include "graph.hpp"
 #include "set_trie.hpp"
 
+// If we look for subsets, how much may those subsets differ from the set we
+// are considering?
+//
+// subset_gap == 0 corresponds to not looking for subsets.
+// subset_gap == INT_MAX corresponds to finding all subsets.
+//
+// Furthermore, we only search those graphs whose vertex count is at least
+// minimal_subset_search_size
+const int subset_gap = 1;
+const int minimal_subset_search_size = 0; 
+
 // The global cache (a SetTrie) is what we use to store bounds on treedepths
 // for subsets of the global graph (which correspond to induced subgraphs).
 // Every subgraph that is in the cache comes with three data: a lower_bound, an
@@ -110,6 +121,19 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
           prev = tmp;
         }
         return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
+      }
+  }
+
+  // If this is not a case we can solve exactly, we try to find a better lower
+  // bound from some of its big subsets.
+  if(G.vertices.size() >= minimal_subset_search_size) {
+      for(auto node : cache.BigSubsets(G, subset_gap)) {
+        lower = std::max(lower, node->data.lower_bound);
+      }
+
+      if (lower >= search_ubnd || lower == upper) {
+        node->data.lower_bound = lower;
+        return {lower, upper};
       }
   }
 
