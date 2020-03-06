@@ -5,7 +5,7 @@
 #include <random>
 
 std::vector<std::vector<int>> RandomPermute(
-    const std::vector<std::vector<int>> &G) {
+    const std::vector<std::vector<int>>& G) {
   std::vector<std::vector<int>> result(G.size());
 
   std::vector<int> mapping(G.size());
@@ -37,6 +37,54 @@ std::vector<std::vector<int>> RandomGraph(int N, double p) {
   return G;
 }
 
+bool isConnected(const std::vector<std::vector<int>>& adj) {
+  int N = adj.size();
+  std::vector<int> stack;
+  std::vector<bool> visited;
+  stack.reserve(N);
+  visited.resize(N, false);
+
+  stack.push_back(0);
+  visited[0] = true;
+
+  while (!stack.empty()) {
+    int v = stack.back();
+    stack.pop_back();
+
+    for (auto w : adj[v]) {
+      if (!visited[w]) {
+        visited[w] = true;
+        stack.push_back(w);
+      }
+    }
+  }
+
+  for (int v = 0; v < N; ++v)
+    if (!visited[v]) return false;
+
+  return true;
+}
+
+bool isCycle(const std::vector<std::vector<int>>& adj) {
+  // Assume adj is connected.
+  for (auto bla : adj)
+    if (bla.size() != 2) return false;
+  return true;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const std::vector<std::vector<int>>& adj) {
+  for (int i = 0; i < adj.size(); ++i) {
+    os << i << " : {";
+    for (int j = 0; j < adj[i].size(); ++j) {
+      if (j) os << ", ";
+      os << adj[i][j];
+    }
+    os << "}" << std::endl;
+  }
+  return os;
+}
+
 int main() {
   std::vector<std::vector<int>> triangle{{1, 2}, {0}, {0}};
   for (int i = 0; i < 10; ++i) {
@@ -47,9 +95,15 @@ int main() {
   srand(0);
   int misses_total = 0;
   int misses_per_g = 0;
+  std::vector<std::vector<int>> G;
   for (int j = 0; j < 1000; ++j) {
     int N = 4;
-    auto G = RandomGraph(N, 0.5);
+
+    /// Find a random connected graph that is not a circle.
+    while (true) {
+      G = RandomGraph(N, 0.5);
+      if (isConnected(G) && !isCycle(G)) break;
+    }
     int M = 0;
     for (auto adj : G) M += adj.size();
     assert(M % 2 == 0);
@@ -61,6 +115,8 @@ int main() {
     for (int i = 0; i < 50; ++i) {
       auto permuted = RandomPermute(G);
       if (!GraphHashIsomorphism(G, permuted)) {
+        std::cout << "G " << std::endl << G;
+        std::cout << "Permuted " << std::endl << permuted << std::endl;
         misses_total++;
         missed = true;
       }
