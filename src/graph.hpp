@@ -8,7 +8,7 @@ struct Vertex {
   int n;         // The index of this vertex.
   bool visited;  // Field for DFS/BFS.
 
-  int rank; // field for treedepth on tree calculation
+  int rank;  // field for treedepth on tree calculation
 
   Vertex(int n) : n(n), visited(false) {}
 };
@@ -59,6 +59,12 @@ struct SubGraph {
   bool IsStarGraph() const {
     int N = vertices.size();
     return (N - 1 == M) && (M == max_degree);
+  }
+
+  // Returns whether this is a cycle graph.
+  bool IsCycleGraph() const {
+    int N = vertices.size();
+    return (M == N) && (max_degree == 2);
   }
 
   // Explicit conversion to vector of ints.
