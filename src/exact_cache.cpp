@@ -1,22 +1,22 @@
 #include "exact_cache.hpp"
 
 uint8_t exact_cache_2[] = {
-#include "exact_cache_2.ipp"
+#include "exact_caches/exact_cache_2.ipp"
 };
 uint8_t exact_cache_3[] = {
-#include "exact_cache_3.ipp"
+#include "exact_caches/exact_cache_3.ipp"
 };
 uint8_t exact_cache_4[] = {
-#include "exact_cache_4.ipp"
+#include "exact_caches/exact_cache_4.ipp"
 };
 uint8_t exact_cache_5[] = {
-#include "exact_cache_5.ipp"
+#include "exact_caches/exact_cache_5.ipp"
 };
 uint8_t exact_cache_6[] = {
-#include "exact_cache_6.ipp"
+#include "exact_caches/exact_cache_6.ipp"
 };
 uint8_t exact_cache_7[] = {
-#include "exact_cache_7.ipp"
+#include "exact_caches/exact_cache_7.ipp"
 };
 
 const std::vector<std::vector<int>> &exactCacheMapping(int N) {
