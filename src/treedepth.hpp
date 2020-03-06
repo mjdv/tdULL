@@ -7,8 +7,8 @@
 #include <set>
 
 #include "graph.hpp"
-#include "treedepth_tree.hpp"
 #include "set_trie.hpp"
+#include "treedepth_tree.hpp"
 
 // The global cache (a SetTrie) is what we use to store bounds on treedepths
 // for subsets of the global graph (which correspond to induced subgraphs).
@@ -113,9 +113,9 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
         }
         return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
       }
-  // } else if (G.IsTreeGraph()) {
-  //   auto [td, root] = treedepth_tree(G);
-  //   return CacheUpdate(node, td, td, root);
+  } else if (G.IsTreeGraph()) {
+    auto [td, root] = treedepth_tree(G);
+    return CacheUpdate(node, td, td, root);
   }
 
   // Create vector with numbers 0 .. N - 1
@@ -123,14 +123,14 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   std::iota(sorted_vertices.begin(), sorted_vertices.end(), 0);
 
   // Sort the vertices based on the degree.
-  std::sort(
+  std::stable_sort(
       sorted_vertices.begin(), sorted_vertices.end(),
       [&](int v1, int v2) { return G.Adj(v1).size() > G.Adj(v2).size(); });
 
-
   if (inserted) {
     // If G is a new graph in the cache, compute its DfsTree-tree depth once.
-    lower = std::max(lower, treedepth_tree(G.DfsTree(sorted_vertices[0])).first);
+    lower =
+        std::max(lower, treedepth_tree(G.DfsTree(sorted_vertices[0])).first);
     node->data.lower_bound = lower;
     // If the trivial or previously found bounds suffice, we are done.
     if (search_ubnd <= lower || lower == upper) {
