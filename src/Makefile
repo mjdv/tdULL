@@ -8,7 +8,7 @@ T=199
 INPUT_DIR=../input/exact
 OUTPUT_DIR=../output
 
-all: set_trie_test graph_test treedepth_test main verify graph_hash_test graph_generate
+all: set_trie_test graph_test treedepth_test main verify graph_generate
 
 instance: main
 	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
@@ -31,9 +31,6 @@ graph_test: graph_test.o graph.o
 treedepth_test: treedepth_test.o graph.o set_trie.o exact_cache.o
 	g++ -o $@ $^
 
-graph_hash_test: graph_hash.o graph_hash_test.o
-	g++ -o $@ $^
-
 graph_generate: graph.o graph_generate.o set_trie.o exact_cache.o
 	g++ -o $@ $^
 
@@ -41,7 +38,7 @@ verify: verify.o
 	g++ -o $@ $^
 
 clean:
-	rm set_trie_test *.o graph_test main *.d treedepth_test graph_hash_test
+	rm set_trie_test *.o graph_test main *.d treedepth_test graph_generate
 
 %.o : %.cpp
 	g++ $(CPPFLAGS) -c $< -o $@
