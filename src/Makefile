@@ -8,7 +8,7 @@ T=199
 INPUT_DIR=../input/exact
 OUTPUT_DIR=../output
 
-all: set_trie_test graph_test treedepth_test main verify
+all: set_trie_test graph_test treedepth_test main verify graph_hash_test
 
 instance: main
 	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
@@ -27,6 +27,10 @@ set_trie_test: set_trie_test.o set_trie.o
 
 graph_test: graph_test.o graph.o
 	g++ -o $@ $^
+
+graph_hash_test: graph_hash.o graph_hash_test.o
+	g++ -o $@ $^
+
 
 treedepth_test: treedepth_test.o graph.o set_trie.o
 	g++ -o $@ $^
