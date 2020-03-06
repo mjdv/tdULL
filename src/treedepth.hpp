@@ -5,6 +5,7 @@
 #include <iostream>
 #include <numeric>
 
+#include "exact_cache.hpp"
 #include "graph.hpp"
 #include "set_trie.hpp"
 
@@ -68,6 +69,15 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   std::tie(node, inserted) = cache.Insert(G);
 
   if (inserted) {
+    if (N < exactCacheSize) {
+      auto [td, root] = exactCache(G.adj);
+      node->data.lower_bound = td;
+      node->data.upper_bound = td;
+      assert(0 <= root && root < N);
+      node->data.root = G.vertices[root]->n;
+      return {td, td};
+    }
+
     // If this graph wasn't in the cache, store the trivial bounds.
     node->data.lower_bound = lower;
     node->data.upper_bound = upper;
