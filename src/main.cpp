@@ -12,6 +12,15 @@ int main(int argc, char **argv) {
   input.close();
 
   time_t start, end;
+
+  /*
+  time(&start);
+  std::cout << "treedepth_tree gives result:" << std::endl;
+  std::cout <<  treedepth_tree(full_graph_as_sub) << std::endl;
+  time(&end);
+  std::cout << "Elapsed time is " << difftime(end, start) << " seconds.\n";
+  */
+
   time(&start);
   std::cout << "treedepth gives result:" << std::endl;
   auto [td, tree] = treedepth(full_graph_as_sub);

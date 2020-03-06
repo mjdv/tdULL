@@ -8,6 +8,8 @@ struct Vertex {
   int n;         // The index of this vertex.
   bool visited;  // Field for DFS/BFS.
 
+  int rank; // field for treedepth on tree calculation
+
   Vertex(int n) : n(n), visited(false) {}
 };
 
