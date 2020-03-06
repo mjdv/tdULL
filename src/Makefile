@@ -32,7 +32,7 @@ graph_hash_test: graph_hash.o graph_hash_test.o
 	g++ -o $@ $^
 
 
-treedepth_test: treedepth_test.o graph.o set_trie.o
+treedepth_test: treedepth_test.o graph.o set_trie.o graph_hash.o
 	g++ -o $@ $^
 
 verify: verify.o

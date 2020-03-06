@@ -72,6 +72,18 @@ bool isCycle(const std::vector<std::vector<int>>& adj) {
   return true;
 }
 
+bool isPath(const std::vector<std::vector<int>>& adj) {
+  int M = 0;
+  int N = adj.size();
+  // Assume adj is connected.
+  for (auto bla : adj) {
+    M += bla.size();
+    if (bla.size() > 2) return false;
+  }
+  M /= 2;
+  return N - 1 == M;
+}
+
 std::ostream& operator<<(std::ostream& os,
                          const std::vector<std::vector<int>>& adj) {
   for (int i = 0; i < adj.size(); ++i) {
@@ -93,16 +105,17 @@ int main() {
   }
 
   srand(0);
-  int misses_total = 0;
-  int misses_per_g = 0;
+  int iso_misses_graphs = 0;
+  int iso_misses_total = 0;
+  int hash_misses = 0;
   std::vector<std::vector<int>> G;
   for (int j = 0; j < 1000; ++j) {
-    int N = 4;
+    int N = 10;
 
     /// Find a random connected graph that is not a circle.
     while (true) {
       G = RandomGraph(N, 0.5);
-      if (isConnected(G) && !isCycle(G)) break;
+      if (isConnected(G) && !isCycle(G) && !isPath(G)) break;
     }
     int M = 0;
     for (auto adj : G) M += adj.size();
@@ -112,16 +125,37 @@ int main() {
     assert(GraphHashIsomorphism(G, G));
 
     bool missed = false;
+    auto G_hashes = GraphHash(G);
     for (int i = 0; i < 50; ++i) {
       auto permuted = RandomPermute(G);
-      if (!GraphHashIsomorphism(G, permuted)) {
-        std::cout << "G " << std::endl << G;
-        std::cout << "Permuted " << std::endl << permuted << std::endl;
-        misses_total++;
+      auto permuted_hashes = GraphHash(permuted);
+      if (G_hashes.first != permuted_hashes.first) hash_misses++;
+
+      // Try multiple times to find a correct isomphism mapping.
+      bool found_isomophism = false;
+      for (int m = 0; m < 10; ++m) {
+        auto [succes, mapping] = GraphHashIsomphismMapping(
+            G, permuted, G_hashes.second, permuted_hashes.second,
+            /* randomize */ true);
+
+        // Assert that we can find _a_ mapping, might not be correct.
+        assert(succes);
+
+        if (GraphIsomorphism(G, permuted, mapping)) {
+          found_isomophism = true;
+          break;
+        }
+      }
+
+      if (!found_isomophism) {
+        iso_misses_total++;
         missed = true;
       }
     }
-    if (missed) misses_per_g++;
+    if (missed) iso_misses_graphs++;
   }
-  std::cout << misses_total << " " << misses_per_g << std::endl;
+  std::cout << "Total of " << hash_misses
+            << " hash misses for isomoprhic graphs." << std::endl;
+  std::cout << "Total of " << iso_misses_total << " isomoprhism misses for "
+            << iso_misses_graphs << " different graphs" << std::endl;
 }

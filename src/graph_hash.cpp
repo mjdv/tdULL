@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
+#include <random>
 #include <set>
 #include <utility>
 
@@ -34,7 +35,7 @@ std::pair<uint32_t, std::vector<uint32_t>> GraphHash(
   // Variable that will hold sorted neighbours.
   std::vector<int> sorted(G.size());
 
-  for (int i = 0; i < G.size(); ++i) {
+  for (int i = 0; i < G.size() / 2 + 1; ++i) {
     hashes_prev = hashes;
 
     // Calculate new hashes.
@@ -70,13 +71,10 @@ std::pair<uint32_t, std::vector<uint32_t>> GraphHash(
 
 std::pair<bool, std::vector<int>> GraphHashIsomphismMapping(
     const std::vector<std::vector<int>>& G1,
-    const std::vector<std::vector<int>>& G2) {
+    const std::vector<std::vector<int>>& G2,
+    const std::vector<uint32_t>& vertex_h1,
+    const std::vector<uint32_t>& vertex_h2, bool randomize) {
   if (G1.size() != G2.size()) return {false, {}};
-  std::vector<uint32_t> vertex_h1, vertex_h2;
-  uint32_t h1, h2;
-  std::tie(h1, vertex_h1) = GraphHash(G1);
-  std::tie(h2, vertex_h2) = GraphHash(G2);
-  if (h1 != h2) return {false, {}};
 
   // This will hold a mapping of G1 <-> G2.
   std::vector<int> mapping(G1.size());
@@ -85,6 +83,14 @@ std::pair<bool, std::vector<int>> GraphHashIsomphismMapping(
   std::vector<int> sorted1(G1.size()), sorted2;
   std::iota(sorted1.begin(), sorted1.end(), 0);
   sorted2 = sorted1;
+
+  // In case we want to randomize and we have double hashes,
+  // shuffle sorted1 for a random mapping.
+  if (randomize) {
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(sorted1.begin(), sorted1.end(), g);
+  }
 
   // Sort the vertices on basis of the hashes.
   std::sort(sorted1.begin(), sorted1.end(), [&vertex_h1](int v1, int v2) {
@@ -134,7 +140,11 @@ bool GraphIsomorphism(const std::vector<std::vector<int>>& G1,
 // Uses a graph hash as heuristic for checking if two graphs are isomporhm.
 bool GraphHashIsomorphism(const std::vector<std::vector<int>>& G1,
                           const std::vector<std::vector<int>>& G2) {
-  auto [succes, mapping] = GraphHashIsomphismMapping(G1, G2);
+  auto G1_hashes = GraphHash(G1);
+  auto G2_hashes = GraphHash(G2);
+  if (G1_hashes.first != G2_hashes.first) return false;
+  auto [succes, mapping] =
+      GraphHashIsomphismMapping(G1, G2, G1_hashes.second, G2_hashes.second);
   if (!succes) return false;
   return GraphIsomorphism(G1, G2, mapping);
 }

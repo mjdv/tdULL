@@ -6,6 +6,7 @@
 #include <numeric>
 
 #include "graph.hpp"
+#include "graph_hash.hpp"
 #include "set_trie.hpp"
 
 // The global cache (a SetTrie) is what we use to store bounds on treedepths
@@ -21,6 +22,8 @@
 //   and furthermore each connected component of the subgraph with the root
 //   removed is also in the cache.
 SetTrie cache;
+
+GraphHashCache hash_cache;
 
 // Little helper function to update information in the cache.
 std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
@@ -112,6 +115,18 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
         return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
       }
   }
+  // Try to see if this exists in the GraphHashCache!
+  // Below assumes the cache is somehow filled.
+  // if (inserted && N * G.M <= 200) {
+  //  auto [hash_data, mapping] = hash_cache.Search(G.adj);
+
+  //  // Found a hash cache match! Return data.
+  //  if (hash_data && !hash_inserted) {
+  //    int td = hash_data->td;
+  //    int root = mapping[hash_data->root];
+  //    return CacheUpdate(node, td, td, G.vertices[root]->n);
+  //  }
+  //}
 
   // Create vector with numbers 0 .. N - 1
   std::vector<int> sorted_vertices(G.vertices.size());
