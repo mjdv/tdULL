@@ -135,6 +135,76 @@ std::vector<int> SubGraph::Bfs(int root) const {
   return result;
 }
 
+SubGraph SubGraph::BfsTree(int root) const {
+  assert(mask[vertices[root]->n]);
+
+  SubGraph result;
+  result.mask = mask;
+  result.vertices.reserve(vertices.size());
+  result.adj.resize(vertices.size());
+
+  static std::queue<int> queue;
+  queue.push(root);
+  vertices[root]->visited = true;
+  while (!queue.empty()) {
+    int v = queue.front();
+    queue.pop();
+    result.vertices.emplace_back(vertices[v]);
+    for (int nghb : Adj(v))
+      if (!vertices[nghb]->visited) {
+        queue.push(nghb);
+        result.adj[v].push_back(nghb);
+        result.adj[nghb].push_back(v);
+        vertices[nghb]->visited = true;
+      }
+  }
+  result.M = vertices.size() - 1;
+  int total_edges = 0;
+  for (int v = 0; v < result.vertices.size(); v++) {
+    result.max_degree = std::max(result.max_degree, result.adj[v].size());
+    total_edges += result.adj[v].size();
+  }
+  assert(result.M == total_edges/2);
+  // Reset the visited field.
+  for (auto vtx : vertices) vtx->visited = false;
+  return result;
+}
+
+SubGraph SubGraph::DfsTree(int root) const {
+  assert(mask[vertices[root]->n]);
+
+  SubGraph result;
+  result.mask = mask;
+  result.vertices.reserve(vertices.size());
+  result.adj.resize(vertices.size());
+
+  static std::vector<int> stack;
+  stack.push_back(root);
+  vertices[root]->visited = true;
+  while (!stack.empty()) {
+    int v = stack.back();
+    stack.pop_back();
+    result.vertices.emplace_back(vertices[v]);
+    for (int nghb : Adj(v))
+      if (!vertices[nghb]->visited) {
+        stack.push_back(nghb);
+        result.adj[v].push_back(nghb);
+        result.adj[nghb].push_back(v);
+        vertices[nghb]->visited = true;
+      }
+  }
+  result.M = vertices.size() - 1;
+  int total_edges = 0;
+  for (int v = 0; v < result.vertices.size(); v++) {
+    result.max_degree = std::max(result.max_degree, result.adj[v].size());
+    total_edges += result.adj[v].size();
+  }
+  assert(result.M == total_edges/2);
+  // Reset the visited field.
+  for (auto vtx : vertices) vtx->visited = false;
+  return result;
+}
+
 void LoadGraph(std::istream &stream) {
   full_graph_as_sub = SubGraph();
   full_graph = Graph(stream);

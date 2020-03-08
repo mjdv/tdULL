@@ -43,6 +43,10 @@ struct SubGraph {
   // Do a BFS from the given vertex.
   std::vector<int> Bfs(int v) const;
 
+  // Compute trees from the given roots.
+  SubGraph BfsTree(int root) const;
+  SubGraph DfsTree(int root) const;
+
   // Returns whether this is a complete graph.
   bool IsCompleteGraph() const {
     int N = vertices.size();
@@ -65,6 +69,12 @@ struct SubGraph {
   bool IsCycleGraph() const {
     int N = vertices.size();
     return (M == N) && (max_degree == 2);
+  }
+
+  // Returns whether this is a tree.
+  bool IsTreeGraph() const {
+    int N = vertices.size();
+    return N - 1 == M;
   }
 
   // Explicit conversion to vector of ints.
