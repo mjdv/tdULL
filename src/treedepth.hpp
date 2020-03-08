@@ -181,15 +181,13 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 }
 
 // Recursive function to reconstruct the tree that atains the treedepth.
-void reconstruct(const SubGraph &G, int root, std::vector<int> &tree) {
+void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
   assert(G.vertices.size());
   auto node = cache.Search(G);
 
-  // Not all subgraphs are neccessarily inside the cache.
-  if (node == nullptr) {
-    treedepth(G, 1, G.vertices.size());
-    node = cache.Search(G);
-  }
+  // Ensure that the cache contains the correct node.
+  treedepth(G, 1, td);
+  node = cache.Search(G);
   assert(node);
   assert(node->data.root > -1);
   tree.at(node->data.root) = root;
@@ -203,67 +201,64 @@ void reconstruct(const SubGraph &G, int root, std::vector<int> &tree) {
     }
   assert(local_root > -1);
   for (auto H : G.WithoutVertex(local_root))
-    reconstruct(H, node->data.root, tree);
+    reconstruct(H, node->data.root, tree, td - 1);
 }
 
-void root_rank(const SubGraph &G, int v, std::vector<std::set<int>> &L, int d){
+void root_rank(const SubGraph &G, int v, std::vector<std::set<int>> &L, int d) {
   int a = 0;
-  for(auto vi: G.Adj(v)){
-    if(!L[vi].empty()){
+  for (auto vi : G.Adj(v)) {
+    if (!L[vi].empty()) {
       a = std::max(a, *L[vi].rbegin());
     }
   }
-  int c = a+1;
-  int avail = a+1;
+  int c = a + 1;
+  int avail = a + 1;
   L[v] = std::set<int>();
 
-  while(G.vertices[v]->rank == -1 && c > -2){
+  while (G.vertices[v]->rank == -1 && c > -2) {
     c--;
 
     int i = -1;
-    // check in how many lists the max element is equal to c, if only one remember 
-    // it in i, if more than 1 set i to -2
-    for(auto vi: G.Adj(v)){
+    // check in how many lists the max element is equal to c, if only one
+    // remember it in i, if more than 1 set i to -2
+    for (auto vi : G.Adj(v)) {
       int ti = L[vi].empty() ? 0 : (*L[vi].rbegin());
-      if(ti == c){
-        if(i != -1){
+      if (ti == c) {
+        if (i != -1) {
           i = -2;
-        }
-        else{
+        } else {
           i = vi;
         }
       }
     }
 
-    if(i==-2 or (c==0 && d==1)){
+    if (i == -2 or (c == 0 && d == 1)) {
       G.vertices[v]->rank = avail;
 
       auto it = L[v].lower_bound(avail);
       L[v].erase(L[v].begin(), it);
       L[v].insert(avail);
-    }
-    else if(i > -1){
+    } else if (i > -1) {
       L[v].insert(c);
       L[i].erase(c);
-    }
-    else if(i == -1){
+    } else if (i == -1) {
       avail = c;
     }
   }
 }
 
-void critical_rank_tree(const SubGraph &G, std::pair<int, int> v, std::vector<std::set<int>> &L){
+void critical_rank_tree(const SubGraph &G, std::pair<int, int> v,
+                        std::vector<std::set<int>> &L) {
   // v.first contains vertex, v.second the previous vertex
-  
+
   // if you are a leaf node and we're not the first node we're visiting
-  if(G.Adj(v.first).size() == 1 && v.first != v.second){
+  if (G.Adj(v.first).size() == 1 && v.first != v.second) {
     G.vertices[v.first]->rank = 1;
     L[v.first] = {1};
-  }
-  else{
+  } else {
     int d = 0;
-    for(auto vi : G.Adj(v.first)){
-      if(vi != v.second){
+    for (auto vi : G.Adj(v.first)) {
+      if (vi != v.second) {
         d++;
         critical_rank_tree(G, std::make_pair(vi, v.first), L);
       }
@@ -272,9 +267,8 @@ void critical_rank_tree(const SubGraph &G, std::pair<int, int> v, std::vector<st
   }
 }
 
-
-int treedepth_tree(const SubGraph&G){
-  for(auto v: G.vertices){
+int treedepth_tree(const SubGraph &G) {
+  for (auto v : G.vertices) {
     v->rank = -1;
   }
 
@@ -282,27 +276,23 @@ int treedepth_tree(const SubGraph&G){
   auto L = std::vector<std::set<int>>(G.vertices.size(), std::set<int>());
   critical_rank_tree(G, std::make_pair(0, 0), L);
 
-  //std::cout << "ranks" << std::endl;
+  // std::cout << "ranks" << std::endl;
   int maxr = 0;
-  for(auto &v: G.vertices){
-    //std::cout << (v->n+1) << " : " << v->rank << std::endl;
+  for (auto &v : G.vertices) {
+    // std::cout << (v->n+1) << " : " << v->rank << std::endl;
     maxr = std::max(maxr, v->rank);
   }
 
   return maxr;
 }
 
-
 // Little helper function that returns the treedepth for the given graph.
 std::pair<int, std::vector<int>> treedepth(const SubGraph &G) {
   cache = SetTrie();
   int td = treedepth(G, 1, G.vertices.size()).second;
   std::vector<int> tree(G.vertices.size(), -2);
-  reconstruct(G, -1, tree);
+  reconstruct(G, -1, tree, td);
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
   for (auto &v : tree) v++;
   return {td, std::move(tree)};
 }
-
-
-
