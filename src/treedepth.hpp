@@ -6,6 +6,7 @@
 #include <numeric>
 #include <set>
 
+#include "exact_cache.hpp"
 #include "graph.hpp"
 #include "set_trie.hpp"
 
@@ -82,15 +83,57 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   bool inserted;
   std::tie(node, inserted) = cache.Insert(G);
 
-  if (inserted) {
+  if (!inserted) {
+    // This graph was in the cache, retrieve lower/upper bounds.
+    lower = node->data.lower_bound;
+    upper = node->data.upper_bound;
+  } else {
     // If this graph wasn't in the cache, store the trivial bounds.
     node->data.lower_bound = lower;
     node->data.upper_bound = upper;
     node->data.root = G.vertices[0]->n;
-  } else {
-    // This graph was in the cache, retrieve lower/upper bounds.
-    lower = node->data.lower_bound;
-    upper = node->data.upper_bound;
+
+    // We do a quick check for special cases we can answer exactly and
+    // immediately.
+    if (N < exactCacheSize) {
+      auto [td, root] = exactCache(G.adj);
+      return CacheUpdate(node, td, td, G.vertices.at(root)->n);
+    }
+    if (G.IsCompleteGraph()) return CacheUpdate(node, N, N, G.vertices[0]->n);
+    if (G.IsStarGraph()) {
+      // Find node with max_degree.
+      for (int v = 0; v < G.vertices.size(); ++v)
+        if (G.Adj(v).size() == G.max_degree)
+          return CacheUpdate(node, 2, 2, G.vertices[v]->n);
+    }
+    if (G.IsCycleGraph()) {
+      // Find the bound, 1 + td of path of length N - 1.
+      N--;
+      int bnd = 2;
+      while (N >>= 1) bnd++;
+      return CacheUpdate(node, bnd, bnd, G.vertices[0]->n);
+    }
+    // Find the bound, this is the ceil(log_2(N)).
+    if (G.IsPathGraph()) {
+      // Find the bound
+      int bnd = 1;
+      while (N >>= 1) bnd++;
+
+      // Find a leaf and then find the middle node.
+      for (int v = 0; v < G.vertices.size(); ++v)
+        if (G.Adj(v).size() == 1) {
+          int prev = v;
+          v = G.adj[v][0];
+
+          // Find the middle node.
+          for (int i = 1; i < G.vertices.size() / 2; i++) {
+            int tmp = v;
+            v = (prev ^ G.adj[v][0] ^ G.adj[v][1]);
+            prev = tmp;
+          }
+          return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
+        }
+    }
   }
 
   // If the trivial or previously found bounds suffice, we are done.
@@ -98,61 +141,24 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     return {lower, upper};
   }
 
-  // We do a quick check for special cases we can answer exactly and
-  // immediately.
-  if (G.IsCompleteGraph()) return CacheUpdate(node, N, N, G.vertices[0]->n);
-  if (G.IsStarGraph()) {
-    // Find node with max_degree.
-    for (int v = 0; v < G.vertices.size(); ++v)
-      if (G.Adj(v).size() == G.max_degree)
-        return CacheUpdate(node, 2, 2, G.vertices[v]->n);
-  }
-  if (G.IsCycleGraph()) {
-    // Find the bound, 1 + td of path of length N - 1.
-    N--;
-    int bnd = 2;
-    while (N >>= 1) bnd++;
-    return CacheUpdate(node, bnd, bnd, G.vertices[0]->n);
-  }
-  if (G.IsPathGraph()) {
-    // Find the bound, this is the ceil(log_2(N)).
-    int bnd = 1;
-    while (N >>= 1) bnd++;
-
-    // Find a leaf and then find the middle node.
-    for (int v = 0; v < G.vertices.size(); ++v)
-      if (G.Adj(v).size() == 1) {
-        int prev = v;
-        v = G.adj[v][0];
-
-        // Find the middle node.
-        for (int i = 1; i < G.vertices.size() / 2; i++) {
-          int tmp = v;
-          v = (prev ^ G.adj[v][0] ^ G.adj[v][1]);
-          prev = tmp;
-        }
-        return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
-      }
-  }
-
-  // Create vector with numbers 0 .. N - 1
-  std::vector<int> sorted_vertices(G.vertices.size());
-  std::iota(sorted_vertices.begin(), sorted_vertices.end(), 0);
+  // If the graph has at least 3 vertices, we never want a leaf (degree 1
+  // node) as a root.
+  assert(G.vertices.size() > 2);
+  std::vector<int> vertices;
+  vertices.reserve(G.vertices.size());
+  for (int v = 0; v < G.vertices.size(); ++v)
+    if (G.Adj(v).size() > 1) vertices.emplace_back(v);
 
   // Sort the vertices based on the degree.
-  std::sort(
-      sorted_vertices.begin(), sorted_vertices.end(),
-      [&](int v1, int v2) { return G.Adj(v1).size() > G.Adj(v2).size(); });
+  std::sort(vertices.begin(), vertices.end(), [&](int v1, int v2) {
+    return G.Adj(v1).size() > G.Adj(v2).size();
+  });
 
   // Main loop: try every vertex as root.
   // new_lower tries to find a new treedepth lower bound on this subgraph.
   int new_lower = N;
 
-  // If the graph has at least 3 vertices, we never want a leaf (degree 1
-  // node) as a root.
-  bool skip_leaves = G.vertices.size() > 2;
-  for (auto v : sorted_vertices) {
-    if (skip_leaves && G.Adj(v).size() == 1) continue;
+  for (auto v : vertices) {
     int search_ubnd_v = std::min(search_ubnd - 1, upper - 1);
     int search_lbnd_v = std::max(search_lbnd - 1, 1);
 
@@ -202,15 +208,13 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 }
 
 // Recursive function to reconstruct the tree that atains the treedepth.
-void reconstruct(const SubGraph &G, int root, std::vector<int> &tree) {
+void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
   assert(G.vertices.size());
   auto node = cache.Search(G);
 
-  // Not all subgraphs are neccessarily inside the cache.
-  if (node == nullptr) {
-    treedepth(G, 1, G.vertices.size());
-    node = cache.Search(G);
-  }
+  // Ensure that the cache contains the correct node.
+  treedepth(G, 1, td);
+  node = cache.Search(G);
   assert(node);
   assert(node->data.root > -1);
   tree.at(node->data.root) = root;
@@ -224,7 +228,7 @@ void reconstruct(const SubGraph &G, int root, std::vector<int> &tree) {
     }
   assert(local_root > -1);
   for (auto H : G.WithoutVertex(local_root))
-    reconstruct(H, node->data.root, tree);
+    reconstruct(H, node->data.root, tree, td - 1);
 }
 
 void root_rank(const SubGraph &G, int v, std::vector<std::set<int>> &L, int d) {
@@ -314,7 +318,7 @@ std::pair<int, std::vector<int>> treedepth(const SubGraph &G) {
   cache = SetTrie();
   int td = treedepth(G, 1, G.vertices.size()).second;
   std::vector<int> tree(G.vertices.size(), -2);
-  reconstruct(G, -1, tree);
+  reconstruct(G, -1, tree, td);
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
   for (auto &v : tree) v++;
   return {td, std::move(tree)};

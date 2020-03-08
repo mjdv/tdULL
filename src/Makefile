@@ -8,7 +8,7 @@ T=199
 INPUT_DIR=../input/exact
 OUTPUT_DIR=../output
 
-all: set_trie_test graph_test treedepth_test main verify
+all: set_trie_test graph_test treedepth_test main verify generate_exact_cache
 
 instance: main
 	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
@@ -19,7 +19,7 @@ until: main
 fromto: main
 	bash from_to.sh $(F) $(T)
 
-main: main.o graph.o set_trie.o
+main: main.o graph.o set_trie.o exact_cache.o
 	g++ -o $@ $^
 
 set_trie_test: set_trie_test.o set_trie.o
@@ -28,14 +28,23 @@ set_trie_test: set_trie_test.o set_trie.o
 graph_test: graph_test.o graph.o
 	g++ -o $@ $^
 
-treedepth_test: treedepth_test.o graph.o set_trie.o
+treedepth_test: treedepth_test.o graph.o set_trie.o exact_cache.o
+	g++ -o $@ $^
+
+generate_exact_cache: graph.o generate_exact_cache.o set_trie.o exact_cache.o
 	g++ -o $@ $^
 
 verify: verify.o
 	g++ -o $@ $^
 
 clean:
-	rm set_trie_test *.o graph_test main *.d treedepth_test
+	rm set_trie_test *.o graph_test main *.d treedepth_test generate_exact_cache
+
+exact_cache.o : exact_caches/exact_cache_8.bin
+exact_caches/exact_cache_8.bin: exact_caches/exact_cache_8.bin.gz
+	gunzip < $^ > $@
+
+
 
 %.o : %.cpp
 	g++ $(CPPFLAGS) -c $< -o $@
