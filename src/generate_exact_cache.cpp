@@ -9,6 +9,7 @@
 using ull = unsigned long long;
 constexpr ull N = 8;
 constexpr ull M = N * (N - 1) / 2;
+std::string filename = "exact_cache_" + std::to_string(N) + ".bin";
 
 std::array<std::array<int16_t, N>, N> mapping;
 
@@ -59,6 +60,9 @@ int main() {
 
   ull total = 0;
   ull totalcc = 0;
+  time_t start, now;
+  time(&start);
+  std::ofstream output(filename, std::ios::binary);
   for (ull i = 0; i < (1 << M); ++i) {
     std::bitset<M> edges(i);
     total++;
@@ -81,12 +85,18 @@ int main() {
       }
       auto [td, _] = treedepth(sub);
       int root = cache.Search(sub)->data.root;
-      std::cerr << ((td << 4) | root) << ",";
-    } else
-      std::cerr << 0 << ",";
-    if (i % 10000 == 0)
-      std::cout << "Total connected graphs " << totalcc << " / " << total
-                << std::endl;
+      // std::cerr << ((td << 4) | root) << ",";
+      output.put(uint8_t((td << 4) | root));
+    } else {
+      // std::cerr << 0 << ",";
+      output.put(0);
+    }
+    if (i % 10000 == 0) {
+      time(&now);
+      std::cout << "Total connected graphs " << totalcc << " / " << i
+                << ". 10k graphs/s:  "
+                << difftime(now, start) / double(i / 10000) << "." << std::endl;
+    }
   }
 
   std::cout << "Total connected graphs " << totalcc << " / " << total

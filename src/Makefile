@@ -40,6 +40,12 @@ verify: verify.o
 clean:
 	rm set_trie_test *.o graph_test main *.d treedepth_test generate_exact_cache
 
+exact_cache.o : exact_cache.cpp exact_cache.hpp exact_caches/exact_cache_8.bin
+exact_caches/exact_cache_8.bin: exact_caches/exact_cache_8.bin.gz
+	gunzip < $^ > $@
+
+
+
 %.o : %.cpp
 	g++ $(CPPFLAGS) -c $< -o $@
 	g++ -MM $(CPPFLAGS) $*.cpp > $*.d

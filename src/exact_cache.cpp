@@ -1,23 +1,13 @@
 #include "exact_cache.hpp"
 
-uint8_t exact_cache_2[] = {
-#include "exact_caches/exact_cache_2.ipp"
-};
-uint8_t exact_cache_3[] = {
-#include "exact_caches/exact_cache_3.ipp"
-};
-uint8_t exact_cache_4[] = {
-#include "exact_caches/exact_cache_4.ipp"
-};
-uint8_t exact_cache_5[] = {
-#include "exact_caches/exact_cache_5.ipp"
-};
-uint8_t exact_cache_6[] = {
-#include "exact_caches/exact_cache_6.ipp"
-};
-uint8_t exact_cache_7[] = {
-#include "exact_caches/exact_cache_7.ipp"
-};
+#include "exact_caches/incbin.h"
+INCBIN(ExactCache2, "exact_caches/exact_cache_2.bin");
+INCBIN(ExactCache3, "exact_caches/exact_cache_3.bin");
+INCBIN(ExactCache4, "exact_caches/exact_cache_4.bin");
+INCBIN(ExactCache5, "exact_caches/exact_cache_5.bin");
+INCBIN(ExactCache6, "exact_caches/exact_cache_6.bin");
+INCBIN(ExactCache7, "exact_caches/exact_cache_7.bin");
+INCBIN(ExactCache8, "exact_caches/exact_cache_8.bin");
 
 const std::vector<std::vector<int>> &exactCacheMapping(int N) {
   static std::array<std::vector<std::vector<int>>, exactCacheSize> mappings;
@@ -52,28 +42,32 @@ std::pair<int, int> exactCache(const std::vector<std::vector<int>> &adj) {
     case 1:
       return {0, 0};
     case 2:
-      assert(edges < sizeof(exact_cache_2));
-      result = exact_cache_2[edges];
+      assert(edges < gExactCache2Size);
+      result = gExactCache2Data[edges];
       break;
     case 3:
-      assert(edges < sizeof(exact_cache_3));
-      result = exact_cache_3[edges];
+      assert(edges < gExactCache3Size);
+      result = gExactCache3Data[edges];
       break;
     case 4:
-      assert(edges < sizeof(exact_cache_4));
-      result = exact_cache_4[edges];
+      assert(edges < gExactCache4Size);
+      result = gExactCache4Data[edges];
       break;
     case 5:
-      assert(edges < sizeof(exact_cache_5));
-      result = exact_cache_5[edges];
+      assert(edges < gExactCache5Size);
+      result = gExactCache5Data[edges];
       break;
     case 6:
-      assert(edges < sizeof(exact_cache_6));
-      result = exact_cache_6[edges];
+      assert(edges < gExactCache6Size);
+      result = gExactCache6Data[edges];
       break;
     case 7:
-      assert(edges < sizeof(exact_cache_7));
-      result = exact_cache_7[edges];
+      assert(edges < gExactCache7Size);
+      result = gExactCache7Data[edges];
+      break;
+    case 8:
+      assert(edges < gExactCache8Size);
+      result = gExactCache8Data[edges];
       break;
   }
   int td = result >> 4;
