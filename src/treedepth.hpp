@@ -10,6 +10,20 @@
 #include "graph.hpp"
 #include "set_trie.hpp"
 
+// Trivial treedepth implementation, useful for simple sanity checks.
+int treedepth_trivial(const SubGraph &G) {
+  if (G.vertices.size() == 1) return 1;
+  int td = G.vertices.size();
+  for (int v = 0; v < G.vertices.size(); ++v) {
+    int td_for_this_root = 0;
+    for (auto cc : G.WithoutVertex(v)) {
+      td_for_this_root = std::max(td_for_this_root, treedepth_trivial(cc) + 1);
+    }
+    td = std::min(td, td_for_this_root);
+  }
+  return td;
+}
+
 // The global cache (a SetTrie) is what we use to store bounds on treedepths
 // for subsets of the global graph (which correspond to induced subgraphs).
 // Every subgraph that is in the cache comes with three data: a lower_bound, an
@@ -92,6 +106,14 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
         if (G.Adj(v).size() == G.max_degree)
           return CacheUpdate(node, 2, 2, G.vertices[v]->n);
     }
+    if (G.IsCycleGraph()) {
+      // Find the bound, 1 + td of path of length N - 1.
+      N--;
+      int bnd = 2;
+      while (N >>= 1) bnd++;
+      return CacheUpdate(node, bnd, bnd, G.vertices[0]->n);
+    }
+    // Find the bound, this is the ceil(log_2(N)).
     if (G.IsPathGraph()) {
       // Find the bound
       int bnd = 1;
