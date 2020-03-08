@@ -43,9 +43,9 @@ struct SubGraph {
   // Do a BFS from the given vertex.
   std::vector<int> Bfs(int v) const;
 
-  SubGraph BfsTree(int v) const;
-
-  SubGraph DfsTree(int v) const;
+  // Compute trees from the given roots.
+  SubGraph BfsTree(int root) const;
+  SubGraph DfsTree(int root) const;
 
   // Returns whether this is a complete graph.
   bool IsCompleteGraph() const {
