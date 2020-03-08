@@ -59,6 +59,14 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
 // upper is at most search_lbnd, we are done.
 std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
                               int search_ubnd) {
+  auto vert_list = std::vector<int>(G);
+  std::vector<int> cmp_w = {24, 25, 27};
+  bool debug_print = vert_list == cmp_w;
+  if(debug_print) {
+      std::cerr << "On the subgraph." << std::endl;
+      std::cerr << "search_lbnd = " << search_lbnd << std::endl;
+      std::cerr << "search_ubnd = " << search_ubnd << std::endl;
+  }
   int N = G.vertices.size();
   assert(N >= 1);
 
@@ -74,26 +82,45 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     node->data.lower_bound = lower;
     node->data.upper_bound = upper;
     node->data.root = G.vertices[0]->n;
+    if(debug_print) {
+        std::cerr << "Not yet in cache, storing lower = " << lower << ", upper = " << upper << std::endl;
+    }
   } else {
     // This graph was in the cache, retrieve lower/upper bounds.
     lower = node->data.lower_bound;
     upper = node->data.upper_bound;
+    if(debug_print) {
+        std::cerr << "Already in cache, retrieving lower = " << lower << ", upper = " << upper << std::endl;
+    }
   }
 
   // If the trivial or previously found bounds suffice, we are done.
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
+    if(debug_print) {
+        std::cerr << "trivial/previous bounds suffice, returning" << std::endl;
+    }
     return {lower, upper};
   }
 
   // We do a quick check for special cases we can answer exactly and
   // immediately.
   if (G.IsCompleteGraph()) {
-    return CacheUpdate(node, N, N, G.vertices[0]->n);
+    int root = 0;
+    int bound = N;
+    for(auto H: G.WithoutVertex(root))
+      treedepth(H, bound - 1, bound - 1);
+    return CacheUpdate(node, bound, bound, G.vertices[root]->n);
   } else if (G.IsStarGraph()) {
     // Find node with max_degree.
-    for (int v = 0; v < G.vertices.size(); ++v)
-      if (G.Adj(v).size() == G.max_degree)
+    for (int v = 0; v < G.vertices.size(); ++v) {
+      if (G.Adj(v).size() == G.max_degree) {
+        int root = v;
+        int bound = 2;
+        for(auto H: G.WithoutVertex(root))
+          treedepth(H, bound - 1, bound - 1);
         return CacheUpdate(node, 2, 2, G.vertices[v]->n);
+      }
+    }
   } else if (G.IsPathGraph()) {
     // Find the bound
     int bnd = 1;
@@ -111,10 +138,29 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
           v = (prev ^ G.adj[v][0] ^ G.adj[v][1]);
           prev = tmp;
         }
+
+        int root = v;
+        int bound = bnd;
+        for(auto H: G.WithoutVertex(root))
+          treedepth(H, bound - 1, bound - 1);
+
+
         return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
       }
   } else if (G.IsTreeGraph()) {
     auto [td, root] = treedepth_tree(G);
+
+    int bound = td;
+    int local_root = -1;
+    for(int i = 0; i < G.vertices.size(); i++) {
+        if (G.vertices[i]->n == root) {
+            local_root = i;
+            break;
+        }
+    }
+    for(auto H: G.WithoutVertex(local_root))
+      treedepth(H, bound - 1, bound - 1);
+
     return CacheUpdate(node, td, td, root);
   }
 
@@ -156,6 +202,16 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     bool early_break = false;
 
     for (auto H : G.WithoutVertex(v)) {
+      auto vert_list_H = std::vector<int>(H);
+      if(cmp_w == vert_list_H) {
+        std::cerr << "I am going to call it for the special subgraph recursively." << std::endl;
+        std::cerr << "I am: " << std::endl;
+        for(int x : vert_list)
+            std::cerr << x << " ";
+        std::cerr << std::endl;
+        std::cerr << "With chosen root: " << G.vertices[v]->n << std::endl;
+      }
+
       auto [lower_H, upper_H] = treedepth(H, search_lbnd_v, search_ubnd_v);
 
       upper_v = std::max(upper_v, upper_H);
