@@ -1,6 +1,7 @@
 #pragma once
 
 #include <numeric>
+
 #include "graph.hpp"
 
 void root_rank(const SubGraph &G, int v, std::vector<std::set<int>> &L, int d) {
@@ -71,19 +72,17 @@ std::pair<int, int> treedepth_tree(const SubGraph &G) {
     v->rank = -1;
   }
 
-  // create list for every vertex
+  // Create list for every vertex
   auto L = std::vector<std::set<int>>(G.vertices.size(), std::set<int>());
   critical_rank_tree(G, std::make_pair(0, 0), L);
 
-  // std::cout << "ranks" << std::endl;
   int maxr = 0, root = -1;
   for (auto &v : G.vertices) {
-    // std::cout << (v->n+1) << " : " << v->rank << std::endl;
     if (v->rank > maxr) {
       maxr = v->rank;
       root = v->n;
     }
   }
-  assert (root > -1);
+  assert(root > -1);
   return {maxr, root};
 }

@@ -65,6 +65,12 @@ struct SubGraph {
     return (N - 1 == M) && (M == max_degree);
   }
 
+  // Returns whether this is a cycle graph.
+  bool IsCycleGraph() const {
+    int N = vertices.size();
+    return (M == N) && (max_degree == 2);
+  }
+
   // Returns whether this is a tree.
   bool IsTreeGraph() const {
     int N = vertices.size();
