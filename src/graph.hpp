@@ -40,6 +40,9 @@ struct SubGraph {
   // Create a connected components of the subgraph without the given vertex.
   std::vector<SubGraph> WithoutVertex(int v) const;
 
+  // Recursively removes all vertices with deg < 1.
+  SubGraph TwoCore() const;
+
   // Do a BFS from the given vertex.
   std::vector<int> Bfs(int v) const;
 

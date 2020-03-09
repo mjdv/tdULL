@@ -25,5 +25,12 @@ int main() {
                 << cc[c].max_degree << std::endl;
   }
 
+  std::istringstream stream_2core(
+      "p tdp 11 12 1 2 2 3 3 1 3 4 4 5 5 6 6 7 7 4 6 8 7 9 9 10 10 11");
+  LoadGraph(stream_2core);
+  auto core = full_graph_as_sub.TwoCore();
+  assert(core.vertices.size() == 7);
+  assert(core.M == 8);
+
   return 0;
 }
