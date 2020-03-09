@@ -1,6 +1,10 @@
 set_trie_test
 graph_test
 treedepth_test
+centrality_test
+generate_exact_cache
+verify
+exact_caches/exact_cache_8.bin
 main
 *.o
 *.d
