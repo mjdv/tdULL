@@ -205,6 +205,43 @@ SubGraph SubGraph::DfsTree(int root) const {
   return result;
 }
 
+SubGraph SubGraph::2Core(const Subgraph &G) {
+  assert(!G.IsTree());
+
+  int N = G.vertices.size();
+  int vertices_left = N;
+
+  vector<int> degrees(N);
+  for(int i = 0; i < N; i++)
+    degrees[i] = G.Adj(i).size();
+
+  SubGraph H;
+  H.mask = G.mask;
+  for(int i = 0; i < N; i++) {
+    if(degrees[i] == 1) {
+      int cur = i;
+      while(degrees[cur] == 1) {
+        H.mask[G.vertices[cur]->n] = false;
+        degrees[cur] = 0;
+        vertices_left--;
+        for(int nb : G.Adj(cur)) {
+          if(H.mask[G.vertices[nb]->n]) {
+            degrees[nb]--;
+            cur = nb;
+            break;
+          }
+        }
+      }
+    }
+  }
+  H.vertices.reserve(vertices_left);
+  for(auto v : G.vertices)
+    if(H.mask[v->n])
+      H.vertices.emplace_back(v);
+
+
+}
+
 void LoadGraph(std::istream &stream) {
   full_graph_as_sub = SubGraph();
   full_graph = Graph(stream);
