@@ -155,7 +155,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   // Change BetweennessCentrality to DegreeCentrality to go back to the old
   // behaviour of ordering by degree.
-  auto centrality = BetweennessCentrality(G);
+  auto centrality = DegreeCentrality(G);
 
   // Sort the vertices based on the degree.
   std::sort(vertices.begin(), vertices.end(), [&](int v1, int v2) {
