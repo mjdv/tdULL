@@ -164,7 +164,7 @@ SubGraph SubGraph::BfsTree(int root) const {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
   }
-  assert(result.M == total_edges/2);
+  assert(result.M == total_edges / 2);
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
   return result;
@@ -199,33 +199,32 @@ SubGraph SubGraph::DfsTree(int root) const {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
   }
-  assert(result.M == total_edges/2);
+  assert(result.M == total_edges / 2);
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
   return result;
 }
 
-SubGraph SubGraph::2Core(const Subgraph &G) {
-  assert(!G.IsTree());
+SubGraph SubGraph::TwoCore() {
+  assert(!IsTree());
 
-  int N = G.vertices.size();
+  int N = vertices.size();
   int vertices_left = N;
 
   vector<int> degrees(N);
-  for(int i = 0; i < N; i++)
-    degrees[i] = G.Adj(i).size();
+  for (int i = 0; i < N; i++) degrees[i] = G.Adj(i).size();
 
   SubGraph H;
   H.mask = G.mask;
-  for(int i = 0; i < N; i++) {
-    if(degrees[i] == 1) {
+  for (int i = 0; i < N; i++) {
+    if (degrees[i] == 1) {
       int cur = i;
-      while(degrees[cur] == 1) {
+      while (degrees[cur] == 1) {
         H.mask[G.vertices[cur]->n] = false;
         degrees[cur] = 0;
         vertices_left--;
-        for(int nb : G.Adj(cur)) {
-          if(H.mask[G.vertices[nb]->n]) {
+        for (int nb : G.Adj(cur)) {
+          if (H.mask[G.vertices[nb]->n]) {
             degrees[nb]--;
             cur = nb;
             break;
@@ -235,11 +234,8 @@ SubGraph SubGraph::2Core(const Subgraph &G) {
     }
   }
   H.vertices.reserve(vertices_left);
-  for(auto v : G.vertices)
-    if(H.mask[v->n])
-      H.vertices.emplace_back(v);
-
-
+  for (auto v : G.vertices)
+    if (H.mask[v->n]) H.vertices.emplace_back(v);
 }
 
 void LoadGraph(std::istream &stream) {
