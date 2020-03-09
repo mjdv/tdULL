@@ -12,15 +12,6 @@
 #include "treedepth_tree.hpp"
 #include "centrality.hpp"
 
-class TreeDepth {
-public:
-  TreeDepth (const SubGraph &G) : G(G), cache() {}
-
-protected:
-  const SubGraph &G;
-  SetTrie cache;
-};
-
 // Trivial treedepth implementation, useful for simple sanity checks.
 int treedepth_trivial(const SubGraph &G) {
   if (G.vertices.size() == 1) return 1;
