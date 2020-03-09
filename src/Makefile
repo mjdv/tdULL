@@ -6,12 +6,13 @@ F=001
 T=199
 
 INPUT_DIR=../input/exact
-OUTPUT_DIR=../output
+OUTPUT_DIR=../output/exact
 
 all: set_trie_test graph_test treedepth_test main verify generate_exact_cache centrality_test
 
 instance: main
 	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
+	./verify $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
 
 until: main
 	bash from_to.sh $(N)
@@ -41,7 +42,7 @@ verify: verify.o
 	g++ -o $@ $^
 
 clean:
-	rm set_trie_test *.o graph_test main *.d treedepth_test generate_exact_cache
+	rm set_trie_test *.o graph_test main *.d treedepth_test generate_exact_cache verify || true
 
 exact_cache.o : exact_caches/exact_cache_8.bin
 exact_caches/exact_cache_8.bin: exact_caches/exact_cache_8.bin.gz

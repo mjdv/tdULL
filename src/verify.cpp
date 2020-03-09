@@ -169,7 +169,7 @@ void run_tests() {
 ////////////////////////////////// READ DATA /////////////////////////
 
 Graph read_graph(std::istream & stream) {
-    std::size_t vertex_count = 0;
+    //std::size_t vertex_count = 0;
     std::size_t edge_count = 0;
 
     bool firstLine = true;
@@ -260,7 +260,7 @@ Tree read_tree(std::istream & stream) {
 
     if (stream.good()) {
         std::string line;
-        std::size_t pos = 0;
+        // std::size_t pos = 0;
         if( !std::getline(stream, line)) {
             error = true;
         }
