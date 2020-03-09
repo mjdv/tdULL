@@ -3,13 +3,13 @@
 #include <climits>
 #include <iostream>
 
-bool IsAscending(const std::vector<int16_t> &word) {
+bool IsAscending(const std::vector<int> &word) {
   for (int i = 1; i < word.size(); ++i)
     if (word[i - 1] >= word[i]) return false;
   return true;
 }
 
-std::pair<Node *, bool> SetTrie::Insert(const std::vector<int16_t> &word) {
+std::pair<Node *, bool> SetTrie::Insert(const std::vector<int> &word) {
   assert(IsAscending(word));
   Node *node = &root_;
   for (auto n : word) node = node->FindOrCreateChild(n);
@@ -20,7 +20,7 @@ std::pair<Node *, bool> SetTrie::Insert(const std::vector<int16_t> &word) {
   return {node, inserted};
 }
 
-Node *SetTrie::Search(const std::vector<int16_t> &word) {
+Node *SetTrie::Search(const std::vector<int> &word) {
   assert(IsAscending(word));
   Node *node = &root_;
   for (auto n : word) {
@@ -35,7 +35,7 @@ Node *SetTrie::Search(const std::vector<int16_t> &word) {
 }
 
 // Recursive impl.
-bool HasSubset(Node *node, const std::vector<int16_t> &word, int idx) {
+bool HasSubset(Node *node, const std::vector<int> &word, int idx) {
   if (node->flag_last) return true;
   if (idx >= word.size()) return false;
   bool found = false;
@@ -47,13 +47,13 @@ bool HasSubset(Node *node, const std::vector<int16_t> &word, int idx) {
     return true;
 }
 
-bool SetTrie::HasSubset(const std::vector<int16_t> &word) {
+bool SetTrie::HasSubset(const std::vector<int> &word) {
   assert(IsAscending(word));
   return ::HasSubset(&root_, word, 0);
 }
 
 // Recursive impl.
-bool HasSuperset(Node *node, const std::vector<int16_t> &word, int idx) {
+bool HasSuperset(Node *node, const std::vector<int> &word, int idx) {
   if (idx >= word.size()) return true;
   bool found = false;
   for (auto &[num, child] : node->children) {
@@ -70,13 +70,13 @@ bool HasSuperset(Node *node, const std::vector<int16_t> &word, int idx) {
   return found;
 }
 
-bool SetTrie::HasSuperset(const std::vector<int16_t> &word) {
+bool SetTrie::HasSuperset(const std::vector<int> &word) {
   assert(IsAscending(word));
   return ::HasSuperset(&root_, word, 0);
 }
 
 //
-void AllSubsets(Node *node, const std::vector<int16_t> &word, int idx,
+void AllSubsets(Node *node, const std::vector<int> &word, int idx,
                 std::vector<Node *> &result) {
   if (node->flag_last) result.push_back(node);
   if (idx >= word.size()) return;
@@ -92,14 +92,14 @@ void AllSubsets(Node *node, const std::vector<int16_t> &word, int idx,
     }
 }
 
-std::vector<Node *> SetTrie::AllSubsets(const std::vector<int16_t> &word) {
+std::vector<Node *> SetTrie::AllSubsets(const std::vector<int> &word) {
   assert(IsAscending(word));
   std::vector<Node *> result;
   ::AllSubsets(&root_, word, 0, result);
   return result;
 }
 
-void AllSupersets(Node *node, const std::vector<int16_t> &word, int idx,
+void AllSupersets(Node *node, const std::vector<int> &word, int idx,
                   std::vector<Node *> &result) {
   if (idx >= word.size()) result.push_back(node);
   int current_letter = idx < word.size() ? word[idx] : INT_MAX;
@@ -114,7 +114,7 @@ void AllSupersets(Node *node, const std::vector<int16_t> &word, int idx,
   }
 }
 
-std::vector<Node *> SetTrie::AllSupersets(const std::vector<int16_t> &word) {
+std::vector<Node *> SetTrie::AllSupersets(const std::vector<int> &word) {
   assert(IsAscending(word));
   std::vector<Node *> result;
   ::AllSupersets(&root_, word, 0, result);
