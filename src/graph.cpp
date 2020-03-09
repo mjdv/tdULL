@@ -239,7 +239,7 @@ SubGraph SubGraph::TwoCore() const {
   std::vector<int> old_indices(vertices.size(), -1);
 
   for (int v = 0; v < N; v++) {
-    assert(degrees[v] != 1);
+    assert(degrees[v] >= 0 && degrees[v] != 1);
     if (degrees[v]) {
       // Create index mapping between current graph and subgraph.
       new_indices[v] = H.vertices.size();
@@ -250,6 +250,7 @@ SubGraph SubGraph::TwoCore() const {
       H.mask[vertices[v]->n] = true;
     }
   }
+  assert(H.vertices.size());
 
   // Now find the trimmed adjacency lists.
   for (int v_old = 0; v_old < N; v_old++) {
@@ -269,6 +270,7 @@ SubGraph SubGraph::TwoCore() const {
       H.adj.emplace_back(std::move(nghbrs));
     }
   }
+  assert(H.vertices.size() < vertices.size());
   assert(H.M % 2 == 0);
   H.M /= 2;
   return H;
