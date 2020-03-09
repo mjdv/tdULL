@@ -11,10 +11,10 @@ struct Node {
   int16_t upper_bound = INT16_MAX;
   int16_t lower_bound = 0;
   int16_t root = -1;
+  bool flag_last = false;
 
   // TODO: Is std::map the best datastructure? Sorting does help.
   std::map<int16_t, Node> children;
-  bool flag_last = false;
 
   // Returns pointer to child, and nullptr if it doesn't exist.
   Node *FindChild(int16_t n) {
