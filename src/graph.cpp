@@ -270,6 +270,7 @@ SubGraph SubGraph::TwoCore() const {
       H.adj.emplace_back(std::move(nghbrs));
     }
   }
+  assert(H.vertices.size() < vertices.size());
   assert(H.M % 2 == 0);
   H.M /= 2;
   return H;
