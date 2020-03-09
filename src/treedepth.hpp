@@ -10,6 +10,7 @@
 #include "graph.hpp"
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
+#include "centrality.hpp"
 
 // Trivial treedepth implementation, useful for simple sanity checks.
 int treedepth_trivial(const SubGraph &G) {
@@ -145,15 +146,20 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // If the graph has at least 3 vertices, we never want a leaf (degree 1
   // node) as a root.
   assert(G.vertices.size() > 2);
+
   std::vector<int> vertices;
   vertices.reserve(G.vertices.size());
   for (int v = 0; v < G.vertices.size(); ++v)
     if (G.Adj(v).size() > 1) vertices.emplace_back(v);
   assert(vertices.size());
 
+  // Change BetweennessCentrality to DegreeCentrality to go back to the old
+  // behaviour of ordering by degree.
+  auto centrality = BetweennessCentrality(G);
+
   // Sort the vertices based on the degree.
   std::sort(vertices.begin(), vertices.end(), [&](int v1, int v2) {
-    return G.Adj(v1).size() > G.Adj(v2).size();
+    return centrality[v1] > centrality[v2];
   });
 
   if (inserted) {
