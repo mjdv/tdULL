@@ -221,7 +221,7 @@ SubGraph SubGraph::TwoCore() const {
       while (degrees[cur] == 1) {
         degrees[cur] = 0;
         for (int nb : Adj(cur)) {
-          if (nb != cur) {
+          if (degrees[nb]) {
             degrees[nb]--;
             cur = nb;
             break;

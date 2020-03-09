@@ -171,9 +171,11 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // vertices and try out the trivial lower bound.
   assert(!G.IsTreeGraph());
   if (N_deg_1)
-    lower = std::max(lower, treedepth(G.TwoCore(), lower, upper).first);
+    lower = std::max(lower, treedepth(G.TwoCore(), search_lbnd, search_ubnd).first);
   else
     lower = std::max(lower, (G.M - N_deg_2) / (N - N_deg_2) + 1);
+  node->lower_bound = lower;
+
   if (search_ubnd <= lower || lower == upper) {
     return {lower, upper};
   }
