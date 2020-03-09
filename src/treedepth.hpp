@@ -143,6 +143,27 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     return {lower, upper};
   }
 
+  // Compute lower bound gamma_R from corr 6 from paper "Treewidth Computations
+  // II: Lower Bounds", using the fact that td >= tw + 1.
+  if(G.max_degree > lower) {
+    auto degrees = DegreeCentrality(G);
+    int gamma_R = N;
+    for(int i = 0; i < N; i++) {
+      if(degrees[i] > gamma_R)
+        continue;
+      std::vector<bool> adj_to_i(N, false);
+      for(int nb : G.Adj(i))
+        adj_to_i[nb] = true;
+      for(int j = 0; j < N; j++) {
+        if(i != j && !adj_to_i[j]) {
+          gamma_R = std::min(gamma_R, std::max(degrees[i], degrees[j]));
+        }
+      }
+    }
+    lower = std::max(lower, gamma_R + 1);
+  }
+
+
   // If the graph has at least 3 vertices, we never want a leaf (degree 1
   // node) as a root.
   assert(G.vertices.size() > 2);
