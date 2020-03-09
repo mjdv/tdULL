@@ -6,11 +6,11 @@
 #include <numeric>
 #include <set>
 
+#include "centrality.hpp"
 #include "exact_cache.hpp"
 #include "graph.hpp"
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
-#include "centrality.hpp"
 
 // Trivial treedepth implementation, useful for simple sanity checks.
 int treedepth_trivial(const SubGraph &G) {
@@ -158,9 +158,8 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   auto centrality = DegreeCentrality(G);
 
   // Sort the vertices based on the degree.
-  std::sort(vertices.begin(), vertices.end(), [&](int v1, int v2) {
-    return centrality[v1] > centrality[v2];
-  });
+  std::sort(vertices.begin(), vertices.end(),
+            [&](int v1, int v2) { return centrality[v1] > centrality[v2]; });
 
   if (inserted) {
     // If G is a new graph in the cache, compute its DfsTree-tree from

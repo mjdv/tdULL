@@ -15,10 +15,14 @@ instance: main
 	./verify $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
 
 until: main
-	bash from_to.sh $(N)
+	bash from_to.sh $(T)
 
 fromto: main
 	bash from_to.sh $(F) $(T)
+
+timing: main
+	mkdir timings
+	bash from_to.sh 001 199 2> timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
 
 main: main.o graph.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^

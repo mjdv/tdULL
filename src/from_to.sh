@@ -27,7 +27,7 @@ for f in ${INPUTDIR}*; do
 
     if [ "$GO" == 1 ] ; then
       echo "Graph ${graph}"
-      ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree;
+      ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree &&
       ./verify ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree;
     fi
 
