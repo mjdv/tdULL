@@ -78,8 +78,8 @@ struct SubGraph {
   }
 
   // Explicit conversion to vector of ints.
-  operator std::vector<int>() const {
-    std::vector<int> result;
+  operator std::vector<int16_t>() const {
+    std::vector<int16_t> result;
     result.reserve(vertices.size());
     for (Vertex *v : vertices) result.emplace_back(v->n);
     std::sort(result.begin(), result.end());

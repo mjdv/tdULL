@@ -21,8 +21,9 @@ fromto: main
 	bash from_to.sh $(F) $(T)
 
 timing: main
-	mkdir timings
-	bash from_to.sh 001 199 2> timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
+	mkdir -p timings
+	echo "fn,treedepth,time,error" > timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
+	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
 
 main: main.o graph.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^

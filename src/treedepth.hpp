@@ -43,9 +43,9 @@ SetTrie cache;
 // Little helper function to update information in the cache.
 std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
                                 int root) {
-  node->data.lower_bound = lower_bound;
-  node->data.upper_bound = upper_bound;
-  node->data.root = root;
+  node->lower_bound = lower_bound;
+  node->upper_bound = upper_bound;
+  node->root = root;
   return std::pair{lower_bound, upper_bound};
 };
 
@@ -87,13 +87,13 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   if (!inserted) {
     // This graph was in the cache, retrieve lower/upper bounds.
-    lower = node->data.lower_bound;
-    upper = node->data.upper_bound;
+    lower = node->lower_bound;
+    upper = node->upper_bound;
   } else {
     // If this graph wasn't in the cache, store the trivial bounds.
-    node->data.lower_bound = lower;
-    node->data.upper_bound = upper;
-    node->data.root = G.vertices[0]->n;
+    node->lower_bound = lower;
+    node->upper_bound = upper;
+    node->root = G.vertices[0]->n;
 
     // We do a quick check for special cases we can answer exactly and
     // immediately.
@@ -166,7 +166,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     // the most promising node once, and then evaluate the treedepth_tree on
     // this tree.
     lower = std::max(lower, treedepth_tree(G.DfsTree(vertices[0])).first);
-    node->data.lower_bound = lower;
+    node->lower_bound = lower;
 
     // If the trivial or previously found bounds suffice, we are done.
     if (search_ubnd <= lower || lower == upper) {
@@ -208,8 +208,8 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     // early.
     if (!early_break && upper_v + 1 < upper) {
       upper = upper_v + 1;
-      node->data.upper_bound = upper;
-      node->data.root = G.vertices[v]->n;
+      node->upper_bound = upper;
+      node->root = G.vertices[v]->n;
     }
 
     if (upper <= search_lbnd || lower == upper) {
@@ -222,7 +222,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   }
 
   lower = std::max(lower, new_lower);
-  node->data.lower_bound = lower;
+  node->lower_bound = lower;
   return {lower, upper};
 }
 
@@ -235,19 +235,19 @@ void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
   treedepth(G, 1, td);
   node = cache.Search(G);
   assert(node);
-  assert(node->data.root > -1);
-  tree.at(node->data.root) = root;
+  assert(node->root > -1);
+  tree.at(node->root) = root;
 
   // Root is the global coordinate, find its local coordinate.
   int local_root = -1;
   for (int v = 0; v < G.vertices.size(); ++v)
-    if (G.vertices[v]->n == node->data.root) {
+    if (G.vertices[v]->n == node->root) {
       local_root = v;
       break;
     }
   assert(local_root > -1);
   for (auto H : G.WithoutVertex(local_root))
-    reconstruct(H, node->data.root, tree, td - 1);
+    reconstruct(H, node->root, tree, td - 1);
 }
 
 // Little helper function that returns the treedepth for the given graph.
