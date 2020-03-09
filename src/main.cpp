@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
   std::cout << "Elapsed time is " << difftime(end, start) << " seconds.\n";
 
   std::cout << "Saved the tree to '" << argv[2] << "'" << std::endl;
+  std::cerr << argv[1] << "," << td << "," << difftime(end, start) << std::endl;
   std::ofstream output;
   output.open(argv[2], std::ios::out);
   output << td << std::endl;
