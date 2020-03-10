@@ -319,6 +319,11 @@ std::vector<SubGraph> SubGraph::ComplementComponents() const {
         }
       }
     }
+    if(component.size() == N) {
+      for(int i = 0; i < N; i++)
+        vertices[i]->visited = false;
+      return {*this};
+    }
     result.push_back(SubGraph(*this, component));
   }
   for(int i = 0; i < N; i++)
