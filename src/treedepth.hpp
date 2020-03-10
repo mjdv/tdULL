@@ -49,8 +49,6 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
   return std::pair{lower_bound, upper_bound};
 };
 
-size_t total_count, slow_count;
-
 // The function treedepth computes Treedepth bounds on subgraphs of the global
 // graph.
 //
@@ -79,7 +77,6 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
                               int search_ubnd) {
   int N = G.vertices.size();
   assert(N >= 1);
-  total_count += 1;
 
   int lower = G.M / N + 1, upper = N;
 
@@ -145,7 +142,6 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
     return {lower, upper};
   }
-  slow_count += 1;
 
   // If the graph has at least 3 vertices, we never want a leaf (degree 1
   // node) as a root.
@@ -284,13 +280,10 @@ void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
 // Little helper function that returns the treedepth for the given graph.
 std::pair<int, std::vector<int>> treedepth(const SubGraph &G) {
   cache = SetTrie();
-  total_count = 0;
-  slow_count = 0;
   int td = treedepth(G, 1, G.vertices.size()).second;
   std::vector<int> tree(G.vertices.size(), -2);
   reconstruct(G, -1, tree, td);
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
   for (auto &v : tree) v++;
-  std::cout << "Number of calls: " << total_count << " total; " << slow_count << " slow"<< std::endl;
   return {td, std::move(tree)};
 }
