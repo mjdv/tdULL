@@ -72,10 +72,53 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
   M /= 2;
 }
 
+// Gives a vector of all the components of the possibly disconnected subgraph
+// of G given by sub_vertices (in local coordinates).
+std::vector<SubGraph> SubGraph::ConnectedSubGraphs(const std::vector<int> &sub_vertices) const {
+  int N = sub_vertices.size();
+  std::vector<int> degrees(N);
+  for(int i = 0; i < N; i++) {
+    assert(!vertices[sub_vertices[i]]->visited);
+    degrees[i] = Adj(sub_vertices[i]).size();
+  }
+
+  std::vector<bool> in_sub_verts(vertices.size(), false);
+  for(int v : sub_vertices)
+    in_sub_verts[v] = true;
+
+  std::vector<SubGraph> cc;
+  std::stack<int> s;
+
+  for (int i = 0; i < N; i++) {
+    int v = sub_vertices[i];
+    if (!vertices[v]->visited) {
+      std::vector<int> component = {v};
+      s.push(v);
+      vertices[v]->visited = true;
+      while (!s.empty()) {
+        int v = s.top(); s.pop();
+        for (int nghb : Adj(v))
+          if (in_sub_verts[nghb] && !vertices[nghb]->visited) {
+            s.push(nghb);
+            vertices[nghb]->visited = true;
+          }
+      }
+      cc.emplace_back(*this, component);
+    }
+  }
+
+  for (int v : sub_vertices) {
+    vertices[v]->visited = false;
+  }
+
+  return cc;
+}
+
 const std::vector<int> &SubGraph::Adj(int v) const {
   assert(v >= 0 && v < vertices.size() && adj.size() == vertices.size());
   return adj[v];
 }
+
 
 std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
   assert(w >= 0 && w < vertices.size());
@@ -299,7 +342,7 @@ std::vector<SubGraph> SubGraph::ComplementComponents() const {
       adjacency_matrix[i][j] = false;
   }
 
-  std::vector<SubGraph> result;
+  std::vector<std::vector<int>> complement_ccs;
   for(int i = 0; i < N; i++) {
     if(vertices[i]->visited)
       continue;
@@ -324,10 +367,15 @@ std::vector<SubGraph> SubGraph::ComplementComponents() const {
         vertices[i]->visited = false;
       return {*this};
     }
-    result.push_back(SubGraph(*this, component));
+    complement_ccs.push_back(component);
   }
   for(int i = 0; i < N; i++)
     vertices[i]->visited = false;
+
+  std::vector<SubGraph> result;
+  for(auto complement_cc : complement_ccs)
+    for(auto cc : ConnectedSubGraphs(complement_cc))
+      result.push_back(cc);
   return result;
 }
 

@@ -191,23 +191,24 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   //
   // In most cases max_degree, N, G.M will rule out that this will work.
   if(G.max_degree*2 >= N && G.max_degree*(N - G.max_degree) <= G.M) {
-    std::cerr << "In extremely dense graph." << std::endl;
+    /*std::cerr << "In extremely dense graph." << std::endl;
     std::cerr << "G.max_degree = " << G.max_degree << std::endl;
     std::cerr << "N = " << N << std::endl;
-    std::cerr << "G.M = " << G.M << std::endl;
+    std::cerr << "G.M = " << G.M << std::endl;*/
     auto components = G.ComplementComponents();
     if(components.size() > 1) {
-      std::cerr << "Complement has multiple components!" << std::endl;
+      //std::cerr << "Complement has multiple components!" << std::endl;
       // Now td(G) = min_{H : components} |G| - |H| + td(H).
       int lower_components = N;
       int upper_components = 1;
       for(auto H : components) {
-        int search_lbnd_H = std::max(1, search_lbnd - N + (int)H.vertices.size());
-        int search_ubnd_H = std::max(1, search_ubnd - N + (int)H.vertices.size());
+        int H_size = H.vertices.size();
+        int search_lbnd_H = std::max(1, search_lbnd - N + H_size);
+        int search_ubnd_H = std::max(1, search_ubnd - N + H_size);
         auto [lower_H, upper_H] = treedepth(H, search_lbnd_H, search_ubnd_H);
 
-        lower_components = std::min(lower_H, lower_components);
-        upper_components = std::min(upper_H, upper_components);
+        lower_components = std::min(lower_H + N - H_size, lower_components);
+        upper_components = std::min(upper_H + N - H_size, upper_components);
       }
       lower = std::max(lower, lower_components);
       upper = std::min(upper, upper_components);
