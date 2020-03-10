@@ -190,36 +190,29 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // complement. (This will be rare, but if it works, very powerful.)
   //
   // In most cases max_degree, N, G.M will rule out that this will work.
-  if(G.max_degree*2 >= N && G.max_degree*(N - G.max_degree) <= G.M) {
-    /*std::cerr << "In extremely dense graph." << std::endl;
-    std::cerr << "G.max_degree = " << G.max_degree << std::endl;
-    std::cerr << "N = " << N << std::endl;
-    std::cerr << "G.M = " << G.M << std::endl;*/
+  if (G.max_degree * 2 >= N && G.max_degree * (N - G.max_degree) <= G.M) {
     auto components = G.ComplementComponents();
-    if(components.size() > 1) {
-      //std::cerr << "Complement has multiple components!" << std::endl;
+    if (components.size() > 1) {
       // Now td(G) = min_{H : components} |G| - |H| + td(H).
       int lower_components = N;
-      for(auto H : components) {
+      for (const auto &H : components) {
         int H_size = H.vertices.size();
         int search_lbnd_H = std::max(1, search_lbnd - N + H_size);
         int search_ubnd_H = std::max(1, search_ubnd - N + H_size);
         auto [lower_H, upper_H] = treedepth(H, search_lbnd_H, search_ubnd_H);
 
         lower_components = std::min(lower_H + N - H_size, lower_components);
-        if(upper_H + N - H_size < upper) {
+        if (upper_H + N - H_size < upper) {
           upper = upper_H + N - H_size;
-          for(int i = 0; i < full_graph_as_sub.vertices.size(); i++) {
-            if(G.mask[i] && !H.mask[i]) {
+          for (int i = 0; i < full_graph_as_sub.vertices.size(); i++) {
+            if (G.mask[i] && !H.mask[i]) {
               node->root = i;
               break;
             }
           }
         }
       }
-      lower = std::max(lower, lower_components);
-
-      node->lower_bound = lower;
+      node->lower_bound = lower = std::max(lower, lower_components);
       node->upper_bound = upper;
 
       return {lower, upper};
