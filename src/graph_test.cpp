@@ -25,5 +25,22 @@ int main() {
                 << cc[c].max_degree << std::endl;
   }
 
+  std::istringstream stream_2core(
+      "p tdp 11 12 1 2 2 3 3 1 3 4 4 5 5 6 6 7 7 4 6 8 7 9 9 10 10 11");
+  LoadGraph(stream_2core);
+  auto core = full_graph_as_sub.TwoCore();
+  assert(core.vertices.size() == 7);
+  assert(core.M == 8);
+
+  std::istringstream stream_3core(
+      "p tdp 11 14 1 2 2 3 3 1 3 4 4 5 5 6 6 7 7 4 6 8 7 9 9 10 10 11 4 6 5 7");
+  LoadGraph(stream_3core);
+  auto cc_core3 = full_graph_as_sub.kCore(3);
+  assert(cc_core3.size() == 1);
+  auto core3 = cc_core3[0];
+  std::cout << core3.vertices.size() << " " << core3.M << std::endl;
+  assert(core3.vertices.size() == 4);
+  assert(core3.M == 6);
+
   return 0;
 }

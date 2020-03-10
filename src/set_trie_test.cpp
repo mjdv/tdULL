@@ -1,6 +1,7 @@
 #include "set_trie.hpp"
 
 #include <assert.h>
+
 #include <climits>
 #include <iostream>
 
@@ -35,17 +36,18 @@ int main() {
   std::cout << "Subsets{5, 7, 8, 9, 15}:" << std::endl;
   for (auto node : cache.AllSubsets({5, 7, 8, 9, 15})) {
     std::cout << "\t{";
-    for (auto l : node->Word()) std::cout << l << " ";
+    // for (auto l : node->Word()) std::cout << l << " ";
     std::cout << "}" << std::endl;
   }
 
-  for(int gap = 2; gap < 4; gap++) {
-      std::cout << "Subsets{5, 7, 8, 9, 15} with max gap " << gap << ":" << std::endl;
-      for (auto node : cache.BigSubsets({5, 7, 8, 9, 15}, gap)) {
-        std::cout << "\t{";
-        for (auto l : node->Word()) std::cout << l << " ";
-        std::cout << "}" << std::endl;
-      }
+  for (int gap = 2; gap < 4; gap++) {
+    std::cout << "Subsets{5, 7, 8, 9, 15} with max gap " << gap << ":"
+              << std::endl;
+    for (auto node : cache.BigSubsets({5, 7, 8, 9, 15}, gap)) {
+      std::cout << "\t{";
+      //for (auto l : node->Word()) std::cout << l << " ";
+      std::cout << "}" << std::endl;
+    }
   }
 
   assert(cache.HasSuperset({8}));
@@ -54,7 +56,7 @@ int main() {
   std::cout << "Supersets{8}:" << std::endl;
   for (auto node : cache.AllSupersets({8})) {
     std::cout << "\t{";
-    for (auto l : node->Word()) std::cout << l << " ";
+    // for (auto l : node->Word()) std::cout << l << " ";
     std::cout << "}" << std::endl;
   }
 

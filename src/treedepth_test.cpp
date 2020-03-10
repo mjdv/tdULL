@@ -1,4 +1,5 @@
 #include "treedepth.hpp"
+#include "centrality.hpp"
 
 int main(int argc, char **argv) {
   std::string root = "../input/exact/";

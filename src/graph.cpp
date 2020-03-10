@@ -32,6 +32,45 @@ Graph::Graph(std::istream &stream) {
 
 SubGraph::SubGraph() : mask(full_graph.N, false) {}
 
+// Create a SubGraph of G with the given (local) vertices
+SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
+    : SubGraph() {
+  assert(G.vertices.size() > sub_vertices.size());  // This is silly.
+  vertices.reserve(sub_vertices.size());
+
+  // This table will keep the mapping from G indices <-> indices subgraph.
+  std::vector<int> new_indices(G.vertices.size(), -1);
+
+  // Add all new vertices to our subgraph.
+  for (int v_new = 0; v_new < sub_vertices.size(); ++v_new) {
+    int v_old = sub_vertices[v_new];
+    new_indices[v_old] = v_new;
+
+    mask[G.vertices[v_old]->n] = true;
+    vertices.emplace_back(G.vertices[v_old]);
+  }
+
+  // Now find the new adjacency lists.
+  for (int v_new = 0; v_new < sub_vertices.size(); ++v_new) {
+    int v_old = sub_vertices[v_new];
+    std::vector<int> nghbrs;
+    nghbrs.reserve(G.Adj(v_old).size());
+    for (int nghb_old : G.Adj(v_old))
+      if (mask[G.vertices[nghb_old]->n]) {
+        assert(new_indices[nghb_old] >= 0 &&
+               new_indices[nghb_old] < sub_vertices.size());
+        nghbrs.emplace_back(new_indices[nghb_old]);
+      }
+
+    // Insert this adjacency list into the subgraph.
+    M += nghbrs.size();
+    max_degree = std::max(max_degree, nghbrs.size());
+    adj.emplace_back(std::move(nghbrs));
+  }
+  assert(M % 2 == 0);
+  M /= 2;
+}
+
 const std::vector<int> &SubGraph::Adj(int v) const {
   assert(v >= 0 && v < vertices.size() && adj.size() == vertices.size());
   return adj[v];
@@ -43,8 +82,8 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
   static std::vector<int> stack;
 
   // This table will keep the mapping from our indices <-> indices subgraph.
-  std::vector<int> new_indices(vertices.size(), -1);
-  std::vector<int> old_indices(vertices.size(), -1);
+  std::vector<int> sub_vertices;
+  sub_vertices.reserve(vertices.size());
 
   // Initiate a DFS from all of the vertices inside this subgraph.
   int vertices_left = vertices.size();
@@ -52,6 +91,7 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
     if (vertices_left == 0) break;
     if (root == w) continue;
     if (!vertices[root]->visited) {
+      sub_vertices.clear();
       SubGraph component;
       component.vertices.reserve(vertices_left);
 
@@ -62,14 +102,8 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
         int v = stack.back();
         stack.pop_back();
 
-        // Create index mapping between current graph and subgraph.
-        new_indices[v] = component.vertices.size();
-        old_indices[component.vertices.size()] = v;
-
-        // Insert this vertex into the component.
-        component.vertices.emplace_back(vertices[v]);
-        component.mask[vertices[v]->n] = true;
-        vertices_left--;
+        // Add this vertex to the component.
+        sub_vertices.push_back(v);
 
         // Visit all neighbours, skipping w.
         for (int nghb : Adj(v))
@@ -79,31 +113,8 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
           }
       }
 
-      // Find the (trimmed) adjacency list for each vertex.
-      component.adj.reserve(component.vertices.size());
-      for (int v_new = 0; v_new < component.vertices.size(); ++v_new) {
-        int v_old = old_indices[v_new];
-        assert(v_old >= 0 && v_old < vertices.size());
-
-        // Find the trimmed adjacency list for this vertex.
-        std::vector<int> nghbrs;
-        nghbrs.reserve(Adj(v_old).size());
-        for (int nghb : Adj(v_old))
-          if (nghb != w) {
-            assert(new_indices[nghb] >= 0 &&
-                   new_indices[nghb] < component.vertices.size());
-            nghbrs.emplace_back(new_indices[nghb]);
-          }
-
-        // Insert this adjacency list into the component.
-        component.M += nghbrs.size();
-        component.max_degree = std::max(component.max_degree, nghbrs.size());
-        component.adj.emplace_back(std::move(nghbrs));
-      }
-
-      assert(component.M % 2 == 0);
-      component.M /= 2;
-      cc.emplace_back(std::move(component));
+      // Create a SubGraph for this component.
+      cc.emplace_back(*this, sub_vertices);
     }
   }
   // Reset the visited field.
@@ -133,6 +144,186 @@ std::vector<int> SubGraph::Bfs(int root) const {
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
   return result;
+}
+
+SubGraph SubGraph::BfsTree(int root) const {
+  assert(mask[vertices[root]->n]);
+
+  SubGraph result;
+  result.mask = mask;
+  result.vertices.reserve(vertices.size());
+  result.adj.resize(vertices.size());
+
+  static std::queue<int> queue;
+  queue.push(root);
+  vertices[root]->visited = true;
+  while (!queue.empty()) {
+    int v = queue.front();
+    queue.pop();
+    result.vertices.emplace_back(vertices[v]);
+    for (int nghb : Adj(v))
+      if (!vertices[nghb]->visited) {
+        queue.push(nghb);
+        result.adj[v].push_back(nghb);
+        result.adj[nghb].push_back(v);
+        vertices[nghb]->visited = true;
+      }
+  }
+  result.M = vertices.size() - 1;
+  int total_edges = 0;
+  for (int v = 0; v < result.vertices.size(); v++) {
+    result.max_degree = std::max(result.max_degree, result.adj[v].size());
+    total_edges += result.adj[v].size();
+  }
+  assert(result.M == total_edges / 2);
+  // Reset the visited field.
+  for (auto vtx : vertices) vtx->visited = false;
+  return result;
+}
+
+SubGraph SubGraph::DfsTree(int root) const {
+  assert(mask[vertices[root]->n]);
+
+  SubGraph result;
+  result.mask = mask;
+  result.vertices.reserve(vertices.size());
+  result.adj.resize(vertices.size());
+
+  static std::vector<int> stack;
+  stack.push_back(root);
+  vertices[root]->visited = true;
+  while (!stack.empty()) {
+    int v = stack.back();
+    stack.pop_back();
+    result.vertices.emplace_back(vertices[v]);
+    for (int nghb : Adj(v))
+      if (!vertices[nghb]->visited) {
+        stack.push_back(nghb);
+        result.adj[v].push_back(nghb);
+        result.adj[nghb].push_back(v);
+        vertices[nghb]->visited = true;
+      }
+  }
+  result.M = vertices.size() - 1;
+  int total_edges = 0;
+  for (int v = 0; v < result.vertices.size(); v++) {
+    result.max_degree = std::max(result.max_degree, result.adj[v].size());
+    total_edges += result.adj[v].size();
+  }
+  assert(result.M == total_edges / 2);
+  // Reset the visited field.
+  for (auto vtx : vertices) vtx->visited = false;
+  return result;
+}
+
+std::vector<SubGraph> SubGraph::kCore(int k) const {
+  static std::vector<int> stack;
+  assert(!IsTreeGraph());
+  int N = vertices.size();
+  int vertices_left = N;
+
+  // This will keep a list of all the (local) degrees.
+  std::vector<int> degrees;
+  degrees.reserve(N);
+  for (int i = 0; i < N; i++) degrees.push_back(Adj(i).size());
+
+  // Remove all nodes with degree < k.
+  for (int v = 0; v < N; v++)
+    if (degrees[v] < k && degrees[v] > 0) {
+      stack.emplace_back(v);
+      degrees[v] = 0;
+      while (!stack.empty()) {
+        int v = stack.back();
+        stack.pop_back();
+        vertices_left--;
+
+        for (int nghb : Adj(v))
+          if (degrees[nghb]) {
+            --degrees[nghb];
+            if (degrees[nghb] < k && degrees[nghb]) {
+              stack.push_back(nghb);
+              degrees[nghb] = 0;
+            }
+          }
+      }
+    }
+
+  // Nothing was removed, simply return ourself.
+  if (vertices_left == N) return {*this};
+
+  // Everything was removed, return the empty graph
+  if (vertices_left == 0) return {};
+
+  // Note that the subgraph does not need to be connected, so
+  // ceate all subgraphs with vertices that are not removed.
+  std::vector<SubGraph> cc;
+
+  static std::vector<int> sub_vertices;
+  sub_vertices.reserve(vertices_left);
+  for (int v = 0; v < N; v++)
+    if (degrees[v] && !vertices[v]->visited) {
+      sub_vertices.clear();
+      stack.emplace_back(v);
+      vertices[v]->visited = true;
+      while (!stack.empty()) {
+        int v = stack.back();
+        stack.pop_back();
+        sub_vertices.push_back(v);
+        for (int nghb : Adj(v))
+          if (degrees[nghb] && !vertices[nghb]->visited) {
+            stack.push_back(nghb);
+            vertices[nghb]->visited = true;
+          }
+      }
+      cc.emplace_back(*this, sub_vertices);
+    }
+
+  for (int v = 0; v < N; v++) {
+    assert(vertices[v]->visited == (degrees[v] > 0));
+    vertices[v]->visited = false;
+  }
+
+  return cc;
+}
+
+SubGraph SubGraph::TwoCore() const {
+  assert(!IsTreeGraph());
+  int N = vertices.size();
+  int vertices_left = N;
+
+  // This will keep a list of all the (local) degrees.
+  std::vector<int> degrees;
+  degrees.reserve(N);
+  for (int i = 0; i < N; i++) degrees.push_back(Adj(i).size());
+
+  // Remove all leaves, and its adjacent 2 deg nodes.
+  for (int v = 0; v < N; v++)
+    if (degrees[v] == 1) {
+      int cur = v;
+      while (degrees[cur] == 1) {
+        degrees[cur] = 0;
+        vertices_left--;
+        for (int nb : Adj(cur)) {
+          if (degrees[nb]) {
+            degrees[nb]--;
+            cur = nb;
+            break;
+          }
+        }
+      }
+    }
+
+  // Nothing was removed, simply return ourself.
+  if (vertices_left == N) return *this;
+
+  // Create subgraph with all vertices that are not removed.
+  std::vector<int> sub_vertices;
+  sub_vertices.reserve(vertices_left);
+
+  for (int v = 0; v < N; v++)
+    if (degrees[v]) sub_vertices.push_back(v);
+
+  return SubGraph(*this, sub_vertices);
 }
 
 void LoadGraph(std::istream &stream) {

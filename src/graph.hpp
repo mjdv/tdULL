@@ -8,6 +8,8 @@ struct Vertex {
   int n;         // The index of this vertex.
   bool visited;  // Field for DFS/BFS.
 
+  int rank;  // field for treedepth on tree calculation
+
   Vertex(int n) : n(n), visited(false) {}
 };
 
@@ -32,14 +34,25 @@ struct SubGraph {
   // Create an empty SubGraph.
   SubGraph();
 
+  // Create a SubGraph of G with the given (local) vertices
+  SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices);
+
   // Get the adjacency list for a given vertex.
   const std::vector<int> &Adj(int v) const;
 
   // Create a connected components of the subgraph without the given vertex.
   std::vector<SubGraph> WithoutVertex(int v) const;
 
+  // Recursively removes all vertices with deg < 2.
+  SubGraph TwoCore() const;
+  std::vector<SubGraph> kCore(int k) const;
+
   // Do a BFS from the given vertex.
   std::vector<int> Bfs(int v) const;
+
+  // Compute trees from the given roots.
+  SubGraph BfsTree(int root) const;
+  SubGraph DfsTree(int root) const;
 
   // Returns whether this is a complete graph.
   bool IsCompleteGraph() const {
@@ -57,6 +70,18 @@ struct SubGraph {
   bool IsStarGraph() const {
     int N = vertices.size();
     return (N - 1 == M) && (M == max_degree);
+  }
+
+  // Returns whether this is a cycle graph.
+  bool IsCycleGraph() const {
+    int N = vertices.size();
+    return (M == N) && (max_degree == 2);
+  }
+
+  // Returns whether this is a tree.
+  bool IsTreeGraph() const {
+    int N = vertices.size();
+    return N - 1 == M;
   }
 
   // Explicit conversion to vector of ints.
