@@ -2,6 +2,8 @@
 
 #include <cassert>
 #include <queue>
+#include <stack>
+#include <set>
 
 Graph full_graph;
 SubGraph full_graph_as_sub;
@@ -74,6 +76,127 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
 const std::vector<int> &SubGraph::Adj(int v) const {
   assert(v >= 0 && v < vertices.size() && adj.size() == vertices.size());
   return adj[v];
+}
+
+std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
+  assert(!IsCompleteGraph());
+  int N = vertices.size();
+
+  std::queue<std::vector<int>> queue;
+  std::set<std::vector<int>> done;
+  std::vector<std::vector<int>> result;
+
+  std::vector<bool> in_nbh(N, false);
+
+  for(int i = 0; i < N; i++) {
+    std::vector<int> neighborhood = {i};
+    neighborhood.insert(neighborhood.end(), Adj(i).begin(), Adj(i).end());
+
+    if(neighborhood.size() == N)
+      continue;
+
+    for(int v : neighborhood)
+      in_nbh[v] = true;
+    
+    // Now we start off by enqueueing all neighborhoods of connected components
+    // in the complement of this neighborhood.
+    for(int j = 0; j < N; j++) {
+      if(in_nbh[j] || vertices[j]->visited)
+        continue;
+      
+      std::stack<int> component;
+      component.push(j);
+      vertices[j]->visited = true;
+
+      std::vector<int> separator;
+
+      while(!component.empty()) {
+        int cur = component.top(); component.pop();
+
+        for(int nb : Adj(cur)) {
+          if(!vertices[nb]->visited) {
+            if(in_nbh[nb]) {
+              separator.push_back(nb);
+            }
+            else {
+              component.push(nb);
+            }
+            vertices[nb]->visited = true;
+          }
+        }
+      }
+
+      for(auto k : neighborhood)
+        vertices[k]->visited = false;
+      std::sort(separator.begin(), separator.end());
+      if(done.find(separator) == done.end()) {
+        queue.push(separator);
+        done.insert(separator);
+      }
+    }
+
+    for(auto v : vertices)
+      v->visited = false;
+
+    for(int v : neighborhood)
+      in_nbh[v] = false;
+  }
+
+  while(!queue.empty()) {
+    auto cur_separator = queue.front(); queue.pop();
+
+    result.push_back(cur_separator);
+    for(int x : cur_separator) {
+      for(int j : Adj(x))
+        in_nbh[j] = true;
+      for(int j : cur_separator)
+        in_nbh[j] = true;
+
+      for(int j = 0; j < N; j++) {
+        if(in_nbh[j] || vertices[j]->visited)
+          continue;
+        std::stack<int> component;
+        component.push(j);
+        vertices[j]->visited = true;
+
+        std::vector<int> separator;
+
+        while(!component.empty()) {
+          int cur = component.top(); component.pop();
+
+          for(int nb : Adj(cur)) {
+            if(!vertices[nb]->visited) {
+              if(in_nbh[nb]) {
+                separator.push_back(nb);
+              }
+              else {
+                component.push(nb);
+              }
+              vertices[nb]->visited = true;
+            }
+          }
+        }
+
+        for(auto k : cur_separator)
+          vertices[k]->visited = false;
+        for(auto k : Adj(x))
+          vertices[k]->visited = false;
+        std::sort(separator.begin(), separator.end());
+        if(done.find(separator) == done.end()) {
+          queue.push(separator);
+          done.insert(separator);
+        }
+      }
+
+      for(int j : cur_separator)
+        in_nbh[j] = false;
+      for(int j : Adj(x))
+        in_nbh[j] = false;
+      for(int j = 0; j < N; j++)
+        vertices[j]->visited=false;
+    }
+  }
+  return result;
 }
 
 std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {

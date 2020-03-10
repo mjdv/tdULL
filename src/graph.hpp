@@ -40,6 +40,10 @@ struct SubGraph {
   // Get the adjacency list for a given vertex.
   const std::vector<int> &Adj(int v) const;
 
+  // Get all minimal separators for the given graph (as lists of local
+  // coordinates).
+  std::vector<std::vector<int>> AllMinimalSeparators() const;
+
   // Create a connected components of the subgraph without the given vertex.
   std::vector<SubGraph> WithoutVertex(int v) const;
 
