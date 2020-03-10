@@ -74,8 +74,7 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
 // than d. Thus if we find a decomposition that can has depth at most d, i.e.
 // upper is at most search_lbnd, we are done.
 std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
-                                    int search_ubnd,
-                                    bool require_root = false) {
+                                    int search_ubnd) {
   int N = G.vertices.size();
   assert(N >= 1);
 
@@ -268,7 +267,6 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 // Recursive function to reconstruct the tree that atains the treedepth.
 void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
   assert(G.vertices.size());
-  auto node = cache.Search(G);
 
   // Ensure that the cache contains the correct node.
   int new_root = std::get<2>(treedepth(G, 1, td));
