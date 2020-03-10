@@ -1,23 +1,29 @@
 
-CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -Wpadded
 
 N=001
 F=001
 T=199
 
 INPUT_DIR=../input/exact
-OUTPUT_DIR=../output
+OUTPUT_DIR=../output/exact
 
 all: set_trie_test graph_test treedepth_test main verify generate_exact_cache centrality_test
 
 instance: main
 	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
+	./verify $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
 
 until: main
-	bash from_to.sh $(N)
+	bash from_to.sh $(T)
 
 fromto: main
 	bash from_to.sh $(F) $(T)
+
+timing: main
+	mkdir -p timings
+	echo "fn,treedepth,time,error" > timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
+	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
 
 main: main.o graph.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^
@@ -41,7 +47,7 @@ verify: verify.o
 	g++ -o $@ $^
 
 clean:
-	rm set_trie_test *.o graph_test main *.d treedepth_test generate_exact_cache
+	rm set_trie_test *.o graph_test main *.d treedepth_test generate_exact_cache verify || true
 
 exact_cache.o : exact_caches/exact_cache_8.bin
 exact_caches/exact_cache_8.bin: exact_caches/exact_cache_8.bin.gz
