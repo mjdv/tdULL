@@ -200,7 +200,6 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       //std::cerr << "Complement has multiple components!" << std::endl;
       // Now td(G) = min_{H : components} |G| - |H| + td(H).
       int lower_components = N;
-      int upper_components = 1;
       for(auto H : components) {
         int H_size = H.vertices.size();
         int search_lbnd_H = std::max(1, search_lbnd - N + H_size);
@@ -208,10 +207,17 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
         auto [lower_H, upper_H] = treedepth(H, search_lbnd_H, search_ubnd_H);
 
         lower_components = std::min(lower_H + N - H_size, lower_components);
-        upper_components = std::min(upper_H + N - H_size, upper_components);
+        if(upper_H + N - H_size < upper) {
+          upper = upper_H + N - H_size;
+          for(int i = 0; i < full_graph_as_sub.vertices.size(); i++) {
+            if(G.mask[i] && !H.mask[i]) {
+              node->root = i;
+              break;
+            }
+          }
+        }
       }
       lower = std::max(lower, lower_components);
-      upper = std::min(upper, upper_components);
 
       node->lower_bound = lower;
       node->upper_bound = upper;
