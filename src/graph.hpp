@@ -34,14 +34,18 @@ struct SubGraph {
   // Create an empty SubGraph.
   SubGraph();
 
+  // Create a SubGraph of G with the given (local) vertices
+  SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices);
+
   // Get the adjacency list for a given vertex.
   const std::vector<int> &Adj(int v) const;
 
   // Create a connected components of the subgraph without the given vertex.
   std::vector<SubGraph> WithoutVertex(int v) const;
 
-  // Recursively removes all vertices with deg < 1.
+  // Recursively removes all vertices with deg < 2.
   SubGraph TwoCore() const;
+  std::vector<SubGraph> kCore(int k) const;
 
   // Do a BFS from the given vertex.
   std::vector<int> Bfs(int v) const;

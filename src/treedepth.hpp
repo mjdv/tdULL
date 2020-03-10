@@ -148,19 +148,14 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   assert(G.vertices.size() > 2);
 
   std::vector<int> vertices;
+  std::vector<int> degree_hist(G.max_degree + 1, 0);
   vertices.reserve(G.vertices.size());
-  int N_deg_1 = 0;
-  int N_deg_2 = 0;
   for (int v = 0; v < G.vertices.size(); ++v) {
     // Only add vertices with deg > 1.
     if (G.Adj(v).size() > 1) vertices.emplace_back(v);
-
-    // Simple counters
-    if (G.Adj(v).size() == 1)
-      N_deg_1++;
-    else if (G.Adj(v).size() == 2)
-      N_deg_2++;
+    degree_hist[G.Adj(v).size()]++;
   }
+  lower = std::max(lower, (G.M - degree_hist[2]) / (N - degree_hist[2]) + 1);
   assert(vertices.size());
 
   // Below we have the following two checks.
@@ -170,12 +165,21 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // * If G does not have deg 1 vertices, then we can contract all deg 2
   // vertices and try out the trivial lower bound.
   assert(!G.IsTreeGraph());
-  if (N_deg_1)
-    lower = std::max(lower, treedepth(G.TwoCore(), search_lbnd, search_ubnd).first);
-  else
-    lower = std::max(lower, (G.M - N_deg_2) / (N - N_deg_2) + 1);
-  node->lower_bound = lower;
+  for (int k = 2; k <= G.max_degree; k++)
+    if (degree_hist[k - 1]) {
+      auto cc_core = G.kCore(k);
 
+      // Only try if we do not have an empty core.
+      if (!cc_core.empty()) {
+        assert(cc_core[0].vertices.size() < N);
+        for (const auto &cc : cc_core)
+          lower =
+              std::max(lower, treedepth(cc, search_lbnd, search_ubnd).first);
+      }
+      break;
+    }
+
+  node->lower_bound = lower;
   if (search_ubnd <= lower || lower == upper) {
     return {lower, upper};
   }
@@ -242,8 +246,8 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     if (upper <= search_lbnd || lower == upper) {
       // Choosing root v already gives us a treedepth decomposition which is
       // good enough (either a sister branch is at least this long, or it
-      // matches a previously proved lower bound for this subgraph) so we can
-      // use v as our root.
+      // matches a previously proved lower bound for this subgraph) so we
+      // can use v as our root.
       return {lower, upper};
     }
   }
