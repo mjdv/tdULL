@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <queue>
+#include <stack>
 
 Graph full_graph;
 SubGraph full_graph_as_sub;
@@ -284,6 +285,45 @@ std::vector<SubGraph> SubGraph::kCore(int k) const {
   }
 
   return cc;
+}
+
+std::vector<SubGraph> SubGraph::ComplementComponents() const {
+  int N = vertices.size();
+
+  std::vector<std::vector<bool>> adjacency_matrix = 
+    std::vector<std::vector<bool>>(N, std::vector<bool>(N, true));
+  for(int i = 0; i < N; i++) {
+    assert(!vertices[i]->visited);
+    adjacency_matrix[i][i] = false;
+    for(int j : Adj(i))
+      adjacency_matrix[i][j] = false;
+  }
+
+  std::vector<SubGraph> result;
+  for(int i = 0; i < N; i++) {
+    if(vertices[i]->visited)
+      continue;
+
+    std::vector<int> component = {i};
+    std::stack<int> s;
+    s.push(i);
+    vertices[i]->visited = true;
+
+    while(s.size()) {
+      int cur = s.top(); s.pop();
+      for(int nb = 0; nb < N; nb++) {
+        if(adjacency_matrix[cur][nb] && !vertices[nb]->visited) {
+          component.push_back(nb);
+          s.push(nb);
+          vertices[nb]->visited = true;
+        }
+      }
+    }
+    result.push_back(SubGraph(*this, component));
+  }
+  for(int i = 0; i < N; i++)
+    vertices[i]->visited = false;
+  return result;
 }
 
 SubGraph SubGraph::TwoCore() const {
