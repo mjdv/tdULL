@@ -164,7 +164,7 @@ SubGraph SubGraph::BfsTree(int root) const {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
   }
-  assert(result.M == total_edges/2);
+  assert(result.M == total_edges / 2);
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
   return result;
@@ -199,10 +199,81 @@ SubGraph SubGraph::DfsTree(int root) const {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
   }
-  assert(result.M == total_edges/2);
+  assert(result.M == total_edges / 2);
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
   return result;
+}
+
+SubGraph SubGraph::TwoCore() const {
+  assert(!IsTreeGraph());
+  int N = vertices.size();
+
+  // This will keep a list of all the (local) degrees.
+  std::vector<int> degrees;
+  degrees.reserve(N);
+  for (int i = 0; i < N; i++) degrees.push_back(Adj(i).size());
+
+  // Remove all leaves, and its adjacent 2 deg nodes.
+  for (int v = 0; v < N; v++)
+    if (degrees[v] == 1) {
+      int cur = v;
+      while (degrees[cur] == 1) {
+        degrees[cur] = 0;
+        for (int nb : Adj(cur)) {
+          if (degrees[nb]) {
+            degrees[nb]--;
+            cur = nb;
+            break;
+          }
+        }
+      }
+    }
+
+  // Create subgraph with all vertices that are not removed.
+  SubGraph H;
+  H.vertices.reserve(N);
+
+  // This table will keep the mapping from our indices <-> indices subgraph.
+  std::vector<int> new_indices(vertices.size(), -1);
+  std::vector<int> old_indices(vertices.size(), -1);
+
+  for (int v = 0; v < N; v++) {
+    assert(degrees[v] >= 0 && degrees[v] != 1);
+    if (degrees[v]) {
+      // Create index mapping between current graph and subgraph.
+      new_indices[v] = H.vertices.size();
+      old_indices[H.vertices.size()] = v;
+
+      // Add the vertex to the subgraph.
+      H.vertices.emplace_back(vertices[v]);
+      H.mask[vertices[v]->n] = true;
+    }
+  }
+  assert(H.vertices.size());
+
+  // Now find the trimmed adjacency lists.
+  for (int v_old = 0; v_old < N; v_old++) {
+    if (degrees[v_old]) {
+      std::vector<int> nghbrs;
+      nghbrs.reserve(Adj(v_old).size());
+      for (int nghb : Adj(v_old))
+        if (degrees[nghb]) {
+          assert(new_indices[nghb] >= 0 &&
+                 new_indices[nghb] < H.vertices.size());
+          nghbrs.emplace_back(new_indices[nghb]);
+        }
+
+      // Insert this adjacency list into the subgraph.
+      H.M += nghbrs.size();
+      H.max_degree = std::max(H.max_degree, nghbrs.size());
+      H.adj.emplace_back(std::move(nghbrs));
+    }
+  }
+  assert(H.vertices.size() < vertices.size());
+  assert(H.M % 2 == 0);
+  H.M /= 2;
+  return H;
 }
 
 void LoadGraph(std::istream &stream) {
