@@ -74,17 +74,11 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
 
 // Gives a vector of all the components of the possibly disconnected subgraph
 // of G given by sub_vertices (in local coordinates).
-std::vector<SubGraph> SubGraph::ConnectedSubGraphs(const std::vector<int> &sub_vertices) const {
+std::vector<SubGraph> SubGraph::ConnectedSubGraphs(
+    const std::vector<int> &sub_vertices) const {
   int N = sub_vertices.size();
-  std::vector<int> degrees(N);
-  for(int i = 0; i < N; i++) {
-    assert(!vertices[sub_vertices[i]]->visited);
-    degrees[i] = Adj(sub_vertices[i]).size();
-  }
-
   std::vector<bool> in_sub_verts(vertices.size(), false);
-  for(int v : sub_vertices)
-    in_sub_verts[v] = true;
+  for (int v : sub_vertices) in_sub_verts[v] = true;
 
   std::vector<SubGraph> cc;
   std::stack<int> s;
@@ -92,11 +86,12 @@ std::vector<SubGraph> SubGraph::ConnectedSubGraphs(const std::vector<int> &sub_v
   for (int i = 0; i < N; i++) {
     int v = sub_vertices[i];
     if (!vertices[v]->visited) {
-      std::vector<int> component = {v};
+      std::vector<int> component{v};
       s.push(v);
       vertices[v]->visited = true;
       while (!s.empty()) {
-        int v = s.top(); s.pop();
+        int v = s.top();
+        s.pop();
         for (int nghb : Adj(v))
           if (in_sub_verts[nghb] && !vertices[nghb]->visited) {
             s.push(nghb);
@@ -107,9 +102,7 @@ std::vector<SubGraph> SubGraph::ConnectedSubGraphs(const std::vector<int> &sub_v
     }
   }
 
-  for (int v : sub_vertices) {
-    vertices[v]->visited = false;
-  }
+  for (int v : sub_vertices) vertices[v]->visited = false;
 
   return cc;
 }
@@ -118,7 +111,6 @@ const std::vector<int> &SubGraph::Adj(int v) const {
   assert(v >= 0 && v < vertices.size() && adj.size() == vertices.size());
   return adj[v];
 }
-
 
 std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
   assert(w >= 0 && w < vertices.size());
@@ -333,49 +325,46 @@ std::vector<SubGraph> SubGraph::kCore(int k) const {
 std::vector<SubGraph> SubGraph::ComplementComponents() const {
   int N = vertices.size();
 
-  std::vector<std::vector<bool>> adjacency_matrix = 
-    std::vector<std::vector<bool>>(N, std::vector<bool>(N, true));
-  for(int i = 0; i < N; i++) {
+  std::vector<std::vector<bool>> adjacency_matrix =
+      std::vector<std::vector<bool>>(N, std::vector<bool>(N, true));
+  for (int i = 0; i < N; i++) {
     assert(!vertices[i]->visited);
     adjacency_matrix[i][i] = false;
-    for(int j : Adj(i))
-      adjacency_matrix[i][j] = false;
+    for (int j : Adj(i)) adjacency_matrix[i][j] = false;
   }
 
   std::vector<std::vector<int>> complement_ccs;
-  for(int i = 0; i < N; i++) {
-    if(vertices[i]->visited)
-      continue;
+  for (int i = 0; i < N; i++) {
+    if (vertices[i]->visited) continue;
 
     std::vector<int> component = {i};
     std::stack<int> s;
     s.push(i);
     vertices[i]->visited = true;
 
-    while(s.size()) {
-      int cur = s.top(); s.pop();
-      for(int nb = 0; nb < N; nb++) {
-        if(adjacency_matrix[cur][nb] && !vertices[nb]->visited) {
+    while (s.size()) {
+      int cur = s.top();
+      s.pop();
+      for (int nb = 0; nb < N; nb++) {
+        if (adjacency_matrix[cur][nb] && !vertices[nb]->visited) {
           component.push_back(nb);
           s.push(nb);
           vertices[nb]->visited = true;
         }
       }
     }
-    if(component.size() == N) {
-      for(int i = 0; i < N; i++)
-        vertices[i]->visited = false;
+    if (component.size() == N) {
+      for (int i = 0; i < N; i++) vertices[i]->visited = false;
       return {*this};
     }
     complement_ccs.push_back(component);
   }
-  for(int i = 0; i < N; i++)
-    vertices[i]->visited = false;
+  for (int i = 0; i < N; i++) vertices[i]->visited = false;
 
   std::vector<SubGraph> result;
-  for(auto complement_cc : complement_ccs)
-    for(auto cc : ConnectedSubGraphs(complement_cc))
-      result.push_back(cc);
+  for (auto &complement_cc : complement_ccs)
+    for (auto &&cc : ConnectedSubGraphs(complement_cc))
+      result.emplace_back(std::move(cc));
   return result;
 }
 

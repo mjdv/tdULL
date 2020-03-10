@@ -46,9 +46,9 @@ int main() {
   LoadGraph(stream_complement);
   auto cc_complement = full_graph_as_sub.ComplementComponents();
   std::cout << cc_complement.size() << std::endl;
-  for(auto cc : cc_complement)
-    std::cout << cc.vertices.size() << std::endl;
-  assert(cc_complement.size() == 2);
+  for (auto cc : cc_complement) std::cout << cc.vertices.size() << std::endl;
+
+  assert(cc_complement.size() == 4);
   assert(cc_complement[0].vertices.size() == 2);
   assert(cc_complement[1].vertices.size() == 2);
 
