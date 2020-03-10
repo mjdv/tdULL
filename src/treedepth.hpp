@@ -178,10 +178,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
       }
       break;
     }
-
-  if (search_ubnd <= lower || lower == upper) {
-    return {lower, upper, root};
-  }
+  if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
 
   // If it doesn't exist in the cache, lets add it now.
   bool inserted = (node == nullptr);
@@ -204,13 +201,9 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     // If G is a new graph in the cache, compute its DfsTree-tree from
     // the most promising node once, and then evaluate the treedepth_tree on
     // this tree.
-    lower = std::max(lower, treedepth_tree(G.DfsTree(vertices[0])).first);
-    node->lower_bound = lower;
-
-    // If the trivial or previously found bounds suffice, we are done.
-    if (search_ubnd <= lower || lower == upper) {
-      return {lower, upper, root};
-    }
+    node->lower_bound = lower =
+        std::max(lower, treedepth_tree(G.DfsTree(vertices[0])).first);
+    if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
   }
 
   // Main loop: try every vertex as root.
@@ -225,7 +218,13 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 
     bool early_break = false;
 
-    for (auto H : G.WithoutVertex(v)) {
+    // Sort the components on size.
+    auto cc = G.WithoutVertex(v);
+    std::sort(cc.begin(), cc.end(), [](const SubGraph &c1, const SubGraph &c2) {
+      return c1.vertices.size() > c2.vertices.size();
+    });
+
+    for (const auto &H : cc) {
       auto [lower_H, upper_H, root_H] =
           treedepth(H, search_lbnd_v, search_ubnd_v);
 
