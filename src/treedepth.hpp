@@ -34,7 +34,7 @@ int treedepth_trivial(const SubGraph &G) {
 //
 // Furthermore, we only search those graphs whose vertex count is at least
 // minimal_subset_search_size
-const int subset_gap = 2;
+const int subset_gap = 3;
 const int minimal_subset_search_size = 0;
 
 // The global cache (a SetTrie) is what we use to store bounds on treedepths
@@ -147,23 +147,23 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       auto [td, root] = treedepth_tree(G);
       return CacheUpdate(node, td, td, root);
     }
-
-    // If this is not a case we can solve exactly, we try to find a better lower
-    // bound from some of its big subsets.
-    if (N >= minimal_subset_search_size) {
-      for (auto node : cache.BigSubsets(G, subset_gap))
-        lower = std::max(lower, node->lower_bound);
-
-      if (lower >= search_ubnd || lower == upper) {
-        node->lower_bound = lower;
-        return {lower, upper};
-      }
-    }
   }
 
   // If the trivial or previously found bounds suffice, we are done.
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
     return {lower, upper};
+  }
+
+  // If this is not a case we can solve exactly, we try to find a better lower
+  // bound from some of its big subsets.
+  if (N >= minimal_subset_search_size) {
+    for (auto node : cache.BigSubsets(G, subset_gap))
+      lower = std::max(lower, node->lower_bound);
+
+    if (lower >= search_ubnd || lower == upper) {
+      node->lower_bound = lower;
+      return {lower, upper};
+    }
   }
 
   // If the graph has at least 3 vertices, we never want a leaf (degree 1
