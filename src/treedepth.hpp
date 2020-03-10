@@ -73,83 +73,84 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
 // there is no reason to try to get the treedepth of this subgraph any lower
 // than d. Thus if we find a decomposition that can has depth at most d, i.e.
 // upper is at most search_lbnd, we are done.
-std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
-                              int search_ubnd) {
+std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
+                                    int search_ubnd,
+                                    bool require_root = false) {
   int N = G.vertices.size();
   assert(N >= 1);
 
-  int lower = G.M / N + 1, upper = N;
+  // We do a quick check for special cases we can answer exactly and
+  // immediately.
+  if (N < exactCacheSize) {
+    auto [td, root] = exactCache(G.adj);
+    return {td, td, G.vertices.at(root)->n};
+  } else if (G.IsCompleteGraph()) {
+    return {N, N, G.vertices[0]->n};
+  } else if (G.IsStarGraph()) {
+    // Find node with max_degree.
+    for (int v = 0; v < G.vertices.size(); ++v)
+      if (G.Adj(v).size() == G.max_degree) return {2, 2, G.vertices[v]->n};
+  } else if (G.IsCycleGraph()) {
+    // Find the bound, 1 + td of path of length N - 1.
+    N--;
+    int bnd = 2;
+    while (N >>= 1) bnd++;
+    return {bnd, bnd, G.vertices[0]->n};
+  } else if (G.IsPathGraph()) {
+    // Find the bound, this is the ceil(log_2(N)).
+    int bnd = 1;
+    while (N >>= 1) bnd++;
 
-  // Add this graph to the cache.
-  Node *node;
-  bool inserted;
-  std::tie(node, inserted) = cache.Insert(G);
+    // Find a leaf and then find the middle node.
+    for (int v = 0; v < G.vertices.size(); ++v)
+      if (G.Adj(v).size() == 1) {
+        int prev = v;
+        v = G.adj[v][0];
 
-  if (!inserted) {
-    // This graph was in the cache, retrieve lower/upper bounds.
-    lower = node->lower_bound;
-    upper = node->upper_bound;
-  } else {
-    // If this graph wasn't in the cache, store the trivial bounds.
-    node->lower_bound = lower;
-    node->upper_bound = upper;
-    node->root = G.vertices[0]->n;
-
-    // We do a quick check for special cases we can answer exactly and
-    // immediately.
-    if (N < exactCacheSize) {
-      auto [td, root] = exactCache(G.adj);
-      return CacheUpdate(node, td, td, G.vertices.at(root)->n);
-    } else if (G.IsCompleteGraph()) {
-      return CacheUpdate(node, N, N, G.vertices[0]->n);
-    } else if (G.IsStarGraph()) {
-      // Find node with max_degree.
-      for (int v = 0; v < G.vertices.size(); ++v)
-        if (G.Adj(v).size() == G.max_degree)
-          return CacheUpdate(node, 2, 2, G.vertices[v]->n);
-    } else if (G.IsCycleGraph()) {
-      // Find the bound, 1 + td of path of length N - 1.
-      N--;
-      int bnd = 2;
-      while (N >>= 1) bnd++;
-      return CacheUpdate(node, bnd, bnd, G.vertices[0]->n);
-    } else if (G.IsPathGraph()) {
-      // Find the bound, this is the ceil(log_2(N)).
-      int bnd = 1;
-      while (N >>= 1) bnd++;
-
-      // Find a leaf and then find the middle node.
-      for (int v = 0; v < G.vertices.size(); ++v)
-        if (G.Adj(v).size() == 1) {
-          int prev = v;
-          v = G.adj[v][0];
-
-          // Find the middle node.
-          for (int i = 1; i < G.vertices.size() / 2; i++) {
-            int tmp = v;
-            v = (prev ^ G.adj[v][0] ^ G.adj[v][1]);
-            prev = tmp;
-          }
-          return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
+        // Find the middle node.
+        for (int i = 1; i < G.vertices.size() / 2; i++) {
+          int tmp = v;
+          v = (prev ^ G.adj[v][0] ^ G.adj[v][1]);
+          prev = tmp;
         }
-    } else if (G.IsTreeGraph()) {
-      auto [td, root] = treedepth_tree(G);
-      return CacheUpdate(node, td, td, root);
-    }
+        return {bnd, bnd, G.vertices[v]->n};
+      }
+  } else if (G.IsTreeGraph()) {
+    // TODO: this one is semi-expensive, but probably doesn't occur often.
+    auto [td, root] = treedepth_tree(G);
+    return {td, td, root};
   }
+
+  // None of the exact tests worked, so lets try the trivial bounds.
+  int lower = G.M / N + 2;
+  int upper = N - 1;
+  int root = G.vertices[0]->n;
 
   // If the trivial or previously found bounds suffice, we are done.
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
-    return {lower, upper};
+    return {lower, upper, root};
+  }
+
+  // If not, lets check if it already exists in the cache.
+  Node *node = cache.Search(G);
+  if (node) {
+    // This graph was in the cache, retrieve lower/upper bounds.
+    lower = node->lower_bound;
+    upper = node->upper_bound;
+    root = node->root;
+
+    if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
+      return {lower, upper, root};
+    }
   }
 
   // If the graph has at least 3 vertices, we never want a leaf (degree 1
   // node) as a root.
-  assert(G.vertices.size() > 2);
-
+  assert(G.vertices.size() > 2 && G.max_degree >= 2);
   std::vector<int> vertices;
   std::vector<int> degree_hist(G.max_degree + 1, 0);
   vertices.reserve(G.vertices.size());
+
   for (int v = 0; v < G.vertices.size(); ++v) {
     // Only add vertices with deg > 1.
     if (G.Adj(v).size() > 1) vertices.emplace_back(v);
@@ -164,7 +165,6 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // lower bound.
   // * If G does not have deg 1 vertices, then we can contract all deg 2
   // vertices and try out the trivial lower bound.
-  assert(!G.IsTreeGraph());
   for (int k = 2; k <= G.max_degree; k++)
     if (degree_hist[k - 1]) {
       auto cc_core = G.kCore(k);
@@ -173,15 +173,23 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       if (!cc_core.empty()) {
         assert(cc_core[0].vertices.size() < N);
         for (const auto &cc : cc_core)
-          lower =
-              std::max(lower, treedepth(cc, search_lbnd, search_ubnd).first);
+          lower = std::max(
+              lower, std::get<0>(treedepth(cc, search_lbnd, search_ubnd)));
       }
       break;
     }
 
-  node->lower_bound = lower;
   if (search_ubnd <= lower || lower == upper) {
-    return {lower, upper};
+    return {lower, upper, root};
+  }
+
+  // If it doesn't exist in the cache, lets add it now.
+  bool inserted = (node == nullptr);
+  if (inserted) {
+    node = cache.Insert(G).first;
+    node->lower_bound = lower;
+    node->upper_bound = upper;
+    node->root = G.vertices[0]->n;
   }
 
   // Change BetweennessCentrality to DegreeCentrality to go back to the old
@@ -201,7 +209,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
     // If the trivial or previously found bounds suffice, we are done.
     if (search_ubnd <= lower || lower == upper) {
-      return {lower, upper};
+      return {lower, upper, root};
     }
   }
 
@@ -218,7 +226,8 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     bool early_break = false;
 
     for (auto H : G.WithoutVertex(v)) {
-      auto [lower_H, upper_H] = treedepth(H, search_lbnd_v, search_ubnd_v);
+      auto [lower_H, upper_H, root_H] =
+          treedepth(H, search_lbnd_v, search_ubnd_v);
 
       upper_v = std::max(upper_v, upper_H);
       lower_v = std::max(lower_v, lower_H);
@@ -248,13 +257,13 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       // good enough (either a sister branch is at least this long, or it
       // matches a previously proved lower bound for this subgraph) so we
       // can use v as our root.
-      return {lower, upper};
+      return {lower, upper, root};
     }
   }
 
   lower = std::max(lower, new_lower);
   node->lower_bound = lower;
-  return {lower, upper};
+  return {lower, upper, root};
 }
 
 // Recursive function to reconstruct the tree that atains the treedepth.
@@ -263,28 +272,26 @@ void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
   auto node = cache.Search(G);
 
   // Ensure that the cache contains the correct node.
-  treedepth(G, 1, td);
-  node = cache.Search(G);
-  assert(node);
-  assert(node->root > -1);
-  tree.at(node->root) = root;
+  int new_root = std::get<2>(treedepth(G, 1, td));
+  assert(new_root > -1);
+  tree.at(new_root) = root;
 
   // Root is the global coordinate, find its local coordinate.
   int local_root = -1;
   for (int v = 0; v < G.vertices.size(); ++v)
-    if (G.vertices[v]->n == node->root) {
+    if (G.vertices[v]->n == new_root) {
       local_root = v;
       break;
     }
   assert(local_root > -1);
   for (auto H : G.WithoutVertex(local_root))
-    reconstruct(H, node->root, tree, td - 1);
+    reconstruct(H, new_root, tree, td - 1);
 }
 
 // Little helper function that returns the treedepth for the given graph.
 std::pair<int, std::vector<int>> treedepth(const SubGraph &G) {
   cache = SetTrie();
-  int td = treedepth(G, 1, G.vertices.size()).second;
+  int td = std::get<1>(treedepth(G, 1, G.vertices.size()));
   std::vector<int> tree(G.vertices.size(), -2);
   reconstruct(G, -1, tree, td);
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
