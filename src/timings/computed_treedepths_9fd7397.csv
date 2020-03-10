@@ -1,0 +1,103 @@
+fn,treedepth,time,error
+exact_001.gr,6,0, 
+exact_003.gr,11,0, 
+exact_005.gr,5,0, 
+exact_007.gr,9,0, 
+exact_009.gr,6,0, 
+exact_011.gr,5,0, 
+exact_013.gr,7,0, 
+exact_015.gr,5,0, 
+exact_017.gr,10,5, 
+exact_019.gr,7,0, 
+exact_021.gr,5,0, 
+exact_023.gr,7,0, 
+exact_025.gr,8,0, 
+exact_027.gr,11,33, 
+exact_029.gr,12,93, 
+exact_031.gr,11,55, 
+exact_033.gr,12,65, 
+exact_035.gr,9,2, 
+exact_037.gr,7,0, 
+exact_039.gr,7,1, 
+exact_041.gr,5,0, 
+exact_043.gr,-1,607,std::bad_alloc
+exact_045.gr,11,217, 
+from_to.sh: line 21:  2552 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+exact_049.gr,10,47, 
+from_to.sh: line 21:  2567 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+exact_053.gr,7,0, 
+exact_055.gr,9,3, 
+exact_057.gr,-1,682,std::bad_alloc
+from_to.sh: line 21:  2613 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+from_to.sh: line 21:  2654 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+exact_063.gr,-1,676,std::bad_alloc
+exact_065.gr,-1,886,std::bad_alloc
+exact_067.gr,9,4, 
+exact_069.gr,6,0, 
+exact_071.gr,-1,1387,std::bad_alloc
+exact_073.gr,-1,545,std::bad_alloc
+from_to.sh: line 21:  2830 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+exact_077.gr,-1,684,std::bad_alloc
+exact_079.gr,9,2, 
+exact_081.gr,7,0, 
+from_to.sh: line 21:  2849 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+from_to.sh: line 21:  2895 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+exact_087.gr,-1,723,std::bad_alloc
+exact_089.gr,-1,733,std::bad_alloc
+exact_091.gr,9,2, 
+exact_093.gr,6,0, 
+exact_095.gr,8,1, 
+exact_097.gr,7,0, 
+exact_099.gr,-1,944,std::bad_alloc
+exact_101.gr,-1,1047,std::bad_alloc
+exact_103.gr,-1,695,std::bad_alloc
+exact_105.gr,9,15, 
+from_to.sh: line 21:  3013 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+exact_109.gr,9,18, 
+from_to.sh: line 21:  3020 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+exact_113.gr,6,0, 
+exact_115.gr,-1,385,std::bad_alloc
+exact_117.gr,-1,647,std::bad_alloc
+exact_119.gr,-1,818,std::bad_alloc
+exact_121.gr,-1,702,std::bad_alloc
+exact_123.gr,-1,527,std::bad_alloc
+exact_125.gr,-1,640,std::bad_alloc
+exact_127.gr,8,1, 
+exact_129.gr,-1,321,std::bad_alloc
+exact_131.gr,-1,258,std::bad_alloc
+exact_133.gr,-1,360,std::bad_alloc
+exact_135.gr,-1,233,std::bad_alloc
+exact_137.gr,-1,964,std::bad_alloc
+exact_139.gr,-1,249,std::bad_alloc
+exact_141.gr,-1,281,std::bad_alloc
+exact_143.gr,-1,600,std::bad_alloc
+exact_145.gr,7,0, 
+exact_147.gr,-1,262,std::bad_alloc
+exact_149.gr,-1,374,std::bad_alloc
+exact_151.gr,7,15, 
+exact_153.gr,-1,475,std::bad_alloc
+exact_155.gr,-1,204,std::bad_alloc
+exact_157.gr,-1,215,std::bad_alloc
+exact_159.gr,-1,916,std::bad_alloc
+exact_161.gr,-1,333,std::bad_alloc
+exact_163.gr,-1,185,std::bad_alloc
+from_to.sh: line 21:  3271 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+exact_165.gr,9,2, 
+exact_167.gr,-1,193,std::bad_alloc
+exact_169.gr,-1,228,std::bad_alloc
+exact_171.gr,-1,225,std::bad_alloc
+exact_173.gr,-1,888,std::bad_alloc
+exact_175.gr,-1,183,std::bad_alloc
+exact_177.gr,9,23, 
+exact_179.gr,-1,193,std::bad_alloc
+exact_181.gr,10,64, 
+exact_183.gr,-1,276,std::bad_alloc
+exact_185.gr,-1,395,std::bad_alloc
+exact_187.gr,-1,151,std::bad_alloc
+exact_189.gr,-1,195,std::bad_alloc
+exact_191.gr,-1,161,std::bad_alloc
+from_to.sh: line 21:  3316 Killed                  ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree
+exact_193.gr,-1,680,std::bad_alloc
+exact_195.gr,-1,212,std::bad_alloc
+exact_197.gr,-1,326,std::bad_alloc
+exact_199.gr,-1,187,std::bad_alloc
