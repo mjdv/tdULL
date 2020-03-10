@@ -34,7 +34,11 @@ std::pair<int, int> exactCache(const std::vector<std::vector<int>> &adj) {
       }
     }
   }
+  return exactCache(N, edges);
+}
 
+std::pair<int, int> exactCache(int N, int32_t edges) {
+  assert(N >= 0 && N < exactCacheSize);
   uint8_t result = 0;
   switch (N) {
     case 0:

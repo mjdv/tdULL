@@ -79,6 +79,8 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   assert(N >= 1);
 
   int lower = G.M / N + 1, upper = N;
+  if (N > 2 && !G.IsStarGraph()) lower++;
+  if (!G.IsCompleteGraph()) upper = N - 1;
 
   // Add this graph to the cache.
   Node *node;

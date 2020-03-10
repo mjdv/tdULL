@@ -5,4 +5,5 @@
 #include <vector>
 
 constexpr size_t exactCacheSize = 9;
+std::pair<int, int> exactCache(int N, int32_t edges);
 std::pair<int, int> exactCache(const std::vector<std::vector<int>> &adj);

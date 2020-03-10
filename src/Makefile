@@ -43,6 +43,9 @@ centrality_test: centrality_test.o graph.o centrality.o
 generate_exact_cache: graph.o generate_exact_cache.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^
 
+stats_exact_cache: stats_exact_cache.o exact_cache.o
+	g++ -o $@ $^
+
 verify: verify.o
 	g++ -o $@ $^
 
