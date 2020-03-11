@@ -84,6 +84,44 @@ int main() {
   std::cout << "Computing all minimal separators for exact_043.gr...\n";
   auto v_ams43 = full_graph_as_sub.AllMinimalSeparators();
   std::cout << "There are " << v_ams43.size() << " of them." << std::endl;
+  
+  std::istringstream stream_complement("p tdp 4 4 1 2 2 3 3 4 4 1");
+  LoadGraph(stream_complement);
+  std::vector<std::vector<SubGraph>> cc_complement = full_graph_as_sub.ComplementComponents();
+  assert(cc_complement.size() == 2);
+  assert(cc_complement[0].size() == 2);
+  assert(cc_complement[1].size() == 2);
+
+  std::istringstream stream_ams3(
+      "p tdp 6 6 1 2 2 3 3 4 4 1 3 5 4 6");
+  LoadGraph(stream_ams3);
+  auto v_ams3 = full_graph_as_sub.AllMinimalSeparators();
+  std::cout << "The minimal separators of the 4-cycle with two extra leaves "
+               "attached to adjacent nodes are:" << std::endl;
+  for(auto v : v_ams3) {
+    for(int x : v)
+      std::cout << full_graph_as_sub.vertices[x]->n << " ";
+    std::cout << std::endl;
+  }
+
+
+
+  std::istringstream stream_complement2(
+      "p tdp 5 7 1 3 1 5 1 4 2 3 2 4 2 5 4 5");
+  LoadGraph(stream_complement2);
+  std::vector<std::vector<SubGraph>> cc_complement2 = full_graph_as_sub.ComplementComponents();
+  assert(cc_complement2.size() == 2);
+
+  for(auto comps : cc_complement2) {
+    std::cout << "Complement collection size: " << comps.size() << ": " << std::endl;
+    for(auto H : comps) {
+      std::cout << H.vertices.size() << ": ";
+      for(auto v : H.vertices)
+        std::cout << v->n << " ";
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+  }
 
   return 0;
 }
