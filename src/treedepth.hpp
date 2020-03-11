@@ -265,7 +265,7 @@ void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
   auto node = cache.Search(G);
 
   // Ensure that the cache contains the correct node.
-  treedepth(G, 1, td);
+  treedepth(G, td, G.vertices.size());
   node = cache.Search(G);
   assert(node);
   assert(node->root > -1);
