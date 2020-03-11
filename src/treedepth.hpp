@@ -77,6 +77,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
                                     int search_ubnd) {
   int N = G.vertices.size();
   assert(N >= 1);
+  if (search_lbnd >= search_ubnd) return {G.M / N + 1, N, G.vertices[0]->n};
 
   // We do a quick check for special cases we can answer exactly and
   // immediately.
@@ -121,7 +122,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   }
 
   // None of the exact tests worked, so lets try the trivial bounds.
-  int lower = G.M / N + 2;
+  int lower = G.M / N + 1;
   int upper = N - 1;
   int root = G.vertices[0]->n;
 
@@ -138,9 +139,8 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     upper = node->upper_bound;
     root = node->root;
 
-    if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
+    if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
-    }
   }
 
   // If the graph has at least 3 vertices, we never want a leaf (degree 1
@@ -155,8 +155,9 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     if (G.Adj(v).size() > 1) vertices.emplace_back(v);
     degree_hist[G.Adj(v).size()]++;
   }
-  lower = std::max(lower, (G.M - degree_hist[2]) / (N - degree_hist[2]) + 1);
   assert(vertices.size());
+  lower = std::max(lower, (G.M - degree_hist[2]) / (N - degree_hist[2]) + 1);
+  if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
 
   // Below we have the following two checks.
   // * If G has deg 1 vertices, then we can recursively remove all the deg 1
@@ -171,13 +172,20 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
       // Only try if we do not have an empty core.
       if (!cc_core.empty()) {
         assert(cc_core[0].vertices.size() < N);
-        for (const auto &cc : cc_core)
+
+        // Sort the components on density.
+        std::sort(cc_core.begin(), cc_core.end(), [](auto &c1, auto &c2) {
+          return c1.M / c1.vertices.size() > c2.M / c2.vertices.size();
+        });
+        for (const auto &cc : cc_core) {
           lower = std::max(
               lower, std::get<0>(treedepth(cc, search_lbnd, search_ubnd)));
+          if (search_ubnd <= lower || lower == upper)
+            return {lower, upper, root};
+        }
       }
       break;
     }
-  if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
 
   // If it doesn't exist in the cache, lets add it now.
   bool inserted = (node == nullptr);
@@ -215,14 +223,11 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     int upper_v = 0;
     int lower_v = lower - 1;
 
-    bool early_break = false;
-
-    // Sort the components on size.
+    // Sort the components on density.
     auto cc = G.WithoutVertex(v);
     std::sort(cc.begin(), cc.end(), [](const SubGraph &c1, const SubGraph &c2) {
-      return c1.vertices.size() > c2.vertices.size();
+      return c1.M / c1.vertices.size() > c2.M / c2.vertices.size();
     });
-
     for (const auto &H : cc) {
       auto [lower_H, upper_H, root_H] =
           treedepth(H, search_lbnd_v, search_ubnd_v);
@@ -231,20 +236,13 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
       lower_v = std::max(lower_v, lower_H);
 
       search_lbnd_v = std::max(search_lbnd_v, lower_H);
-
-      if (lower_H >= search_ubnd_v) {
-        // This component already shows that there's no reason to
-        // continue trying with vertex v.
-        early_break = true;
-        break;
-      }
     }
 
     new_lower = std::min(new_lower, lower_v + 1);
 
     // The upper bound we found for v is only meaningful if we didn't break
     // early.
-    if (!early_break && upper_v + 1 < upper) {
+    if (upper_v + 1 < upper) {
       upper = upper_v + 1;
       node->upper_bound = upper;
       node->root = G.vertices[v]->n;
