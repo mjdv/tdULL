@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <climits>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -24,8 +25,9 @@ struct Graph {
 };
 
 struct SubGraph {
-  size_t max_degree = 0;  // Max degree of nodes inside this graph.
-  int M = 0;              // Number of edges in this subgraph.
+  size_t max_degree = 0;        // Max degree of nodes inside this graph.
+  size_t min_degree = INT_MAX;  // Min degree of nodes inside this graph.
+  int M = 0;                    // Number of edges in this subgraph.
 
   std::vector<Vertex *> vertices;  // List of vertices inside this subgraph.
   std::vector<bool> mask;  // Bitset of the vertices inside this subgraph.
@@ -49,7 +51,7 @@ struct SubGraph {
   std::vector<std::vector<int>> AllMinimalSeparators() const;
 
   // Create a connected components of the subgraph without the given vertices.
-  std::vector<SubGraph> WithoutVertices(std::vector<int> S) const;
+  std::vector<SubGraph> WithoutVertices(const std::vector<int> &S) const;
 
   // Create a connected components of the subgraph without the given vertex.
   std::vector<SubGraph> WithoutVertex(int v) const;
