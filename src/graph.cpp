@@ -82,7 +82,7 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
   static std::vector<int> stack;
 
   // This table will keep the mapping from our indices <-> indices subgraph.
-  std::vector<int> sub_vertices;
+  static std::vector<int> sub_vertices;
   sub_vertices.reserve(vertices.size());
 
   // Initiate a DFS from all of the vertices inside this subgraph.
@@ -92,8 +92,6 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
     if (root == w) continue;
     if (!vertices[root]->visited) {
       sub_vertices.clear();
-      SubGraph component;
-      component.vertices.reserve(vertices_left);
 
       // Do a DFS from root, skipping w.
       stack.emplace_back(root);
