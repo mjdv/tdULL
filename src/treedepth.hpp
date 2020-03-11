@@ -83,7 +83,6 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   assert(N >= 1);
 
   int lower = G.M / N + 1, upper = N;
-  if (search_lbnd > search_ubnd) return {lower, upper};
 
   // Add this graph to the cache.
   Node *node;
@@ -216,6 +215,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     int upper_sep = 0;
     int lower_sep = lower - sep_size;
 
+    bool early_break = false;
     for (auto H : G.WithoutVertices(separator)) {
       auto [lower_H, upper_H] = treedepth(H, search_lbnd_sep, search_ubnd_sep);
 
@@ -223,45 +223,36 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       lower_sep = std::max(lower_sep, lower_H);
 
       search_lbnd_sep = std::max(search_lbnd_sep, lower_H);
+
+      if (lower_H > search_ubnd_sep) {
+        // This component already shows that there's no reason to
+        // continue trying with vertex v.
+        early_break = true;
+        break;
+      }
     }
 
     new_lower = std::min(new_lower, lower_sep + sep_size);
 
     // If we find a new upper bound, update the cache accordingly :-).
-    if (upper_sep + sep_size < upper) {
+    if (!early_break && upper_sep + sep_size < upper) {
       node->upper_bound = upper = upper_sep + sep_size;
       node->root = G.vertices[separator[0]]->n;
 
-      // Iteratively remove the seperator from G and update bounds.
-      SubGraph H = G;
-      for (int i = 1; i < separator.size(); i++) {
-        // Get the subgraph after removing seperator[i-1].
-        auto cc = H.WithoutVertex(H.LocalIndex(G.vertices[separator[i - 1]]));
-        if (cc.size() > 1) {
-          std::cout << N << " is disconnected after removing " << i
-                    << " vertices from a seperator of size " << separator.size()
-                    << std::endl;
-
-          std::cout << "G" << std::endl;
-          for (int v = 0; v < N; v++) {
-            std::cout << v << " : ";
-            for (int w : G.Adj(v)) std::cout << w << ",";
-            std::cout << std::endl;
-          }
-          std::cout << "seperator" << std::endl;
-          for (int v = 0; v < separator.size(); v++) {
-            std::cout << separator[v] << ", ";
-          }
-          std::cout << std::endl;
-        }
-        H = cc[0];
-        auto [node_H, inserted_H] = cache.Insert(H);
-        if (inserted_H || (upper - i < node_H->upper_bound)) {
-          node_H->upper_bound = upper - i;
-          node_H->lower_bound = std::max(lower - i, node_H->lower_bound);
-          node_H->root = G.vertices[separator[i]]->n;
-        }
-      }
+      //// Iteratively remove the seperator from G and update bounds.
+      // SubGraph H = G;
+      // for (int i = 1; i < separator.size(); i++) {
+      //  // Get the subgraph after removing seperator[i-1].
+      //  auto cc = H.WithoutVertex(H.LocalIndex(G.vertices[separator[i - 1]]));
+      //  if (cc.size() > 1) break;
+      //  H = cc[0];
+      //  auto [node_H, inserted_H] = cache.Insert(H);
+      //  if (inserted_H || (upper - i < node_H->upper_bound)) {
+      //    node_H->upper_bound = upper - i;
+      //    node_H->lower_bound = std::max(lower - i, node_H->lower_bound);
+      //    node_H->root = G.vertices[separator[i]]->n;
+      //  }
+      //}
     }
 
     if (upper <= search_lbnd || lower == upper) {
