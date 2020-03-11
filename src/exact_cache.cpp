@@ -40,7 +40,7 @@ std::pair<int, int> exactCache(const std::vector<std::vector<int>> &adj) {
     case 0:
       return {0, 0};
     case 1:
-      return {0, 0};
+      return {1, 0};
     case 2:
       assert(edges < gExactCache2Size);
       result = gExactCache2Data[edges];

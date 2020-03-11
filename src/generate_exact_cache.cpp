@@ -86,6 +86,7 @@ int main() {
       }
       auto [td, _] = treedepth(sub);
       int root = cache.Search(sub)->root;
+      assert(root > -1 && td >= 1 && td <= N);
       // std::cerr << ((td << 4) | root) << ",";
       output.put(uint8_t((td << 4) | root));
     } else {

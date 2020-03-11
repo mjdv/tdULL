@@ -34,7 +34,8 @@ std::pair<int, int> treedepth_exact(const SubGraph &G) {
   // We do a quick check for special cases we can answer exactly and
   // immediately.
   if (N < exactCacheSize) {
-    return exactCache(G.adj);
+    auto [td, root] = exactCache(G.adj);
+    return {td, G.vertices[root]->n};
   } else if (G.IsCompleteGraph()) {
     return {N, G.vertices[0]->n};
   } else if (G.IsStarGraph()) {
