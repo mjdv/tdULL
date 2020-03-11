@@ -187,16 +187,28 @@ int SubGraph::LocalIndex(Vertex *v) const {
   assert(false);
 }
 
+
 std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
+  // Complete graphs don't have separators. We want this to return a non-empty
+  // vector.
   assert(!IsCompleteGraph());
   int N = vertices.size();
 
+  // Result will contain all generated MinimalSeparators. In done we keep the
+  // ones we have already enqueued, to make sure they aren't processed again.
+  // In queue we keep all the ones we have generated, but which we have not yet
+  // used to generate new ones.
   std::queue<std::vector<int>> queue;
   std::set<std::vector<int>> done;
   std::vector<std::vector<int>> result;
 
   std::vector<bool> in_nbh(N, false);
 
+  // First we generate all the "seeds": we take the neighborhood of a point
+  // (including the point), take all the connected components in the
+  // complement, and then take the neighborhoods of those components. Each of
+  // those is a minimal separator (in fact, one that separates the original
+  // point).
   for (int i = 0; i < N; i++) {
     std::vector<int> neighborhood{i};
     neighborhood.insert(neighborhood.end(), Adj(i).begin(), Adj(i).end());
@@ -249,7 +261,6 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
     auto cur_separator = queue.front();
     queue.pop();
 
-    result.push_back(cur_separator);
     for (int x : cur_separator) {
       for (int j : Adj(x)) in_nbh[j] = true;
       for (int j : cur_separator) in_nbh[j] = true;
@@ -291,8 +302,66 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
       for (int j : Adj(x)) in_nbh[j] = false;
       for (int j = 0; j < N; j++) vertices[j]->visited = false;
     }
+
+    // Finally, there is the following problem: this algorithm generates all
+    // _minimal a,b-separators_, for each pair of vertices a, b in G. These are
+    // a strict superset of what we are after: it may be that a set S is a
+    // minimal a,b-separator, yet it still has a strict subset which is a
+    // separator: it just may be that there is a c,d-separator which is a
+    // strict subset.
+    //
+    // Fortunately, checking whether or not this is the case is relatively
+    // fast.
+    if(FullyMinimal(cur_separator)) 
+      result.push_back(cur_separator);
   }
+
   return result;
+}
+
+// Checks whether or not the separator of G given by separator is "truly
+// minimal": it contains no separator as a strict subset. (Name subject to
+// change.)
+bool SubGraph::FullyMinimal(const std::vector<int> &separator) const {
+  int N = vertices.size();
+  std::vector<bool> in_sep(N, false);
+  for(int s : separator) {
+    assert(s < N);
+    in_sep[s] = true;
+  }
+
+  for(int i = 0; i < N; i++) {
+    if(!vertices[i]->visited && !in_sep[i]) {
+      std::stack<int> component;
+      component.push(i);
+      vertices[i]->visited = true;
+      while(component.size()) {
+        int cur = component.top(); component.pop();
+        for(int nb : Adj(cur)) {
+          if(!vertices[nb]->visited && !in_sep[nb]) {
+            component.push(nb);
+          }
+          vertices[nb]->visited = true;
+        }
+      }
+      for(int s : separator) {
+        if(!vertices[s]->visited) {
+          // This connected component dit not hit this vertex, so we can remove
+          // this vertex and have a separator left; so this separator is not
+          // fully minimal.
+          for(int j = 0; j < N; j++)
+            vertices[j]->visited = false;
+          return false;
+        }
+        vertices[s]->visited = false;
+      }
+    }
+  }
+
+  for(int i = 0; i < N; i++)
+    vertices[i]->visited = false;
+
+  return true;
 }
 
 std::vector<SubGraph> SubGraph::WithoutVertices(
