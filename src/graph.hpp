@@ -37,6 +37,10 @@ struct SubGraph {
   // Create a SubGraph of G with the given (local) vertices
   SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices);
 
+  // Vector of connected components of the subset given by sub_vertices.
+  std::vector<SubGraph> ConnectedSubGraphs(const std::vector<int> &sub_vertices) const;
+
+
   // Get the adjacency list for a given vertex.
   const std::vector<int> &Adj(int v) const;
 
@@ -50,6 +54,9 @@ struct SubGraph {
   // Recursively removes all vertices with deg < 2.
   SubGraph TwoCore() const;
   std::vector<SubGraph> kCore(int k) const;
+
+  // Create the connected components of the complement of the subgraph.
+  std::vector<std::vector<SubGraph>> ComplementComponents() const;
 
   // Do a BFS from the given vertex.
   std::vector<int> Bfs(int v) const;

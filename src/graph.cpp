@@ -73,6 +73,42 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
   M /= 2;
 }
 
+// Gives a vector of all the components of the possibly disconnected subgraph
+// of G given by sub_vertices (in local coordinates).
+std::vector<SubGraph> SubGraph::ConnectedSubGraphs(
+    const std::vector<int> &sub_vertices) const {
+  std::vector<bool> in_sub_verts(vertices.size(), false);
+  for (int v : sub_vertices) in_sub_verts[v] = true;
+
+  std::vector<SubGraph> cc;
+
+  static std::stack<int> stack;
+  static std::vector<int> component;
+  component.reserve(sub_vertices.size());
+  for (int v : sub_vertices) {
+    if (!vertices[v]->visited) {
+      component.clear();
+      stack.push(v);
+      vertices[v]->visited = true;
+      while (!stack.empty()) {
+        int v = stack.top();
+        stack.pop();
+        component.push_back(v);
+        for (int nghb : Adj(v))
+          if (in_sub_verts[nghb] && !vertices[nghb]->visited) {
+            stack.push(nghb);
+            vertices[nghb]->visited = true;
+          }
+      }
+      cc.emplace_back(*this, component);
+    }
+  }
+
+  for (int v : sub_vertices) vertices[v]->visited = false;
+
+  return cc;
+}
+
 const std::vector<int> &SubGraph::Adj(int v) const {
   assert(v >= 0 && v < vertices.size() && adj.size() == vertices.size());
   return adj[v];
@@ -197,6 +233,23 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
     }
   }
   return result;
+}
+
+std::vector<SubGraph> SubGraph::WithoutVertices(std::vector<int> S) const {
+  int N = vertices.size();
+
+  std::vector<bool> in_S(N, false);
+  for(auto s : S)
+    in_S[s] = true;
+
+  std::vector<int> remaining;
+  remaining.reserve(N - S.size());
+  for(int i = 0; i < N; i++) {
+    if(!in_S[i])
+      remaining.push_back(i);
+  }
+  
+  return ConnectedSubGraphs(remaining);
 }
 
 std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
@@ -407,6 +460,60 @@ std::vector<SubGraph> SubGraph::kCore(int k) const {
   }
 
   return cc;
+}
+
+std::vector<std::vector<SubGraph>> SubGraph::ComplementComponents() const {
+  int N = vertices.size();
+
+  std::vector<std::vector<bool>> adjacency_matrix =
+      std::vector<std::vector<bool>>(N, std::vector<bool>(N, true));
+  for (int i = 0; i < N; i++) {
+    assert(!vertices[i]->visited);
+    adjacency_matrix[i][i] = false;
+    for (int j : Adj(i)) adjacency_matrix[i][j] = false;
+  }
+
+  std::vector<std::vector<int>> complement_ccs;
+  for (int i = 0; i < N; i++) {
+    if (vertices[i]->visited) continue;
+
+    std::vector<int> component = {i};
+    std::stack<int> s;
+    s.push(i);
+    vertices[i]->visited = true;
+
+    while (s.size()) {
+      int cur = s.top();
+      s.pop();
+      for (int nb = 0; nb < N; nb++) {
+        if (adjacency_matrix[cur][nb] && !vertices[nb]->visited) {
+          component.push_back(nb);
+          s.push(nb);
+          vertices[nb]->visited = true;
+        }
+      }
+    }
+    if (component.size() == N) {
+      for (int i = 0; i < N; i++) vertices[i]->visited = false;
+      return {{*this}};
+    }
+    complement_ccs.push_back(component);
+  }
+  for (int i = 0; i < N; i++) vertices[i]->visited = false;
+
+  int total_all_verts = 0;
+  std::vector<std::vector<SubGraph>> result;
+  for (auto &complement_cc : complement_ccs) {
+    std::vector<SubGraph> graphs_in_this_complement = ConnectedSubGraphs(complement_cc);
+    int total_verts = 0;
+    for(auto H : graphs_in_this_complement)
+      total_verts += H.vertices.size();
+    assert(total_verts == complement_cc.size());
+    total_all_verts += total_verts;
+    result.push_back(ConnectedSubGraphs(complement_cc));
+  }
+  assert(total_all_verts == N);
+  return result;
 }
 
 SubGraph SubGraph::TwoCore() const {
