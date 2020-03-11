@@ -182,17 +182,10 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     assert(G.vertices.size() > 2 && G.max_degree >= 2);
     std::vector<int> vertices;
     vertices.reserve(N);
-    int N_deg_2 = 0;
     for (int v = 0; v < G.vertices.size(); ++v) {
       // Only add vertices with deg > 1.
       if (G.Adj(v).size() > 1) vertices.emplace_back(v);
-
-      // Count number of deg 2 vertices.
-      if (G.Adj(v).size() == 2) N_deg_2++;
     }
-    node->lower_bound = lower =
-        std::max(lower, (G.M - N_deg_2) / (N - N_deg_2) + 1);
-    if (search_ubnd <= lower || lower == upper) return {lower, upper};
 
     // Change BetweennessCentrality to DegreeCentrality to go back to the old
     // behaviour of ordering by degree.
