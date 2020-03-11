@@ -190,11 +190,10 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // complement. (This will be rare, but if it works, very powerful.)
   //
   // In most cases max_degree, N, G.M will rule out that this will work.
-  
+
   if (G.max_degree * 2 >= N && G.max_degree * (N - G.max_degree) <= G.M) {
     auto complement_components = G.ComplementComponents();
     if (complement_components.size() > 1) {
-
       /*std::cerr << "Complement splits on graph ";
       for(auto v : G.vertices)
         std::cerr << v->n << " ";
@@ -224,8 +223,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
       for (const auto &components : complement_components) {
         int complement_size = 0;
-        for(const auto &H : components)
-          complement_size += H.vertices.size();
+        for (const auto &H : components) complement_size += H.vertices.size();
 
         int search_lbnd_compl = std::max(1, search_lbnd - N + complement_size);
         int search_ubnd_compl = std::max(1, search_ubnd - N + complement_size);
@@ -234,29 +232,29 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
         int upper_component = 1;
 
         for (const auto &H : components) {
-          auto [lower_H, upper_H] = treedepth(H, search_lbnd_compl, search_ubnd_compl);
+          auto [lower_H, upper_H] =
+              treedepth(H, search_lbnd_compl, search_ubnd_compl);
 
           lower_component = std::max(lower_component, lower_H);
           upper_component = std::max(upper_component, upper_H);
         }
 
-        lower_complement_components = std::min(lower_component + N -
-            complement_size, lower_complement_components);
-        upper_complement_components = std::min(upper_component + N -
-            complement_size, upper_complement_components);
-        if(upper_complement_components < upper) {
+        lower_complement_components = std::min(
+            lower_component + N - complement_size, lower_complement_components);
+        upper_complement_components = std::min(
+            upper_component + N - complement_size, upper_complement_components);
+        if (upper_complement_components < upper) {
           node->upper_bound = upper = upper_complement_components;
-          for(int i = 0; i < full_graph_as_sub.vertices.size(); i++) {
-            if(!G.mask[i])
-              continue;
+          for (int i = 0; i < full_graph_as_sub.vertices.size(); i++) {
+            if (!G.mask[i]) continue;
             bool in_this_complement = false;
-            for(const auto &H : components) {
-              if(H.mask[i]) {
+            for (const auto &H : components) {
+              if (H.mask[i]) {
                 in_this_complement = true;
                 break;
               }
             }
-            if(!in_this_complement) {
+            if (!in_this_complement) {
               node->root = i;
             }
           }
@@ -264,12 +262,12 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       }
       node->lower_bound = lower = std::max(lower, lower_complement_components);
 
-      /*std::cerr << "Results in lower, upper = " << lower << ", " << upper << std::endl;*/
+      /*std::cerr << "Results in lower, upper = " << lower << ", " << upper <<
+       * std::endl;*/
 
       return {lower, upper};
     }
   }
- 
 
   // Change BetweennessCentrality to DegreeCentrality to go back to the old
   // behaviour of ordering by degree.
@@ -312,7 +310,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
       search_lbnd_v = std::max(search_lbnd_v, lower_H);
 
-      if (lower_H >= search_ubnd_v) {
+      if (lower_H > search_ubnd_v) {
         // This component already shows that there's no reason to
         // continue trying with vertex v.
         early_break = true;
