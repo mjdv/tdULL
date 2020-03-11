@@ -221,7 +221,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
       search_lbnd_v = std::max(search_lbnd_v, lower_H);
 
-      if (lower_H >= search_ubnd_v) {
+      if (lower_H > search_ubnd_v) {
         // This component already shows that there's no reason to
         // continue trying with vertex v.
         early_break = true;
