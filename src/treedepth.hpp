@@ -83,6 +83,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   assert(N >= 1);
 
   int lower = G.M / N + 1, upper = N;
+  if (search_lbnd > search_ubnd) return {lower, upper};
 
   // Add this graph to the cache.
   Node *node;
@@ -165,32 +166,32 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     }
   }
 
-  // If the graph has at least 3 vertices, we never want a leaf (degree 1
-  // node) as a root.
-  assert(G.vertices.size() > 2 && G.max_degree >= 2);
-  std::vector<int> vertices;
-  vertices.reserve(N);
-  int N_deg_2 = 0;
-  for (int v = 0; v < G.vertices.size(); ++v) {
-    // Only add vertices with deg > 1.
-    if (G.Adj(v).size() > 1) vertices.emplace_back(v);
-
-    // Count number of deg 2 vertices.
-    if (G.Adj(v).size() == 2) N_deg_2++;
-  }
-  node->lower_bound = lower =
-      std::max(lower, (G.M - N_deg_2) / (N - N_deg_2) + 1);
-  if (search_ubnd <= lower || lower == upper) return {lower, upper};
-
-  // Change BetweennessCentrality to DegreeCentrality to go back to the old
-  // behaviour of ordering by degree.
-  auto centrality = DegreeCentrality(G);
-
-  // Sort the vertices based on the degree.
-  std::sort(vertices.begin(), vertices.end(),
-            [&](int v1, int v2) { return centrality[v1] > centrality[v2]; });
-
   if (inserted) {
+    // If the graph has at least 3 vertices, we never want a leaf (degree 1
+    // node) as a root.
+    assert(G.vertices.size() > 2 && G.max_degree >= 2);
+    std::vector<int> vertices;
+    vertices.reserve(N);
+    int N_deg_2 = 0;
+    for (int v = 0; v < G.vertices.size(); ++v) {
+      // Only add vertices with deg > 1.
+      if (G.Adj(v).size() > 1) vertices.emplace_back(v);
+
+      // Count number of deg 2 vertices.
+      if (G.Adj(v).size() == 2) N_deg_2++;
+    }
+    node->lower_bound = lower =
+        std::max(lower, (G.M - N_deg_2) / (N - N_deg_2) + 1);
+    if (search_ubnd <= lower || lower == upper) return {lower, upper};
+
+    // Change BetweennessCentrality to DegreeCentrality to go back to the old
+    // behaviour of ordering by degree.
+    auto centrality = DegreeCentrality(G);
+
+    // Sort the vertices based on the degree.
+    std::sort(vertices.begin(), vertices.end(),
+              [&](int v1, int v2) { return centrality[v1] > centrality[v2]; });
+
     // If G is a new graph in the cache, compute its DfsTree-tree from
     // the most promising node once, and then evaluate the treedepth_tree on
     // this tree.
@@ -215,8 +216,6 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     int upper_sep = 0;
     int lower_sep = lower - sep_size;
 
-    bool early_break = false;
-
     for (auto H : G.WithoutVertices(separator)) {
       auto [lower_H, upper_H] = treedepth(H, search_lbnd_sep, search_ubnd_sep);
 
@@ -224,46 +223,43 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       lower_sep = std::max(lower_sep, lower_H);
 
       search_lbnd_sep = std::max(search_lbnd_sep, lower_H);
-
-      if (lower_H > search_ubnd_sep) {
-        // This component already shows that there's no reason to
-        // continue trying with vertex v.
-        early_break = true;
-        break;
-      }
     }
 
     new_lower = std::min(new_lower, lower_sep + sep_size);
 
-    // The upper bound we found for v is only meaningful if we didn't break
-    // early.
-    if (!early_break && upper_sep + sep_size < upper) {
-      upper = upper_sep + sep_size;
-      node->upper_bound = upper;
-
-      // Update roots for the entire separator.
+    // If we find a new upper bound, update the cache accordingly :-).
+    if (upper_sep + sep_size < upper) {
+      node->upper_bound = upper = upper_sep + sep_size;
       node->root = G.vertices[separator[0]]->n;
+
+      // Iteratively remove the seperator from G and update bounds.
       SubGraph H = G;
       for (int i = 1; i < separator.size(); i++) {
-        // Get the local coordinate of what you want to remove.
-        int j;
-        for (j = 0; j < H.vertices.size(); j++) {
-          if (H.vertices[j]->n == G.vertices[separator[i - 1]]->n) break;
-        }
-        H = H.WithoutVertex(j)[0];
-        Node *node_H;
-        bool inserted_H;
-        std::tie(node_H, inserted_H) = cache.Insert(H);
-        if (inserted_H) {
-          node_H->upper_bound = upper - i;
-          node_H->lower_bound = lower - i;
-          node_H->root = G.vertices[separator[i]]->n;
-        } else {
-          if (upper - i < node_H->upper_bound) {
-            node_H->upper_bound = upper - i;
-            node_H->lower_bound = std::max(lower - i, node_H->lower_bound);
-            node_H->root = G.vertices[separator[i]]->n;
+        // Get the subgraph after removing seperator[i-1].
+        auto cc = H.WithoutVertex(H.LocalIndex(G.vertices[separator[i - 1]]));
+        if (cc.size() > 1) {
+          std::cout << N << " is disconnected after removing " << i
+                    << " vertices from a seperator of size " << separator.size()
+                    << std::endl;
+
+          std::cout << "G" << std::endl;
+          for (int v = 0; v < N; v++) {
+            std::cout << v << " : ";
+            for (int w : G.Adj(v)) std::cout << w << ",";
+            std::cout << std::endl;
           }
+          std::cout << "seperator" << std::endl;
+          for (int v = 0; v < separator.size(); v++) {
+            std::cout << separator[v] << ", ";
+          }
+          std::cout << std::endl;
+        }
+        H = cc[0];
+        auto [node_H, inserted_H] = cache.Insert(H);
+        if (inserted_H || (upper - i < node_H->upper_bound)) {
+          node_H->upper_bound = upper - i;
+          node_H->lower_bound = std::max(lower - i, node_H->lower_bound);
+          node_H->root = G.vertices[separator[i]]->n;
         }
       }
     }

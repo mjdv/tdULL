@@ -115,6 +115,12 @@ const std::vector<int> &SubGraph::Adj(int v) const {
   assert(v >= 0 && v < vertices.size() && adj.size() == vertices.size());
   return adj[v];
 }
+int SubGraph::LocalIndex(Vertex *v) const {
+  for (int v_local = 0; v_local < vertices.size(); ++v_local) {
+    if (vertices[v_local] == v) return v_local;
+  }
+  assert(false);
+}
 
 std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
   assert(!IsCompleteGraph());
