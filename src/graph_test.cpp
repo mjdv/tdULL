@@ -42,15 +42,31 @@ int main() {
   assert(core3.vertices.size() == 4);
   assert(core3.M == 6);
 
+  
   std::istringstream stream_complement("p tdp 4 4 1 2 2 3 3 4 4 1");
   LoadGraph(stream_complement);
-  auto cc_complement = full_graph_as_sub.ComplementComponents();
-  std::cout << cc_complement.size() << std::endl;
-  for (auto cc : cc_complement) std::cout << cc.vertices.size() << std::endl;
+  std::vector<std::vector<SubGraph>> cc_complement = full_graph_as_sub.ComplementComponents();
+  assert(cc_complement.size() == 2);
+  assert(cc_complement[0].size() == 2);
+  assert(cc_complement[1].size() == 2);
 
-  assert(cc_complement.size() == 4);
-  assert(cc_complement[0].vertices.size() == 2);
-  assert(cc_complement[1].vertices.size() == 2);
+  std::istringstream stream_complement2(
+      "p tdp 5 7 1 3 1 5 1 4 2 3 2 4 2 5 4 5");
+  LoadGraph(stream_complement2);
+  std::vector<std::vector<SubGraph>> cc_complement2 = full_graph_as_sub.ComplementComponents();
+  assert(cc_complement2.size() == 2);
+
+  for(auto comps : cc_complement2) {
+    std::cout << "Complement collection size: " << comps.size() << ": " << std::endl;
+    for(auto H : comps) {
+      std::cout << H.vertices.size() << ": ";
+      for(auto v : H.vertices)
+        std::cout << v->n << " ";
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+  }
+  
 
   return 0;
 }

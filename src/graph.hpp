@@ -52,7 +52,7 @@ struct SubGraph {
   std::vector<SubGraph> kCore(int k) const;
 
   // Create the connected components of the complement of the subgraph.
-  std::vector<SubGraph> ComplementComponents() const;
+  std::vector<std::vector<SubGraph>> ComplementComponents() const;
 
   // Do a BFS from the given vertex.
   std::vector<int> Bfs(int v) const;

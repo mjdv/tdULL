@@ -323,7 +323,7 @@ std::vector<SubGraph> SubGraph::kCore(int k) const {
   return cc;
 }
 
-std::vector<SubGraph> SubGraph::ComplementComponents() const {
+std::vector<std::vector<SubGraph>> SubGraph::ComplementComponents() const {
   int N = vertices.size();
 
   std::vector<std::vector<bool>> adjacency_matrix =
@@ -356,16 +356,24 @@ std::vector<SubGraph> SubGraph::ComplementComponents() const {
     }
     if (component.size() == N) {
       for (int i = 0; i < N; i++) vertices[i]->visited = false;
-      return {*this};
+      return {{*this}};
     }
     complement_ccs.push_back(component);
   }
   for (int i = 0; i < N; i++) vertices[i]->visited = false;
 
-  std::vector<SubGraph> result;
-  for (auto &complement_cc : complement_ccs)
-    for (auto &&cc : ConnectedSubGraphs(complement_cc))
-      result.emplace_back(std::move(cc));
+  int total_all_verts = 0;
+  std::vector<std::vector<SubGraph>> result;
+  for (auto &complement_cc : complement_ccs) {
+    std::vector<SubGraph> graphs_in_this_complement = ConnectedSubGraphs(complement_cc);
+    int total_verts = 0;
+    for(auto H : graphs_in_this_complement)
+      total_verts += H.vertices.size();
+    assert(total_verts == complement_cc.size());
+    total_all_verts += total_verts;
+    result.push_back(ConnectedSubGraphs(complement_cc));
+  }
+  assert(total_all_verts == N);
   return result;
 }
 
