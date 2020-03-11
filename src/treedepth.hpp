@@ -166,10 +166,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   // Below we calculate the smallest k-core that G can contain. If this is non-
   // empty, we recursively calculate the treedepth on this core first. This
   // should give a nice lower bound pretty rapidly.
-
   auto cc_core = G.kCore(G.min_degree + 1);
-
-  // Only try if we do not have an empty core.
   if (!cc_core.empty()) {
     assert(cc_core[0].vertices.size() < N);
 
