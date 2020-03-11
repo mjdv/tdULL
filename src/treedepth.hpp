@@ -147,22 +147,6 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
       return {lower, upper, root};
   }
 
-  // If the graph has at least 3 vertices, we never want a leaf (degree 1
-  // node) as a root.
-  assert(G.vertices.size() > 2 && G.max_degree >= 2);
-  std::vector<int> vertices;
-  int N_deg_2 = 0;
-  vertices.reserve(G.vertices.size());
-  for (int v = 0; v < G.vertices.size(); ++v) {
-    // Only add vertices with deg > 1.
-    if (G.Adj(v).size() > 1) vertices.emplace_back(v);
-    if (G.Adj(v).size() == 2) N_deg_2++;
-    assert(G.Adj(v).size() >= G.min_degree && G.Adj(v).size() <= G.max_degree);
-  }
-  assert(vertices.size());
-  lower = std::max(lower, (G.M - N_deg_2) / (N - N_deg_2) + 1);
-  if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
-
   // Below we calculate the smallest k-core that G can contain. If this is non-
   // empty, we recursively calculate the treedepth on this core first. This
   // should give a nice lower bound pretty rapidly.
@@ -181,24 +165,37 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     }
   }
 
-  // If it doesn't exist in the cache, lets add it now.
-  bool inserted = (node == nullptr);
-  if (inserted) {
-    node = cache.Insert(G).first;
-    node->lower_bound = lower;
-    node->upper_bound = upper;
-    node->root = G.vertices[0]->n;
-  }
+  // If the graph has at least 3 vertices, we never want a leaf (degree 1
+  // node) as a root.
+  assert(G.vertices.size() > 2 && G.max_degree >= 2);
+  std::vector<int> vertices;
+  vertices.reserve(N);
+  int N_deg_2 = 0;
+  for (int v = 0; v < G.vertices.size(); ++v) {
+    // Only add vertices with deg > 1.
+    if (G.Adj(v).size() > 1) vertices.emplace_back(v);
 
-  // Change BetweennessCentrality to DegreeCentrality to go back to the old
-  // behaviour of ordering by degree.
+    // Count number of deg 2 vertices.
+    if (G.Adj(v).size() == 2) N_deg_2++;
+  }
+  lower = std::max(lower, (G.M - N_deg_2) / (N - N_deg_2) + 1);
+  if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
+
+  // Change DegreeCentrality to other centralities here, say BetweennessCentrality.
   auto centrality = DegreeCentrality(G);
 
   // Sort the vertices based on the degree.
   std::sort(vertices.begin(), vertices.end(),
             [&](int v1, int v2) { return centrality[v1] > centrality[v2]; });
 
-  if (inserted) {
+  // If G doesn't exist in the cache, lets add it now, since we will start doing
+  // some real work.
+  if (node == nullptr) {
+    node = cache.Insert(G).first;
+    node->lower_bound = lower;
+    node->upper_bound = upper;
+    node->root = G.vertices[0]->n;
+
     // If G is a new graph in the cache, compute its DfsTree-tree from
     // the most promising node once, and then evaluate the treedepth_tree on
     // this tree.
@@ -225,7 +222,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 
     // Recursively find the treedepths for each of the component.
     for (const auto &H : cc) {
-      auto [lower_H, upper_H, root_H] =
+      auto [lower_H, upper_H, _] =
           treedepth(H, search_lbnd_v, search_ubnd_v);
 
       upper_v = std::max(upper_v, upper_H);
@@ -236,8 +233,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 
     new_lower = std::min(new_lower, lower_v + 1);
 
-    // The upper bound we found for v is only meaningful if we didn't break
-    // early.
+    // If we found a new upper bound, update the root accordingly.
     if (upper_v + 1 < upper) {
       node->upper_bound = upper = upper_v + 1;
       node->root = root = G.vertices[v]->n;
