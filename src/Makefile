@@ -1,5 +1,5 @@
 
-CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -Wpadded
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native
 
 N=001
 F=001
@@ -20,7 +20,7 @@ until: main
 fromto: main
 	bash from_to.sh $(F) $(T)
 
-timing: main
+timing: main verify
 	mkdir -p timings
 	echo "fn,treedepth,time,error" > timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
 	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
