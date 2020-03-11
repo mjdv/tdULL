@@ -242,9 +242,8 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     // The upper bound we found for v is only meaningful if we didn't break
     // early.
     if (upper_v + 1 < upper) {
-      upper = upper_v + 1;
-      node->upper_bound = upper;
-      node->root = G.vertices[v]->n;
+      node->upper_bound = upper = upper_v + 1;
+      node->root = root = G.vertices[v]->n;
     }
 
     if (upper <= search_lbnd || lower == upper) {
@@ -264,8 +263,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
           std::to_string(difftime(now, time_start_treedepth)) + " seconds.");
   }
 
-  lower = std::max(lower, new_lower);
-  node->lower_bound = lower;
+  node->lower_bound = lower = std::max(lower, new_lower);
   return {lower, upper, root};
 }
 
