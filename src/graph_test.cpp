@@ -61,6 +61,17 @@ int main() {
     std::cout << std::endl;
   }
 
+  std::istringstream stream_ams3("p tdp 6 6 1 2 2 3 3 4 4 1 3 5 4 6");
+  LoadGraph(stream_ams3);
+  auto v_ams3 = full_graph_as_sub.AllMinimalSeparators();
+  std::cout << "The minimal separators of the 4-cycle with two extra leaves "
+               "attached to adjacent nodes are:"
+            << std::endl;
+  for (auto v : v_ams3) {
+    for (int x : v) std::cout << full_graph_as_sub.vertices[x]->n << " ";
+    std::cout << std::endl;
+  }
+
   // Graph exact_043.gr.
   std::istringstream stream_043(
       "p tdp 40 129 9 26 9 21 9 14 9 19 9 8 9 25 9 29 9 11 9 10 9 7 26 11 26 "
@@ -85,16 +96,6 @@ int main() {
   auto v_ams43 = full_graph_as_sub.AllMinimalSeparators();
   std::cout << "There are " << v_ams43.size() << " of them." << std::endl;
 
-  std::istringstream stream_ams3("p tdp 6 6 1 2 2 3 3 4 4 1 3 5 4 6");
-  LoadGraph(stream_ams3);
-  auto v_ams3 = full_graph_as_sub.AllMinimalSeparators();
-  std::cout << "The minimal separators of the 4-cycle with two extra leaves "
-               "attached to adjacent nodes are:"
-            << std::endl;
-  for (auto v : v_ams3) {
-    for (int x : v) std::cout << full_graph_as_sub.vertices[x]->n << " ";
-    std::cout << std::endl;
-  }
 
   return 0;
 }
