@@ -65,8 +65,10 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
     // Insert this adjacency list into the subgraph.
     M += nghbrs.size();
     max_degree = std::max(max_degree, nghbrs.size());
+    min_degree = std::min(min_degree, nghbrs.size());
     adj.emplace_back(std::move(nghbrs));
   }
+  if (min_degree == 0) assert(sub_vertices.size() == 1 && M == 0);
   assert(M % 2 == 0);
   M /= 2;
 }
@@ -173,8 +175,10 @@ SubGraph SubGraph::BfsTree(int root) const {
   int total_edges = 0;
   for (int v = 0; v < result.vertices.size(); v++) {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
+    result.min_degree = std::min(result.min_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
   }
+  assert(result.min_degree);
   assert(result.M == total_edges / 2);
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
@@ -208,8 +212,10 @@ SubGraph SubGraph::DfsTree(int root) const {
   int total_edges = 0;
   for (int v = 0; v < result.vertices.size(); v++) {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
+    result.min_degree = std::min(result.min_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
   }
+  assert(result.min_degree);
   assert(result.M == total_edges / 2);
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
@@ -340,6 +346,8 @@ void LoadGraph(std::istream &stream) {
     full_graph_as_sub.adj.emplace_back(full_graph.adj[v]);
     full_graph_as_sub.max_degree =
         std::max(full_graph_as_sub.max_degree, full_graph.adj[v].size());
+    full_graph_as_sub.min_degree =
+        std::min(full_graph_as_sub.min_degree, full_graph.adj[v].size());
   }
 
   std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
