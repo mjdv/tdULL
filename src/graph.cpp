@@ -75,6 +75,71 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
   M /= 2;
 }
 
+void SubGraph::AssertValidSubGraph() const {
+  int N = vertices.size();
+  assert(N > 0);
+  // First we do some sanity checks on the mask.
+  int N_mask = 0;
+  for (bool b : mask)
+    if (b) N_mask++;
+  assert(N_mask == N);
+  for (auto vtx : vertices) assert(mask[vtx->n]);
+
+  // Check that no vertex occurs twice.
+  assert(std::set<Vertex *>(vertices.begin(), vertices.end()).size() == N);
+
+  // Check that the degrees coincide.
+  assert(adj.size() == N);
+  size_t max_d = 0, min_d = INT_MAX;
+  for (int v = 0; v < N; v++) {
+    max_d = std::max(max_d, adj[v].size());
+    min_d = std::min(min_d, adj[v].size());
+  }
+  assert(max_d == max_degree);
+  assert(min_d == min_degree);
+  assert(max_degree < N);
+
+  // Create a mapping of global to local indices.
+  std::map<int, int> glob_2_local;
+  for (int v = 0; v < N; ++v) glob_2_local[vertices[v]->n] = v;
+  assert(glob_2_local.size() == N);
+
+  // Now check that the adjacency matrix is indeed the `full` adjacency matrix.
+  for (int v = 0; v < N; ++v) {
+    // First check that there are no doubles in the adj list.
+    std::set<int> adj_set(adj[v].begin(), adj[v].end());
+    assert(adj_set.size() == adj[v].size());
+
+    // Loop over the global adjacency list.
+    int v_glob = vertices[v]->n;
+    assert(glob_2_local.count(v_glob));
+    for (int nghb_glob : full_graph.adj[v_glob]) {
+      assert(glob_2_local.count(nghb_glob) == mask[nghb_glob]);
+
+      // If we contain this nghbour, assert that its also in the local adj
+      // list.
+      if (mask[nghb_glob]) assert(adj_set.count(glob_2_local.at(nghb_glob)));
+    }
+  }
+
+  // Now check that this is indeed a connected graph.
+  std::vector<int> stack;
+  std::vector<bool> visited;
+  visited.resize(N, false);
+  stack.push_back(0);
+  while (!stack.empty()) {
+    int v = stack.back();
+    stack.pop_back();
+    if (visited[v]) continue;
+    visited[v] = true;
+
+    for (int nghb_loc : adj[v])
+      if (!visited[nghb_loc]) stack.push_back(nghb_loc);
+  }
+
+  for (int v = 0; v < N; ++v) assert(visited[v]);
+}
+
 // Gives a vector of all the components of the possibly disconnected subgraph
 // of G given by sub_vertices (in local coordinates).
 std::vector<SubGraph> SubGraph::ConnectedSubGraphs(
