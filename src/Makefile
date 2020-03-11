@@ -20,7 +20,7 @@ until: main
 fromto: main
 	bash from_to.sh $(F) $(T)
 
-timing: main
+timing: main verify
 	mkdir -p timings
 	echo "fn,treedepth,time,error" > timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
 	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
