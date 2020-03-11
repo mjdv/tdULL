@@ -48,6 +48,9 @@ struct SubGraph {
   // coordinates).
   std::vector<std::vector<int>> AllMinimalSeparators() const;
 
+  // Create a connected components of the subgraph without the given vertices.
+  std::vector<SubGraph> WithoutVertices(std::vector<int> S) const;
+
   // Create a connected components of the subgraph without the given vertex.
   std::vector<SubGraph> WithoutVertex(int v) const;
 
