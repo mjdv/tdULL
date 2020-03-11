@@ -76,25 +76,26 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
 // of G given by sub_vertices (in local coordinates).
 std::vector<SubGraph> SubGraph::ConnectedSubGraphs(
     const std::vector<int> &sub_vertices) const {
-  int N = sub_vertices.size();
   std::vector<bool> in_sub_verts(vertices.size(), false);
   for (int v : sub_vertices) in_sub_verts[v] = true;
 
   std::vector<SubGraph> cc;
-  std::stack<int> s;
 
-  for (int i = 0; i < N; i++) {
-    int v = sub_vertices[i];
+  static std::stack<int> stack;
+  static std::vector<int> component;
+  component.reserve(sub_vertices.size());
+  for (int v : sub_vertices) {
     if (!vertices[v]->visited) {
-      std::vector<int> component{v};
-      s.push(v);
+      component.clear();
+      stack.push(v);
       vertices[v]->visited = true;
-      while (!s.empty()) {
-        int v = s.top();
-        s.pop();
+      while (!stack.empty()) {
+        int v = stack.top();
+        stack.pop();
+        component.push_back(v);
         for (int nghb : Adj(v))
           if (in_sub_verts[nghb] && !vertices[nghb]->visited) {
-            s.push(nghb);
+            stack.push(nghb);
             vertices[nghb]->visited = true;
           }
       }
