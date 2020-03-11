@@ -98,48 +98,48 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     node->lower_bound = lower;
     node->upper_bound = upper;
     node->root = G.vertices[0]->n;
-  }
 
-  // We do a quick check for special cases we can answer exactly and
-  // immediately.
-  if (N < exactCacheSize) {
-    auto [td, root] = exactCache(G.adj);
-    return CacheUpdate(node, td, td, G.vertices.at(root)->n);
-  } else if (G.IsCompleteGraph()) {
-    return CacheUpdate(node, N, N, G.vertices[0]->n);
-  } else if (G.IsStarGraph()) {
-    // Find node with max_degree.
-    for (int v = 0; v < G.vertices.size(); ++v)
-      if (G.Adj(v).size() == G.max_degree)
-        return CacheUpdate(node, 2, 2, G.vertices[v]->n);
-  } else if (G.IsCycleGraph()) {
-    // Find the bound, 1 + td of path of length N - 1.
-    N--;
-    int bnd = 2;
-    while (N >>= 1) bnd++;
-    return CacheUpdate(node, bnd, bnd, G.vertices[0]->n);
-  } else if (G.IsPathGraph()) {
-    // Find the bound, this is the ceil(log_2(N)).
-    int bnd = 1;
-    while (N >>= 1) bnd++;
+    // We do a quick check for special cases we can answer exactly and
+    // immediately.
+    if (N < exactCacheSize) {
+      auto [td, root] = exactCache(G.adj);
+      return CacheUpdate(node, td, td, G.vertices.at(root)->n);
+    } else if (G.IsCompleteGraph()) {
+      return CacheUpdate(node, N, N, G.vertices[0]->n);
+    } else if (G.IsStarGraph()) {
+      // Find node with max_degree.
+      for (int v = 0; v < G.vertices.size(); ++v)
+        if (G.Adj(v).size() == G.max_degree)
+          return CacheUpdate(node, 2, 2, G.vertices[v]->n);
+    } else if (G.IsCycleGraph()) {
+      // Find the bound, 1 + td of path of length N - 1.
+      N--;
+      int bnd = 2;
+      while (N >>= 1) bnd++;
+      return CacheUpdate(node, bnd, bnd, G.vertices[0]->n);
+    } else if (G.IsPathGraph()) {
+      // Find the bound, this is the ceil(log_2(N)).
+      int bnd = 1;
+      while (N >>= 1) bnd++;
 
-    // Find a leaf and then find the middle node.
-    for (int v = 0; v < G.vertices.size(); ++v)
-      if (G.Adj(v).size() == 1) {
-        int prev = v;
-        v = G.adj[v][0];
+      // Find a leaf and then find the middle node.
+      for (int v = 0; v < G.vertices.size(); ++v)
+        if (G.Adj(v).size() == 1) {
+          int prev = v;
+          v = G.adj[v][0];
 
-        // Find the middle node.
-        for (int i = 1; i < G.vertices.size() / 2; i++) {
-          int tmp = v;
-          v = (prev ^ G.adj[v][0] ^ G.adj[v][1]);
-          prev = tmp;
+          // Find the middle node.
+          for (int i = 1; i < G.vertices.size() / 2; i++) {
+            int tmp = v;
+            v = (prev ^ G.adj[v][0] ^ G.adj[v][1]);
+            prev = tmp;
+          }
+          return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
         }
-        return CacheUpdate(node, bnd, bnd, G.vertices[v]->n);
-      }
-  } else if (G.IsTreeGraph()) {
-    auto [td, root] = treedepth_tree(G);
-    return CacheUpdate(node, td, td, root);
+    } else if (G.IsTreeGraph()) {
+      auto [td, root] = treedepth_tree(G);
+      return CacheUpdate(node, td, td, root);
+    }
   }
 
   // If the trivial or previously found bounds suffice, we are done.
