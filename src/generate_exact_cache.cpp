@@ -82,6 +82,7 @@ int main() {
           }
         }
         sub.max_degree = std::max(sub.max_degree, sub.adj[v].size());
+        sub.min_degree = std::min(sub.min_degree, sub.adj[v].size());
       }
       auto [td, _] = treedepth(sub);
       int root = cache.Search(sub)->root;
