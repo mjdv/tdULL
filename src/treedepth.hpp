@@ -51,7 +51,7 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 30 * 60;  // Lets put it at thirty minutes.
+int max_time_treedepth = 10 * 60;  // Lets put the time limit it at ten minutes for now.
 
 // The function treedepth computes Treedepth bounds on subgraphs of the global
 // graph.
