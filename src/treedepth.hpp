@@ -51,7 +51,8 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 10 * 60;  // Lets put the time limit it at ten minutes for now.
+int max_time_treedepth =
+    10 * 60;  // Lets put the time limit it at ten minutes for now.
 
 // The function treedepth computes Treedepth bounds on subgraphs of the global
 // graph.
@@ -81,7 +82,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
                                     int search_ubnd) {
   int N = G.vertices.size();
   if (N == 1) return {1, 1, G.vertices[0]->n};
-  if (search_lbnd >= search_ubnd) return {G.M / N + 1, N, G.vertices[0]->n};
+  if (search_lbnd > search_ubnd) return {G.M / N + 1, N, G.vertices[0]->n};
 
   // We do a quick check for special cases we can answer exactly and
   // immediately.
@@ -181,7 +182,8 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   lower = std::max(lower, (G.M - N_deg_2) / (N - N_deg_2) + 1);
   if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
 
-  // Change DegreeCentrality to other centralities here, say BetweennessCentrality.
+  // Change DegreeCentrality to other centralities here, say
+  // BetweennessCentrality.
   auto centrality = DegreeCentrality(G);
 
   // Sort the vertices based on the degree.
@@ -222,8 +224,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 
     // Recursively find the treedepths for each of the component.
     for (const auto &H : cc) {
-      auto [lower_H, upper_H, _] =
-          treedepth(H, search_lbnd_v, search_ubnd_v);
+      auto [lower_H, upper_H, _] = treedepth(H, search_lbnd_v, search_ubnd_v);
 
       upper_v = std::max(upper_v, upper_H);
       lower_v = std::max(lower_v, lower_H);
