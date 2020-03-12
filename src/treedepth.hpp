@@ -157,6 +157,8 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
   }
+  if (N == full_graph_as_sub.vertices.size())
+    std::cout << "full_graph::kCore" << std::endl;
 
   // Below we calculate the smallest k-core that G can contain. If this is non-
   // empty, we recursively calculate the treedepth on this core first. This
@@ -225,8 +227,13 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   // new_lower tries to find a new treedepth lower bound on this subgraph.
   int new_lower = N;
 
+  if (N == full_graph_as_sub.vertices.size())
+    std::cout << "sep_generator(G)" << std::endl;
+
   SeparatorGenerator sep_generator(G);
   while (sep_generator.HasNext()) {
+    if (N == full_graph_as_sub.vertices.size())
+      std::cout << "sep_generator.HasNext()" << std::endl;
     auto separators = sep_generator.Next();
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {

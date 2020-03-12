@@ -482,6 +482,10 @@ SeparatorGenerator::SeparatorGenerator(const SubGraph &G)
   // vector.
   assert(!G.IsCompleteGraph());
 
+  // Datatypes that will be reused.
+  std::stack<int> component;
+  std::vector<int> separator;
+
   // First we generate all the "seeds": we take the neighborhood of a point
   // (including the point), take all the connected components in the
   // complement, and then take the neighborhoods of those components. Each of
@@ -537,67 +541,11 @@ SeparatorGenerator::SeparatorGenerator(const SubGraph &G)
   }
 }
 
-// Checks whether or not the separator of G given by separator is "truly
-// minimal": it contains no separator as a strict subset. (Name subject to
-// change.)
-//
-// It also writes some info to the Separator struct: the number of vertices
-// and edges in the components that remain when removing this separator from
-// the graph.
-bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
-  // Shared datastructure.
-  static std::stack<int> component;
-
-  int N = G.vertices.size();
-  std::vector<bool> in_sep(N, false);
-  for (int s : separator.vertices) {
-    assert(s < N);
-    in_sep[s] = true;
-  }
-
-  for (int i = 0; i < N; i++) {
-    if (!G.vertices[i]->visited && !in_sep[i]) {
-      assert(component.empty());
-
-      int comp_N = 1;
-      int comp_M = 0;
-
-      component.push(i);
-      G.vertices[i]->visited = true;
-      while (component.size()) {
-        int cur = component.top();
-        component.pop();
-        for (int nb : G.Adj(cur)) {
-          if (!in_sep[nb]) {
-            comp_M++;
-            if (!G.vertices[nb]->visited) {
-              comp_N++;
-              component.push(nb);
-            }
-          }
-          G.vertices[nb]->visited = true;
-        }
-      }
-      for (int s : separator.vertices) {
-        if (!G.vertices[s]->visited) {
-          // This connected component dit not hit this vertex, so we can
-          // remove this vertex and have a separator left; so this separator
-          // is not fully minimal.
-          for (int j = 0; j < N; j++) G.vertices[j]->visited = false;
-          return false;
-        }
-        G.vertices[s]->visited = false;
-      }
-      separator.comp.push_back({comp_N, comp_M});
-    }
-  }
-
-  for (int i = 0; i < N; i++) G.vertices[i]->visited = false;
-
-  return true;
-}
-
 std::vector<Separator> SeparatorGenerator::Next(int k) {
+  // Datatypes that will be reused.
+  std::stack<int> component;
+  std::vector<int> separator;
+
   std::vector<Separator> result;
   result.reserve(k);
   while (!queue.empty() && result.size() < k) {
@@ -663,4 +611,64 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
   }
 
   return result;
+}
+
+// Checks whether or not the separator of G given by separator is "truly
+// minimal": it contains no separator as a strict subset. (Name subject to
+// change.)
+//
+// It also writes some info to the Separator struct: the number of vertices
+// and edges in the components that remain when removing this separator from
+// the graph.
+bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
+  // Shared datastructure.
+  static std::stack<int> component;
+
+  int N = G.vertices.size();
+  std::vector<bool> in_sep(N, false);
+  for (int s : separator.vertices) {
+    assert(s < N);
+    in_sep[s] = true;
+  }
+
+  for (int i = 0; i < N; i++) {
+    if (!G.vertices[i]->visited && !in_sep[i]) {
+      assert(component.empty());
+
+      int comp_N = 1;
+      int comp_M = 0;
+
+      component.push(i);
+      G.vertices[i]->visited = true;
+      while (component.size()) {
+        int cur = component.top();
+        component.pop();
+        for (int nb : G.Adj(cur)) {
+          if (!in_sep[nb]) {
+            comp_M++;
+            if (!G.vertices[nb]->visited) {
+              comp_N++;
+              component.push(nb);
+            }
+          }
+          G.vertices[nb]->visited = true;
+        }
+      }
+      for (int s : separator.vertices) {
+        if (!G.vertices[s]->visited) {
+          // This connected component dit not hit this vertex, so we can
+          // remove this vertex and have a separator left; so this separator
+          // is not fully minimal.
+          for (int j = 0; j < N; j++) G.vertices[j]->visited = false;
+          return false;
+        }
+        G.vertices[s]->visited = false;
+      }
+      separator.comp.push_back({comp_N, comp_M});
+    }
+  }
+
+  for (int i = 0; i < N; i++) G.vertices[i]->visited = false;
+
+  return true;
 }

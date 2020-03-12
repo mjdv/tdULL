@@ -128,22 +128,25 @@ struct SubGraph {
 class SeparatorGenerator {
  public:
   SeparatorGenerator(const SubGraph &G);
-  bool FullyMinimal(Separator &) const;
 
-  std::vector<Separator> Next(int k = 10000);
   bool HasNext() const { return !queue.empty(); }
+  std::vector<Separator> Next(int k = 10000);
 
  protected:
+  // Helper function.
+  bool FullyMinimal(Separator &) const;
+
   const SubGraph &G;
   int N;
+
+  // In done we keep the seperators we have already enqueued, to make sure they
+  // aren't processed again.
+  // In queue we keep all the ones we have generated, but which we have not yet
+  // used to generate new ones.
   std::queue<std::vector<int>> queue;
   std::set<std::vector<int>> done;
 
   std::vector<bool> in_nbh;
-
-  // Datatypes that will be reused.
-  std::stack<int> component;
-  std::vector<int> separator;
 };
 
 extern Graph full_graph;  // The datastructure containing the full graph.
