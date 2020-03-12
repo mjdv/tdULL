@@ -231,6 +231,10 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
               return s1.maxCompSize() < s2.maxCompSize();
             });
 
+  if (N == full_graph_as_sub.vertices.size())
+    std::cout << "Full graph has " << separators.size() << " separators. "
+              << std::endl;
+
   for (const Separator &separator : separators) {
     // Check whether we are still in the time limits.
     time_t now;
