@@ -319,9 +319,8 @@ std::vector<Separator> SubGraph::AllMinimalSeparators() const {
     // fast.
 
     Separator sep;
-    sep.vertices = cur_separator;
-    if (FullyMinimal(sep)) 
-      result.push_back(sep);
+    sep.vertices = std::move(cur_separator);
+    if (FullyMinimal(sep)) result.push_back(std::move(sep));
   }
 
   return result;
@@ -358,9 +357,9 @@ bool SubGraph::FullyMinimal(Separator &separator) const {
         int cur = component.top();
         component.pop();
         for (int nb : Adj(cur)) {
-          if(!in_sep[nb]) {
+          if (!in_sep[nb]) {
             comp_M++;
-            if(!vertices[nb]->visited) {
+            if (!vertices[nb]->visited) {
               comp_N++;
               component.push(nb);
             }

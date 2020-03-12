@@ -209,19 +209,13 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   // new_lower tries to find a new treedepth lower bound on this subgraph.
   int new_lower = N;
 
-  std::vector<Separator> separators = G.AllMinimalSeparators();
+  auto separators = G.AllMinimalSeparators();
+  std::sort(separators.begin(), separators.end(),
+            [](const Separator &s1, const Separator &s2) {
+              return s1.maxCompSize() < s2.maxCompSize();
+            });
 
-  std::sort(separators.begin(), separators.end(), 
-      [](const Separator &s1, const Separator &s2) {
-        int max_comp_size1 = 0, max_comp_size2 = 0;
-        for(auto pair : s1.comp)
-          max_comp_size1 = std::max(max_comp_size1, pair.first);
-        for(auto pair : s2.comp)
-          max_comp_size2 = std::max(max_comp_size2, pair.first);
-        return max_comp_size1 < max_comp_size2;
-      });
-
-  for (Separator separator : separators) {
+  for (const Separator &separator : separators) {
     // Check whether we are still in the time limits.
     time_t now;
     time(&now);
@@ -267,7 +261,8 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       SubGraph H = G;
       for (int i = 1; i < separator.vertices.size(); i++) {
         // Get the subgraph after removing seperator[i-1].
-        auto cc = H.WithoutVertex(H.LocalIndex(G.vertices[separator.vertices[i - 1]]));
+        auto cc = H.WithoutVertex(
+            H.LocalIndex(G.vertices[separator.vertices[i - 1]]));
         if (cc.size() > 1) break;
         H = cc[0];
         auto [node_H, inserted_H] = cache.Insert(H);

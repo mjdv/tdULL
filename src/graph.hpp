@@ -28,6 +28,12 @@ struct Separator {
   std::vector<int> vertices;
 
   std::vector<std::pair<int, int>> comp;
+
+  int maxCompSize() const {
+    int result = 0;
+    for (auto [N, M] : comp) result = std::max(result, N);
+    return result;
+  }
 };
 
 struct SubGraph {
@@ -121,7 +127,6 @@ struct SubGraph {
     return result;
   }
 };
-
 
 extern Graph full_graph;  // The datastructure containing the full graph.
 extern SubGraph full_graph_as_sub;  // The full graph in a SubGraph format.
