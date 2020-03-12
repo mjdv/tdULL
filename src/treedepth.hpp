@@ -130,7 +130,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   int N = G.vertices.size();
 
   // First try some corner cases.
-  if (N == 1 || G.IsCompleteGraph()) return {1, 1, G.vertices[0]->n};
+  if (N == 1 || G.IsCompleteGraph()) return {N, N, G.vertices[0]->n};
 
   // If this doesn't work, try the trivial bounds.
   int lower = G.M / N + 1;
@@ -184,7 +184,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     node = cache.Insert(G).first;
     node->lower_bound = lower;
     node->upper_bound = upper;
-    node->root = G.vertices[0]->n;
+    node->root = root;
 
     // If the graph has at least 3 vertices, we never want a leaf (degree 1
     // node) as a root.
