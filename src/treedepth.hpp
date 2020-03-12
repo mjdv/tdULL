@@ -210,6 +210,14 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   int new_lower = N;
 
   for (auto separator : G.AllMinimalSeparators()) {
+    // Check whether we are still in the time limits.
+    time_t now;
+    time(&now);
+    if (difftime(now, time_start_treedepth) > max_time_treedepth)
+      throw std::runtime_error(
+          "Ran out of time, spent " +
+          std::to_string(difftime(now, time_start_treedepth)) + " seconds.");
+
     int sep_size = separator.size();
 
     int search_ubnd_sep =
@@ -275,14 +283,6 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       // can use v as our root.
       return {lower, upper};
     }
-
-    // Check whether we are still in the time limits.
-    time_t now;
-    time(&now);
-    if (difftime(now, time_start_treedepth) > max_time_treedepth)
-      throw std::runtime_error(
-          "Ran out of time, spent " +
-          std::to_string(difftime(now, time_start_treedepth)) + " seconds.");
   }
 
   node->lower_bound = lower = std::max(lower, new_lower);

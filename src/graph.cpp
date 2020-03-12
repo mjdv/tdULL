@@ -187,7 +187,6 @@ int SubGraph::LocalIndex(Vertex *v) const {
   assert(false);
 }
 
-
 std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
   // Complete graphs don't have separators. We want this to return a non-empty
   // vector.
@@ -204,16 +203,21 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
 
   std::vector<bool> in_nbh(N, false);
 
+  // Datatypes that will be reused.
+  std::stack<int> component;
+  std::vector<int> separator;
+
   // First we generate all the "seeds": we take the neighborhood of a point
   // (including the point), take all the connected components in the
   // complement, and then take the neighborhoods of those components. Each of
   // those is a minimal separator (in fact, one that separates the original
   // point).
+  std::vector<int> neighborhood;
   for (int i = 0; i < N; i++) {
-    std::vector<int> neighborhood{i};
+    if (Adj(i).size() == N - 1) continue;
+    neighborhood.clear();
+    neighborhood.push_back(i);
     neighborhood.insert(neighborhood.end(), Adj(i).begin(), Adj(i).end());
-
-    if (neighborhood.size() == N) continue;
 
     for (int v : neighborhood) in_nbh[v] = true;
 
@@ -222,11 +226,12 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
     for (int j = 0; j < N; j++) {
       if (in_nbh[j] || vertices[j]->visited) continue;
 
-      std::stack<int> component;
+      // Reset shared datastructures.
+      assert(component.empty());
+      separator.clear();
+
       component.push(j);
       vertices[j]->visited = true;
-
-      std::vector<int> separator;
 
       while (!component.empty()) {
         int cur = component.top();
@@ -253,7 +258,6 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
     }
 
     for (auto v : vertices) v->visited = false;
-
     for (int v : neighborhood) in_nbh[v] = false;
   }
 
@@ -267,11 +271,12 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
 
       for (int j = 0; j < N; j++) {
         if (in_nbh[j] || vertices[j]->visited) continue;
-        std::stack<int> component;
+        // Reset shared datastructures.
+        assert(component.empty());
+        separator.clear();
+
         component.push(j);
         vertices[j]->visited = true;
-
-        std::vector<int> separator;
 
         while (!component.empty()) {
           int cur = component.top();
@@ -312,8 +317,7 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
     //
     // Fortunately, checking whether or not this is the case is relatively
     // fast.
-    if(FullyMinimal(cur_separator)) 
-      result.push_back(cur_separator);
+    if (FullyMinimal(cur_separator)) result.push_back(cur_separator);
   }
 
   return result;
@@ -323,34 +327,38 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
 // minimal": it contains no separator as a strict subset. (Name subject to
 // change.)
 bool SubGraph::FullyMinimal(const std::vector<int> &separator) const {
+  // Shared datastructure.
+  static std::stack<int> component;
+
   int N = vertices.size();
   std::vector<bool> in_sep(N, false);
-  for(int s : separator) {
+  for (int s : separator) {
     assert(s < N);
     in_sep[s] = true;
   }
 
-  for(int i = 0; i < N; i++) {
-    if(!vertices[i]->visited && !in_sep[i]) {
-      std::stack<int> component;
+  for (int i = 0; i < N; i++) {
+    if (!vertices[i]->visited && !in_sep[i]) {
+      assert(component.empty());
+
       component.push(i);
       vertices[i]->visited = true;
-      while(component.size()) {
-        int cur = component.top(); component.pop();
-        for(int nb : Adj(cur)) {
-          if(!vertices[nb]->visited && !in_sep[nb]) {
+      while (component.size()) {
+        int cur = component.top();
+        component.pop();
+        for (int nb : Adj(cur)) {
+          if (!vertices[nb]->visited && !in_sep[nb]) {
             component.push(nb);
           }
           vertices[nb]->visited = true;
         }
       }
-      for(int s : separator) {
-        if(!vertices[s]->visited) {
+      for (int s : separator) {
+        if (!vertices[s]->visited) {
           // This connected component dit not hit this vertex, so we can remove
           // this vertex and have a separator left; so this separator is not
           // fully minimal.
-          for(int j = 0; j < N; j++)
-            vertices[j]->visited = false;
+          for (int j = 0; j < N; j++) vertices[j]->visited = false;
           return false;
         }
         vertices[s]->visited = false;
@@ -358,8 +366,7 @@ bool SubGraph::FullyMinimal(const std::vector<int> &separator) const {
     }
   }
 
-  for(int i = 0; i < N; i++)
-    vertices[i]->visited = false;
+  for (int i = 0; i < N; i++) vertices[i]->visited = false;
 
   return true;
 }
