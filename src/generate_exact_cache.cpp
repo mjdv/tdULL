@@ -82,9 +82,11 @@ int main() {
           }
         }
         sub.max_degree = std::max(sub.max_degree, sub.adj[v].size());
+        sub.min_degree = std::min(sub.min_degree, sub.adj[v].size());
       }
       auto [td, _] = treedepth(sub);
       int root = cache.Search(sub)->root;
+      assert(root > -1 && td >= 1 && td <= N);
       // std::cerr << ((td << 4) | root) << ",";
       output.put(uint8_t((td << 4) | root));
     } else {

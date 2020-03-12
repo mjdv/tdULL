@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <climits>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -39,8 +40,28 @@ struct SubGraph {
   // Create a SubGraph of G with the given (local) vertices
   SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices);
 
+  // Checks whether this really represents an induced subgraph.
+  // Note: expensive!
+  void AssertValidSubGraph() const;
+
+  // Vector of connected components of the subset given by sub_vertices.
+  std::vector<SubGraph> ConnectedSubGraphs(
+      const std::vector<int> &sub_vertices) const;
+
   // Get the adjacency list for a given vertex.
   const std::vector<int> &Adj(int v) const;
+
+  // Get the local coordinate for a given vertex.
+  int LocalIndex(Vertex *v) const;
+
+  // Get all minimal separators for the given graph (as lists of local
+  // coordinates).
+  std::vector<std::vector<int>> AllMinimalSeparators() const;
+
+  bool FullyMinimal(const std::vector<int> &) const;
+
+  // Create a connected components of the subgraph without the given vertices.
+  std::vector<SubGraph> WithoutVertices(const std::vector<int> &S) const;
 
   // Create a connected components of the subgraph without the given vertex.
   std::vector<SubGraph> WithoutVertex(int v) const;
