@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <climits>
+#include <deque>
 #include <iostream>
 #include <map>
 #include <queue>
@@ -25,18 +26,6 @@ struct Graph {
 
   Graph(std::istream &stream);
   Graph() : N(0), M(0) {}
-};
-
-struct Separator {
-  std::vector<int> vertices;
-
-  std::vector<std::pair<int, int>> comp;
-
-  int maxCompSize() const {
-    int result = 0;
-    for (auto [N, M] : comp) result = std::max(result, N);
-    return result;
-  }
 };
 
 struct SubGraph {
@@ -125,12 +114,31 @@ struct SubGraph {
   }
 };
 
+struct Separator {
+  std::vector<int> vertices;
+  std::vector<std::pair<int, int>> comp;
+
+  Separator() {}
+  Separator(std::vector<int> &&vertices) : vertices(std::move(vertices)) {}
+
+  int maxCompSize() const {
+    int result = 0;
+    for (auto [N, M] : comp) result = std::max(result, N);
+    return result;
+  }
+};
+
 class SeparatorGenerator {
  public:
   SeparatorGenerator(const SubGraph &G);
 
   bool HasNext() const { return !queue.empty(); }
   std::vector<Separator> Next(int k = 10000);
+
+  void clear() {
+    done.clear();
+    queue = {};
+  }
 
  protected:
   // Helper function.
