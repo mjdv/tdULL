@@ -3,8 +3,10 @@
 #include <climits>
 #include <iostream>
 #include <map>
+#include <queue>
+#include <set>
+#include <stack>
 #include <vector>
-#include <climits>
 
 struct Vertex {
   int n;         // The index of this vertex.
@@ -66,12 +68,6 @@ struct SubGraph {
   // Get the local coordinate for a given vertex.
   int LocalIndex(Vertex *v) const;
 
-  // Get all minimal separators for the given graph (as lists of local
-  // coordinates).
-  std::vector<Separator> AllMinimalSeparators() const;
-
-  bool FullyMinimal(Separator &) const;
-
   // Create a connected components of the subgraph without the given vertices.
   std::vector<SubGraph> WithoutVertices(const std::vector<int> &S) const;
 
@@ -127,6 +123,27 @@ struct SubGraph {
     std::sort(result.begin(), result.end());
     return result;
   }
+};
+
+class SeparatorGenerator {
+ public:
+  SeparatorGenerator(const SubGraph &G);
+  bool FullyMinimal(Separator &) const;
+
+  std::vector<Separator> Next(int k = 10000);
+  bool HasNext() const { return !queue.empty(); }
+
+ protected:
+  const SubGraph &G;
+  int N;
+  std::queue<std::vector<int>> queue;
+  std::set<std::vector<int>> done;
+
+  std::vector<bool> in_nbh;
+
+  // Datatypes that will be reused.
+  std::stack<int> component;
+  std::vector<int> separator;
 };
 
 extern Graph full_graph;  // The datastructure containing the full graph.
