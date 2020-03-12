@@ -228,12 +228,12 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   int new_lower = N;
 
   if (N == full_graph_as_sub.vertices.size())
-    std::cout << "sep_generator(G)" << std::endl;
+    std::cout << "Initialize full_graph sep_generator." << std::endl;
 
   SeparatorGenerator sep_generator(G);
   while (sep_generator.HasNext()) {
     if (N == full_graph_as_sub.vertices.size())
-      std::cout << "sep_generator.Next()" << std::endl;
+      std::cout << "full_graph generate next set of seperators." << std::endl;
     auto separators = sep_generator.Next(10000);
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {
@@ -273,7 +273,6 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
         lower_sep = std::max(lower_sep, lower_H);
         search_lbnd_sep = std::max(search_lbnd_sep, lower_H);
       }
-
       new_lower = std::min(new_lower, lower_sep + sep_size);
 
       // If we find a new upper bound, update the cache accordingly :-).
