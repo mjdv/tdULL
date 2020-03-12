@@ -23,7 +23,7 @@ for fn in fns_glob:
     filestats[fn] = (total_time, total_solved)
 
 print('Example\tTreedepth\tSolved by')
-for example in examplestats:
+for example in sorted(examplestats.keys()):
     stats = examplestats[example]
     td_min = 99999
     time_min = 9999
