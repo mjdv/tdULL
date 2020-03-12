@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <climits>
 
 struct Vertex {
   int n;         // The index of this vertex.
