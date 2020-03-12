@@ -128,13 +128,11 @@ int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
                                     int search_ubnd) {
   int N = G.vertices.size();
+  if (N == 1) return {1, 1, G.vertices[0]->n};
 
-  // First try some corner cases.
-  if (N == 1 || G.IsCompleteGraph()) return {N, N, G.vertices[0]->n};
-
-  // If this doesn't work, try the trivial bounds.
+  // Try the trivial bounds.
   int lower = G.M / N + 1;
-  int upper = N - 1;
+  int upper = N;
   int root = G.vertices[0]->n;
 
   // If the trivial bounds suffice, we are done.
