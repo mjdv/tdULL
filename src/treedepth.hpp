@@ -217,8 +217,8 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     for (int v = 0; v < 3; v++) {
       node->lower_bound = lower =
           std::max(lower, treedepth_tree(G.DfsTree(vertices[v])).first);
+      if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
     }
-    if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
   }
 
   // Main loop: try every separator as a set of roots.
