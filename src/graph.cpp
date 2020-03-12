@@ -187,7 +187,6 @@ int SubGraph::LocalIndex(Vertex *v) const {
   assert(false);
 }
 
-
 std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
   // Complete graphs don't have separators. We want this to return a non-empty
   // vector.
@@ -312,8 +311,7 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
     //
     // Fortunately, checking whether or not this is the case is relatively
     // fast.
-    if(FullyMinimal(cur_separator)) 
-      result.push_back(cur_separator);
+    if (FullyMinimal(cur_separator)) result.push_back(cur_separator);
   }
 
   return result;
@@ -325,32 +323,32 @@ std::vector<std::vector<int>> SubGraph::AllMinimalSeparators() const {
 bool SubGraph::FullyMinimal(const std::vector<int> &separator) const {
   int N = vertices.size();
   std::vector<bool> in_sep(N, false);
-  for(int s : separator) {
+  for (int s : separator) {
     assert(s < N);
     in_sep[s] = true;
   }
 
-  for(int i = 0; i < N; i++) {
-    if(!vertices[i]->visited && !in_sep[i]) {
+  for (int i = 0; i < N; i++) {
+    if (!vertices[i]->visited && !in_sep[i]) {
       std::stack<int> component;
       component.push(i);
       vertices[i]->visited = true;
-      while(component.size()) {
-        int cur = component.top(); component.pop();
-        for(int nb : Adj(cur)) {
-          if(!vertices[nb]->visited && !in_sep[nb]) {
+      while (component.size()) {
+        int cur = component.top();
+        component.pop();
+        for (int nb : Adj(cur)) {
+          if (!vertices[nb]->visited && !in_sep[nb]) {
             component.push(nb);
           }
           vertices[nb]->visited = true;
         }
       }
-      for(int s : separator) {
-        if(!vertices[s]->visited) {
+      for (int s : separator) {
+        if (!vertices[s]->visited) {
           // This connected component dit not hit this vertex, so we can remove
           // this vertex and have a separator left; so this separator is not
           // fully minimal.
-          for(int j = 0; j < N; j++)
-            vertices[j]->visited = false;
+          for (int j = 0; j < N; j++) vertices[j]->visited = false;
           return false;
         }
         vertices[s]->visited = false;
@@ -358,8 +356,7 @@ bool SubGraph::FullyMinimal(const std::vector<int> &separator) const {
     }
   }
 
-  for(int i = 0; i < N; i++)
-    vertices[i]->visited = false;
+  for (int i = 0; i < N; i++) vertices[i]->visited = false;
 
   return true;
 }
@@ -493,21 +490,22 @@ SubGraph SubGraph::DfsTree(int root) const {
   result.vertices.reserve(vertices.size());
   result.adj.resize(vertices.size());
 
-  static std::vector<int> stack;
-  stack.push_back(root);
-  vertices[root]->visited = true;
+  static std::vector<std::pair<int, int>> stack;
+  stack.push_back({root, -1});
+
   while (!stack.empty()) {
-    int v = stack.back();
+    auto [v, prev] = stack.back();
     stack.pop_back();
+    if (vertices[v]->visited) continue;
+    if (prev != -1) {
+      result.adj[v].push_back(prev);
+      result.adj[prev].push_back(v);
+    }
+    vertices[v]->visited = true;
     result.vertices.emplace_back(vertices[v]);
-    for (int nghb : Adj(v))
-      if (!vertices[nghb]->visited) {
-        stack.push_back(nghb);
-        result.adj[v].push_back(nghb);
-        result.adj[nghb].push_back(v);
-        vertices[nghb]->visited = true;
-      }
+    for (int nghb : Adj(v)) stack.push_back({nghb, v});
   }
+
   result.M = vertices.size() - 1;
   int total_edges = 0;
   for (int v = 0; v < result.vertices.size(); v++) {
