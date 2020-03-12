@@ -139,6 +139,8 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   assert(N >= 1);
 
   int lower = G.M / N + 1, upper = N;
+  if (N > 2 && !G.IsStarGraph()) lower++;
+  if (!G.IsCompleteGraph()) upper = N - 1;
 
   // If the trivial or previously found bounds suffice, we are done.
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
