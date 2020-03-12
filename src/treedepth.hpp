@@ -26,6 +26,8 @@ int treedepth_trivial(const SubGraph &G) {
   return td;
 }
 
+std::map<std::string, std::map<std::string, int>> treedepth_calls;
+
 // This function returns the treedepth and root of a SubGraph using simple
 // heuristics. This only works for special graphs. It returns -1, -1, if
 // no such exact heuristic is found.
@@ -34,21 +36,26 @@ std::pair<int, int> treedepth_exact(const SubGraph &G) {
   // We do a quick check for special cases we can answer exactly and
   // immediately.
   if (N < exactCacheSize) {
+    treedepth_calls["exact hit"]["small"]++;
     auto [td, root] = exactCache(G.adj);
     return {td, G.vertices[root]->n};
   } else if (G.IsCompleteGraph()) {
+    treedepth_calls["exact hit"]["complete"]++;
     return {N, G.vertices[0]->n};
   } else if (G.IsStarGraph()) {
+    treedepth_calls["exact hit"]["star"]++;
     // Find node with max_degree.
     for (int v = 0; v < G.vertices.size(); ++v)
       if (G.Adj(v).size() == G.max_degree) return {2, G.vertices[v]->n};
   } else if (G.IsCycleGraph()) {
+    treedepth_calls["exact hit"]["cycle"]++;
     // Find the bound, 1 + td of path of length N - 1.
     N--;
     int bnd = 2;
     while (N >>= 1) bnd++;
     return {bnd, G.vertices[0]->n};
   } else if (G.IsPathGraph()) {
+    treedepth_calls["exact hit"]["path"]++;
     // Find the bound, this is the ceil(log_2(N)).
     int bnd = 1;
     while (N >>= 1) bnd++;
@@ -68,6 +75,7 @@ std::pair<int, int> treedepth_exact(const SubGraph &G) {
         return {bnd, G.vertices[v]->n};
       }
   } else if (G.IsTreeGraph()) {
+    treedepth_calls["exact hit"]["tree"]++;
     auto [td, root] = treedepth_tree(G);
     return {td, root};
   }
@@ -132,6 +140,11 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   int lower = G.M / N + 1, upper = N;
 
+  // If the trivial or previously found bounds suffice, we are done.
+  if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
+    treedepth_calls["calls"]["trivial bounds"]++;
+  }
+
   // Add this graph to the cache.
   Node *node;
   bool inserted;
@@ -141,7 +154,9 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     // This graph was in the cache, retrieve lower/upper bounds.
     lower = node->lower_bound;
     upper = node->upper_bound;
+    treedepth_calls["cache"]["cache hit"]++;
   } else {
+    treedepth_calls["cache"]["cache miss"]++;
     // If this graph wasn't in the cache, store the trivial bounds.
     node->lower_bound = lower;
     node->upper_bound = upper;
@@ -149,12 +164,15 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
 
     // Run some checks to see if we can simply find the exact td already.
     auto [td_exact, root_exact] = treedepth_exact(G);
-    if (td_exact > -1 && root_exact > -1)
+    if (td_exact > -1 && root_exact > -1) {
+      treedepth_calls["calls"]["exact hit"]++;
       return CacheUpdate(node, td_exact, td_exact, root_exact);
+    }
   }
 
   // If the trivial or previously found bounds suffice, we are done.
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
+    treedepth_calls["calls"]["simple bounds"]++;
     return {lower, upper};
   }
 
@@ -172,7 +190,10 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     for (const auto &cc : cc_core) {
       node->lower_bound = lower =
           std::max(lower, std::get<0>(treedepth(cc, search_lbnd, search_ubnd)));
-      if (search_ubnd <= lower || lower == upper) return {lower, upper};
+      if (search_ubnd <= lower || lower == upper) {
+        treedepth_calls["calls"]["kcore recursion"]++;
+        return {lower, upper};
+      }
     }
   }
 
@@ -198,11 +219,16 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     // If G is a new graph in the cache, compute its DfsTree-tree from
     // the most promising node once, and then evaluate the treedepth_tree on
     // this tree.
-    node->lower_bound = lower =
-        std::max(lower, treedepth_tree(G.DfsTree(vertices[0])).first);
+    for (int v : vertices) {
+      node->lower_bound = lower =
+          std::max(lower, treedepth_tree(G.DfsTree(v)).first);
+    }
 
     // If the trivial or previously found bounds suffice, we are done.
-    if (search_ubnd <= lower || lower == upper) return {lower, upper};
+    if (search_ubnd <= lower || lower == upper) {
+      treedepth_calls["calls"]["dfstree"]++;
+      return {lower, upper};
+    }
   }
 
   // Main loop: try every separator as a set of roots.
@@ -273,6 +299,7 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
       // good enough (either a sister branch is at least this long, or it
       // matches a previously proved lower bound for this subgraph) so we
       // can use v as our root.
+      treedepth_calls["calls"]["separators recursion"]++;
       return {lower, upper};
     }
 
@@ -316,11 +343,23 @@ void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
 // Little helper function that returns the treedepth for the given graph.
 std::pair<int, std::vector<int>> treedepth(const SubGraph &G) {
   cache = SetTrie();
+  treedepth_calls.clear();
+
   time(&time_start_treedepth);
   int td = treedepth(G, 1, G.vertices.size()).second;
   std::vector<int> tree(G.vertices.size(), -2);
   reconstruct(G, -1, tree, td);
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
   for (auto &v : tree) v++;
+
+  treedepth_calls["cache"]["size"] = cache.size();
+  std::cout << "Graph recursion data: " << std::endl;
+  for (const auto &[key, map] : treedepth_calls) {
+    std::cout << "\t" << key << ": ";
+    for (const auto &[call, value] : map) {
+      std::cout << call << " - " << value << "; ";
+    }
+    std::cout << std::endl;
+  }
   return {td, std::move(tree)};
 }

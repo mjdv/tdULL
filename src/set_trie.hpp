@@ -27,6 +27,12 @@ struct Node {
   Node *FindOrCreateChild(int n) {
     return &children.emplace(n, Node()).first->second;
   }
+
+  size_t sizeRecur() {
+    size_t result = children.size();
+    for (auto &[_, child] : children) result += child.sizeRecur();
+    return result;
+  }
 };
 
 class SetTrie {
@@ -39,6 +45,8 @@ class SetTrie {
 
   std::vector<Node *> AllSubsets(const std::vector<int> &word);
   std::vector<Node *> AllSupersets(const std::vector<int> &word);
+
+  size_t size() { return root_.sizeRecur(); }
 
  protected:
   Node root_;
