@@ -139,8 +139,6 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
   assert(N >= 1);
 
   int lower = G.M / N + 1, upper = N;
-  if (N > 2 && !G.IsStarGraph()) lower++;
-  if (!G.IsCompleteGraph()) upper = N - 1;
 
   // If the trivial or previously found bounds suffice, we are done.
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
@@ -221,10 +219,8 @@ std::pair<int, int> treedepth(const SubGraph &G, int search_lbnd,
     // If G is a new graph in the cache, compute its DfsTree-tree from
     // the most promising node once, and then evaluate the treedepth_tree on
     // this tree.
-    for (int v : vertices) {
-      node->lower_bound = lower =
-          std::max(lower, treedepth_tree(G.DfsTree(v)).first);
-    }
+    node->lower_bound = lower =
+        std::max(lower, treedepth_tree(G.DfsTree(vertices[0])).first);
 
     // If the trivial or previously found bounds suffice, we are done.
     if (search_ubnd <= lower || lower == upper) {
