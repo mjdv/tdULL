@@ -121,10 +121,16 @@ struct Separator {
   Separator() {}
   Separator(std::vector<int> &&vertices) : vertices(std::move(vertices)) {}
 
-  int maxCompSize() const {
-    int result = 0;
-    for (auto [N, M] : comp) result = std::max(result, N);
-    return result;
+  std::pair<int, int> maxCompSize() const {
+    int best_comp = 0;
+    int best_M = 0;
+    for (auto [N, M] : comp)
+      if (N > best_comp) {
+        best_comp = N;
+        best_M = M;
+      }
+
+    return {best_comp, best_M};
   }
 };
 

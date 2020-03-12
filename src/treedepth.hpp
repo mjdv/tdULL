@@ -187,24 +187,6 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     }
   }
 
-  // If the graph has at least 3 vertices, we never want a leaf (degree 1
-  // node) as a root.
-  assert(G.vertices.size() > 2 && G.max_degree >= 2);
-  std::vector<int> vertices;
-  vertices.reserve(N);
-  for (int v = 0; v < G.vertices.size(); ++v) {
-    // Only add vertices with deg > 1.
-    if (G.Adj(v).size() > 1) vertices.emplace_back(v);
-  }
-
-  // Change DegreeCentrality to other centralities here, say
-  // BetweennessCentrality.
-  auto centrality = DegreeCentrality(G);
-
-  // Sort the vertices based on the degree.
-  std::sort(vertices.begin(), vertices.end(),
-            [&](int v1, int v2) { return centrality[v1] > centrality[v2]; });
-
   // If G doesn't exist in the cache, lets add it now, since we will start doing
   // some real work.
   if (node == nullptr) {
@@ -212,6 +194,25 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     node->lower_bound = lower;
     node->upper_bound = upper;
     node->root = root;
+
+    // If the graph has at least 3 vertices, we never want a leaf (degree 1
+    // node) as a root.
+    assert(G.vertices.size() > 2 && G.max_degree >= 2);
+    std::vector<int> vertices;
+    vertices.reserve(N);
+    for (int v = 0; v < G.vertices.size(); ++v) {
+      // Only add vertices with deg > 1.
+      if (G.Adj(v).size() > 1) vertices.emplace_back(v);
+    }
+
+    // Change DegreeCentrality to other centralities here, say
+    // BetweennessCentrality.
+    auto centrality = DegreeCentrality(G);
+
+    // Sort the vertices based on the degree.
+    std::sort(vertices.begin(), vertices.end(),
+              [&](int v1, int v2) { return centrality[v1] > centrality[v2]; });
+
     // If G is a new graph in the cache, compute its DfsTree-tree from
     // the most promising node once, and then evaluate the treedepth_tree on
     // this tree.
@@ -232,22 +233,12 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   SeparatorGenerator sep_generator(G);
   while (sep_generator.HasNext()) {
     if (N == full_graph_as_sub.vertices.size())
-      std::cout << "sep_generator.HasNext()" << std::endl;
-    auto separators = sep_generator.Next(1000 * N);
-    if (!sep_generator.HasNext()) {
-      std::sort(separators.begin(), separators.end(),
-                [](const Separator &s1, const Separator &s2) {
-                  return s1.maxCompSize() < s2.maxCompSize();
-                });
-    } else {
-      std::cout
-          << N
-          << " Too many separators found, stopping with separator generators."
-          << std::endl;
-      sep_generator.clear();
-      separators.clear();
-      for (int v : vertices) separators.emplace_back(std::vector<int>{v});
-    }
+      std::cout << "sep_generator.Next()" << std::endl;
+    auto separators = sep_generator.Next(10000);
+    std::sort(separators.begin(), separators.end(),
+              [](const Separator &s1, const Separator &s2) {
+                return s1.maxCompSize() < s2.maxCompSize();
+              });
 
     for (const Separator &separator : separators) {
       // Check whether we are still in the time limits.
