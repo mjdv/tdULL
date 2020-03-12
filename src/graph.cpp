@@ -547,7 +547,6 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
   std::vector<int> separator;
 
   std::vector<Separator> result;
-  result.reserve(k);
   while (!queue.empty() && result.size() < k) {
     auto cur_separator = queue.front();
     queue.pop();
