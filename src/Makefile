@@ -22,8 +22,8 @@ fromto: main verify
 
 timing: main verify
 	mkdir -p timings
-	echo "fn,treedepth,time,error" > timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
-	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
+	echo "fn,treedepth,time,error" > timings/computed_treedepths_$(shell git rev-parse --abbrev-ref HEAD)_$(shell git rev-parse --short HEAD).csv
+	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --abbrev-ref HEAD)_$(shell git rev-parse --short HEAD).csv
 
 main: main.o graph.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^
