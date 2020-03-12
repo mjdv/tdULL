@@ -214,8 +214,10 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     // If G is a new graph in the cache, compute its DfsTree-tree from
     // the most promising node once, and then evaluate the treedepth_tree on
     // this tree.
-    node->lower_bound = lower =
-        std::max(lower, treedepth_tree(G.DfsTree(vertices[0])).first);
+    for (int v = 0; v < 3; v++) {
+      node->lower_bound = lower =
+          std::max(lower, treedepth_tree(G.DfsTree(vertices[v])).first);
+    }
     if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
   }
 
