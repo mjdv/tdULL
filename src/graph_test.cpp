@@ -46,8 +46,8 @@ int main() {
   LoadGraph(stream_allminsep);
   auto v_ams = full_graph_as_sub.AllMinimalSeparators();
   assert(v_ams.size() == 1);
-  assert(v_ams[0].size() == 1);
-  assert(full_graph_as_sub.vertices[v_ams[0][0]]->n == 0);
+  assert(v_ams[0].vertices.size() == 1);
+  assert(full_graph_as_sub.vertices[v_ams[0].vertices[0]]->n == 0);
 
   std::istringstream stream_allminsep2("p tdp 6 6 1 2 2 3 3 4 4 5 5 6 6 1");
   LoadGraph(stream_allminsep2);
@@ -56,8 +56,8 @@ int main() {
 
   std::cout << "The minimal separators of the 6-cycle are:" << std::endl;
   for (auto v : v_ams2) {
-    assert(v.size() == 2);
-    for (int x : v) std::cout << full_graph_as_sub.vertices[x]->n << " ";
+    assert(v.vertices.size() == 2);
+    for (int x : v.vertices) std::cout << full_graph_as_sub.vertices[x]->n << " ";
     std::cout << std::endl;
   }
 
@@ -68,7 +68,7 @@ int main() {
                "attached to adjacent nodes are:"
             << std::endl;
   for (auto v : v_ams3) {
-    for (int x : v) std::cout << full_graph_as_sub.vertices[x]->n << " ";
+    for (int x : v.vertices) std::cout << full_graph_as_sub.vertices[x]->n << " ";
     std::cout << std::endl;
   }
 
