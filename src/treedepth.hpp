@@ -229,12 +229,15 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   if (N == full_graph_as_sub.vertices.size())
     std::cout << "Initialize full_graph sep_generator." << std::endl;
-
   SeparatorGenerator sep_generator(G);
+  size_t total_separators = 0;
   while (sep_generator.HasNext()) {
+    auto separators = sep_generator.Next(100000);
+    total_separators += separators.size();
     if (N == full_graph_as_sub.vertices.size())
-      std::cout << "full_graph generate next set of seperators." << std::endl;
-    auto separators = sep_generator.Next(10000);
+      std::cout << "full_graph generated total of " << total_separators
+                << " separators so far." << std::endl;
+
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {
                 return s1.maxCompSize() < s2.maxCompSize();
