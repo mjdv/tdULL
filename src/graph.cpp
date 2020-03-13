@@ -485,6 +485,7 @@ SeparatorGenerator::SeparatorGenerator(const SubGraph &G)
   // Datatypes that will be reused.
   std::stack<int> component;
   std::vector<int> separator;
+  std::vector<bool> sep_mask(N, false);
 
   // First we generate all the "seeds": we take the neighborhood of a point
   // (including the point), take all the connected components in the
@@ -529,11 +530,14 @@ SeparatorGenerator::SeparatorGenerator(const SubGraph &G)
       }
 
       for (auto k : neighborhood) G.vertices[k]->visited = false;
-      std::sort(separator.begin(), separator.end());
-      if (done.find(separator) == done.end()) {
+
+      // std::sort(separator.begin(), separator.end());
+      for (int k : separator) sep_mask[k] = true;
+      if (done.find(sep_mask) == done.end()) {
         queue.push(separator);
-        done.insert(separator);
+        done.insert(sep_mask);
       }
+      for (int k : separator) sep_mask[k] = false;
     }
 
     for (auto v : G.vertices) v->visited = false;
@@ -545,6 +549,7 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
   // Datatypes that will be reused.
   std::stack<int> component;
   std::vector<int> separator;
+  std::vector<bool> sep_mask(N, false);
 
   std::vector<Separator> result;
   while (!queue.empty() && result.size() < k) {
@@ -582,11 +587,14 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
 
         for (auto k : cur_separator) G.vertices[k]->visited = false;
         for (auto k : G.Adj(x)) G.vertices[k]->visited = false;
-        std::sort(separator.begin(), separator.end());
-        if (done.find(separator) == done.end()) {
+
+        // std::sort(separator.begin(), separator.end());
+        for (int k : separator) sep_mask[k] = true;
+        if (done.find(sep_mask) == done.end()) {
           queue.push(separator);
-          done.insert(separator);
+          done.insert(sep_mask);
         }
+        for (int k : separator) sep_mask[k] = false;
       }
 
       for (int j : cur_separator) in_nbh[j] = false;

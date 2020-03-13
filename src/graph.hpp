@@ -7,6 +7,7 @@
 #include <queue>
 #include <set>
 #include <stack>
+#include <unordered_set>
 #include <vector>
 
 struct Vertex {
@@ -158,7 +159,7 @@ class SeparatorGenerator {
   // In queue we keep all the ones we have generated, but which we have not yet
   // used to generate new ones.
   std::queue<std::vector<int>> queue;
-  std::set<std::vector<int>> done;
+  std::unordered_set<std::vector<bool>> done;
 
   std::vector<bool> in_nbh;
 };
