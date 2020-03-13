@@ -25,6 +25,18 @@ struct Graph {
   Graph() : N(0), M(0) {}
 };
 
+struct Separator {
+  std::vector<int> vertices;
+
+  std::vector<std::pair<int, int>> comp;
+
+  int maxCompSize() const {
+    int result = 0;
+    for (auto [N, M] : comp) result = std::max(result, N);
+    return result;
+  }
+};
+
 struct SubGraph {
   size_t max_degree = 0;        // Max degree of nodes inside this graph.
   size_t min_degree = INT_MAX;  // Min degree of nodes inside this graph.
@@ -56,9 +68,9 @@ struct SubGraph {
 
   // Get all minimal separators for the given graph (as lists of local
   // coordinates).
-  std::vector<std::vector<int>> AllMinimalSeparators() const;
+  std::vector<Separator> AllMinimalSeparators() const;
 
-  bool FullyMinimal(const std::vector<int> &) const;
+  bool FullyMinimal(Separator &) const;
 
   // Create a connected components of the subgraph without the given vertices.
   std::vector<SubGraph> WithoutVertices(const std::vector<int> &S) const;

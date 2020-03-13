@@ -214,7 +214,13 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   // new_lower tries to find a new treedepth lower bound on this subgraph.
   int new_lower = N;
 
-  for (auto separator : G.AllMinimalSeparators()) {
+  auto separators = G.AllMinimalSeparators();
+  std::sort(separators.begin(), separators.end(),
+            [](const Separator &s1, const Separator &s2) {
+              return s1.maxCompSize() < s2.maxCompSize();
+            });
+
+  for (const Separator &separator : separators) {
     // Check whether we are still in the time limits.
     time_t now;
     time(&now);
@@ -223,7 +229,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
           "Ran out of time, spent " +
           std::to_string(difftime(now, time_start_treedepth)) + " seconds.");
 
-    int sep_size = separator.size();
+    int sep_size = separator.vertices.size();
 
     int search_ubnd_sep =
         std::max(1, std::min(search_ubnd - sep_size, upper - sep_size));
@@ -233,7 +239,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     int lower_sep = lower - sep_size;
 
     // Sort the components of G \ separator on density.
-    auto cc = G.WithoutVertices(separator);
+    auto cc = G.WithoutVertices(separator.vertices);
     std::sort(cc.begin(), cc.end(), [](const SubGraph &c1, const SubGraph &c2) {
       return c1.M / c1.vertices.size() > c2.M / c2.vertices.size();
     });
@@ -252,13 +258,14 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     // If we find a new upper bound, update the cache accordingly :-).
     if (upper_sep + sep_size < upper) {
       node->upper_bound = upper = upper_sep + sep_size;
-      node->root = root = G.vertices[separator[0]]->n;
+      node->root = root = G.vertices[separator.vertices[0]]->n;
 
       // Iteratively remove the seperator from G and update bounds.
       SubGraph H = G;
-      for (int i = 1; i < separator.size(); i++) {
+      for (int i = 1; i < separator.vertices.size(); i++) {
         // Get the subgraph after removing seperator[i-1].
-        auto cc = H.WithoutVertex(H.LocalIndex(G.vertices[separator[i - 1]]));
+        auto cc = H.WithoutVertex(
+            H.LocalIndex(G.vertices[separator.vertices[i - 1]]));
         assert(cc.size() == 1);
         H = cc[0];
         auto [node_H, inserted_H] = cache.Insert(H);
@@ -267,7 +274,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
         if (inserted_H || (upper - i < node_H->upper_bound)) {
           node_H->upper_bound = upper - i;
           node_H->lower_bound = std::max(lower - i, node_H->lower_bound);
-          node_H->root = G.vertices[separator[i]]->n;
+          node_H->root = G.vertices[separator.vertices[i]]->n;
         }
       }
     }
