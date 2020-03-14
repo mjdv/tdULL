@@ -515,21 +515,23 @@ SubGraph SubGraph::DfsTree(int root) const {
   result.vertices.reserve(vertices.size());
   result.adj.resize(vertices.size());
 
-  static std::vector<int> stack;
-  stack.push_back(root);
-  vertices[root]->visited = true;
+  static std::vector<std::pair<int, int>> stack;
+  stack.emplace_back(root, -1);
+
   while (!stack.empty()) {
-    int v = stack.back();
+    auto [v, prev] = stack.back();
     stack.pop_back();
+    if (vertices[v]->visited) continue;
+    if (prev != -1) {
+      result.adj[v].push_back(prev);
+      result.adj[prev].push_back(v);
+    }
+    vertices[v]->visited = true;
     result.vertices.emplace_back(vertices[v]);
     for (int nghb : Adj(v))
-      if (!vertices[nghb]->visited) {
-        stack.push_back(nghb);
-        result.adj[v].push_back(nghb);
-        result.adj[nghb].push_back(v);
-        vertices[nghb]->visited = true;
-      }
+      if (!vertices[nghb]->visited) stack.emplace_back(nghb, v);
   }
+
   result.M = vertices.size() - 1;
   int total_edges = 0;
   for (int v = 0; v < result.vertices.size(); v++) {
