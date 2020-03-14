@@ -2,6 +2,8 @@
 
 #include <cassert>
 #include <queue>
+#include <set>
+#include <stack>
 
 Graph full_graph;
 SubGraph full_graph_as_sub;
@@ -65,15 +67,339 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
     // Insert this adjacency list into the subgraph.
     M += nghbrs.size();
     max_degree = std::max(max_degree, nghbrs.size());
+    min_degree = std::min(min_degree, nghbrs.size());
     adj.emplace_back(std::move(nghbrs));
   }
+  if (min_degree == 0) assert(sub_vertices.size() == 1 && M == 0);
   assert(M % 2 == 0);
   M /= 2;
+}
+
+void SubGraph::AssertValidSubGraph() const {
+  int N = vertices.size();
+  assert(N > 0);
+  // First we do some sanity checks on the mask.
+  int N_mask = 0;
+  for (bool b : mask)
+    if (b) N_mask++;
+  assert(N_mask == N);
+  for (auto vtx : vertices) assert(mask[vtx->n]);
+
+  // Check that no vertex occurs twice.
+  assert(std::set<Vertex *>(vertices.begin(), vertices.end()).size() == N);
+
+  // Check that the degrees coincide.
+  assert(adj.size() == N);
+  size_t max_d = 0, min_d = INT_MAX;
+  for (int v = 0; v < N; v++) {
+    max_d = std::max(max_d, adj[v].size());
+    min_d = std::min(min_d, adj[v].size());
+  }
+  assert(max_d == max_degree);
+  assert(min_d == min_degree);
+  assert(max_degree < N);
+
+  // Create a mapping of global to local indices.
+  std::map<int, int> glob_2_local;
+  for (int v = 0; v < N; ++v) glob_2_local[vertices[v]->n] = v;
+  assert(glob_2_local.size() == N);
+
+  // Now check that the adjacency matrix is indeed the `full` adjacency matrix.
+  for (int v = 0; v < N; ++v) {
+    // First check that there are no doubles in the adj list.
+    std::set<int> adj_set(adj[v].begin(), adj[v].end());
+    assert(adj_set.size() == adj[v].size());
+
+    // Loop over the global adjacency list.
+    int v_glob = vertices[v]->n;
+    assert(glob_2_local.count(v_glob));
+    for (int nghb_glob : full_graph.adj[v_glob]) {
+      assert(glob_2_local.count(nghb_glob) == mask[nghb_glob]);
+
+      // If we contain this nghbour, assert that its also in the local adj
+      // list.
+      if (mask[nghb_glob]) assert(adj_set.count(glob_2_local.at(nghb_glob)));
+    }
+  }
+
+  // Now check that this is indeed a connected graph.
+  std::vector<int> stack;
+  std::vector<bool> visited;
+  visited.resize(N, false);
+  stack.push_back(0);
+  while (!stack.empty()) {
+    int v = stack.back();
+    stack.pop_back();
+    if (visited[v]) continue;
+    visited[v] = true;
+
+    for (int nghb_loc : adj[v])
+      if (!visited[nghb_loc]) stack.push_back(nghb_loc);
+  }
+
+  for (int v = 0; v < N; ++v) assert(visited[v]);
+}
+
+// Gives a vector of all the components of the possibly disconnected subgraph
+// of G given by sub_vertices (in local coordinates).
+std::vector<SubGraph> SubGraph::ConnectedSubGraphs(
+    const std::vector<int> &sub_vertices) const {
+  std::vector<bool> in_sub_verts(vertices.size(), false);
+  for (int v : sub_vertices) in_sub_verts[v] = true;
+
+  std::vector<SubGraph> cc;
+
+  static std::stack<int> stack;
+  static std::vector<int> component;
+  component.reserve(sub_vertices.size());
+  for (int v : sub_vertices) {
+    if (!vertices[v]->visited) {
+      component.clear();
+      stack.push(v);
+      vertices[v]->visited = true;
+      while (!stack.empty()) {
+        int v = stack.top();
+        stack.pop();
+        component.push_back(v);
+        for (int nghb : Adj(v))
+          if (in_sub_verts[nghb] && !vertices[nghb]->visited) {
+            stack.push(nghb);
+            vertices[nghb]->visited = true;
+          }
+      }
+      cc.emplace_back(*this, component);
+    }
+  }
+
+  for (int v : sub_vertices) vertices[v]->visited = false;
+
+  return cc;
 }
 
 const std::vector<int> &SubGraph::Adj(int v) const {
   assert(v >= 0 && v < vertices.size() && adj.size() == vertices.size());
   return adj[v];
+}
+int SubGraph::LocalIndex(Vertex *v) const {
+  for (int v_local = 0; v_local < vertices.size(); ++v_local) {
+    if (vertices[v_local] == v) return v_local;
+  }
+  assert(false);
+}
+
+std::vector<Separator> SubGraph::AllMinimalSeparators() const {
+  // Complete graphs don't have separators. We want this to return a non-empty
+  // vector.
+  assert(!IsCompleteGraph());
+  int N = vertices.size();
+
+  // Result will contain all generated MinimalSeparators. In done we keep the
+  // ones we have already enqueued, to make sure they aren't processed again.
+  // In queue we keep all the ones we have generated, but which we have not yet
+  // used to generate new ones.
+  std::queue<std::vector<int>> queue;
+  std::set<std::vector<int>> done;
+  std::vector<Separator> result;
+
+  std::vector<bool> in_nbh(N, false);
+
+  // Datatypes that will be reused.
+  std::stack<int> component;
+  std::vector<int> separator;
+
+  // First we generate all the "seeds": we take the neighborhood of a point
+  // (including the point), take all the connected components in the
+  // complement, and then take the neighborhoods of those components. Each of
+  // those is a minimal separator (in fact, one that separates the original
+  // point).
+  std::vector<int> neighborhood;
+  for (int i = 0; i < N; i++) {
+    if (Adj(i).size() == N - 1) continue;
+    neighborhood.clear();
+    neighborhood.push_back(i);
+    neighborhood.insert(neighborhood.end(), Adj(i).begin(), Adj(i).end());
+
+    for (int v : neighborhood) in_nbh[v] = true;
+
+    // Now we start off by enqueueing all neighborhoods of connected components
+    // in the complement of this neighborhood.
+    for (int j = 0; j < N; j++) {
+      if (in_nbh[j] || vertices[j]->visited) continue;
+
+      // Reset shared datastructures.
+      assert(component.empty());
+      separator.clear();
+
+      component.push(j);
+      vertices[j]->visited = true;
+
+      while (!component.empty()) {
+        int cur = component.top();
+        component.pop();
+
+        for (int nb : Adj(cur)) {
+          if (!vertices[nb]->visited) {
+            if (in_nbh[nb]) {
+              separator.push_back(nb);
+            } else {
+              component.push(nb);
+            }
+            vertices[nb]->visited = true;
+          }
+        }
+      }
+
+      for (auto k : neighborhood) vertices[k]->visited = false;
+      std::sort(separator.begin(), separator.end());
+      if (done.find(separator) == done.end()) {
+        queue.push(separator);
+        done.insert(separator);
+      }
+    }
+
+    for (auto v : vertices) v->visited = false;
+    for (int v : neighborhood) in_nbh[v] = false;
+  }
+
+  while (!queue.empty()) {
+    auto cur_separator = queue.front();
+    queue.pop();
+
+    for (int x : cur_separator) {
+      for (int j : Adj(x)) in_nbh[j] = true;
+      for (int j : cur_separator) in_nbh[j] = true;
+
+      for (int j = 0; j < N; j++) {
+        if (in_nbh[j] || vertices[j]->visited) continue;
+        // Reset shared datastructures.
+        assert(component.empty());
+        separator.clear();
+
+        component.push(j);
+        vertices[j]->visited = true;
+
+        while (!component.empty()) {
+          int cur = component.top();
+          component.pop();
+
+          for (int nb : Adj(cur)) {
+            if (!vertices[nb]->visited) {
+              if (in_nbh[nb]) {
+                separator.push_back(nb);
+              } else {
+                component.push(nb);
+              }
+              vertices[nb]->visited = true;
+            }
+          }
+        }
+
+        for (auto k : cur_separator) vertices[k]->visited = false;
+        for (auto k : Adj(x)) vertices[k]->visited = false;
+        std::sort(separator.begin(), separator.end());
+        if (done.find(separator) == done.end()) {
+          queue.push(separator);
+          done.insert(separator);
+        }
+      }
+
+      for (int j : cur_separator) in_nbh[j] = false;
+      for (int j : Adj(x)) in_nbh[j] = false;
+      for (int j = 0; j < N; j++) vertices[j]->visited = false;
+    }
+
+    // Finally, there is the following problem: this algorithm generates all
+    // _minimal a,b-separators_, for each pair of vertices a, b in G. These are
+    // a strict superset of what we are after: it may be that a set S is a
+    // minimal a,b-separator, yet it still has a strict subset which is a
+    // separator: it just may be that there is a c,d-separator which is a
+    // strict subset.
+    //
+    // Fortunately, checking whether or not this is the case is relatively
+    // fast.
+
+    Separator sep;
+    sep.vertices = std::move(cur_separator);
+    if (FullyMinimal(sep)) result.push_back(std::move(sep));
+  }
+
+  return result;
+}
+
+// Checks whether or not the separator of G given by separator is "truly
+// minimal": it contains no separator as a strict subset. (Name subject to
+// change.)
+//
+// It also writes some info to the Separator struct: the number of vertices and
+// edges in the components that remain when removing this separator from the
+// graph.
+bool SubGraph::FullyMinimal(Separator &separator) const {
+  // Shared datastructure.
+  static std::stack<int> component;
+
+  int N = vertices.size();
+  std::vector<bool> in_sep(N, false);
+  for (int s : separator.vertices) {
+    assert(s < N);
+    in_sep[s] = true;
+  }
+
+  for (int i = 0; i < N; i++) {
+    if (!vertices[i]->visited && !in_sep[i]) {
+      assert(component.empty());
+
+      int comp_N = 1;
+      int comp_M = 0;
+
+      component.push(i);
+      vertices[i]->visited = true;
+      while (component.size()) {
+        int cur = component.top();
+        component.pop();
+        for (int nb : Adj(cur)) {
+          if (!in_sep[nb]) {
+            comp_M++;
+            if (!vertices[nb]->visited) {
+              comp_N++;
+              component.push(nb);
+            }
+          }
+          vertices[nb]->visited = true;
+        }
+      }
+      for (int s : separator.vertices) {
+        if (!vertices[s]->visited) {
+          // This connected component dit not hit this vertex, so we can remove
+          // this vertex and have a separator left; so this separator is not
+          // fully minimal.
+          for (int j = 0; j < N; j++) vertices[j]->visited = false;
+          return false;
+        }
+        vertices[s]->visited = false;
+      }
+      separator.comp.push_back({comp_N, comp_M});
+    }
+  }
+
+  for (int i = 0; i < N; i++) vertices[i]->visited = false;
+
+  return true;
+}
+
+std::vector<SubGraph> SubGraph::WithoutVertices(
+    const std::vector<int> &S) const {
+  int N = vertices.size();
+
+  std::vector<bool> in_S(N, false);
+  for (auto s : S) in_S[s] = true;
+
+  std::vector<int> remaining;
+  remaining.reserve(N - S.size());
+  for (int i = 0; i < N; i++) {
+    if (!in_S[i]) remaining.push_back(i);
+  }
+
+  return ConnectedSubGraphs(remaining);
 }
 
 std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
@@ -82,7 +408,7 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
   static std::vector<int> stack;
 
   // This table will keep the mapping from our indices <-> indices subgraph.
-  std::vector<int> sub_vertices;
+  static std::vector<int> sub_vertices;
   sub_vertices.reserve(vertices.size());
 
   // Initiate a DFS from all of the vertices inside this subgraph.
@@ -92,8 +418,6 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
     if (root == w) continue;
     if (!vertices[root]->visited) {
       sub_vertices.clear();
-      SubGraph component;
-      component.vertices.reserve(vertices_left);
 
       // Do a DFS from root, skipping w.
       stack.emplace_back(root);
@@ -173,8 +497,10 @@ SubGraph SubGraph::BfsTree(int root) const {
   int total_edges = 0;
   for (int v = 0; v < result.vertices.size(); v++) {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
+    result.min_degree = std::min(result.min_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
   }
+  assert(result.min_degree);
   assert(result.M == total_edges / 2);
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
@@ -208,8 +534,10 @@ SubGraph SubGraph::DfsTree(int root) const {
   int total_edges = 0;
   for (int v = 0; v < result.vertices.size(); v++) {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
+    result.min_degree = std::min(result.min_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
   }
+  assert(result.min_degree);
   assert(result.M == total_edges / 2);
   // Reset the visited field.
   for (auto vtx : vertices) vtx->visited = false;
@@ -340,6 +668,8 @@ void LoadGraph(std::istream &stream) {
     full_graph_as_sub.adj.emplace_back(full_graph.adj[v]);
     full_graph_as_sub.max_degree =
         std::max(full_graph_as_sub.max_degree, full_graph.adj[v].size());
+    full_graph_as_sub.min_degree =
+        std::min(full_graph_as_sub.min_degree, full_graph.adj[v].size());
   }
 
   std::cout << "Initalized a graph having " << full_graph.N << " vertices with "

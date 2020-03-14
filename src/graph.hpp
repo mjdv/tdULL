@@ -1,8 +1,10 @@
 #pragma once
 #include <algorithm>
+#include <climits>
 #include <iostream>
 #include <map>
 #include <vector>
+#include <climits>
 
 struct Vertex {
   int n;         // The index of this vertex.
@@ -23,9 +25,22 @@ struct Graph {
   Graph() : N(0), M(0) {}
 };
 
+struct Separator {
+  std::vector<int> vertices;
+
+  std::vector<std::pair<int, int>> comp;
+
+  int maxCompSize() const {
+    int result = 0;
+    for (auto [N, M] : comp) result = std::max(result, N);
+    return result;
+  }
+};
+
 struct SubGraph {
-  size_t max_degree = 0;  // Max degree of nodes inside this graph.
-  int M = 0;              // Number of edges in this subgraph.
+  size_t max_degree = 0;        // Max degree of nodes inside this graph.
+  size_t min_degree = INT_MAX;  // Min degree of nodes inside this graph.
+  int M = 0;                    // Number of edges in this subgraph.
 
   std::vector<Vertex *> vertices;  // List of vertices inside this subgraph.
   std::vector<bool> mask;  // Bitset of the vertices inside this subgraph.
@@ -37,8 +52,28 @@ struct SubGraph {
   // Create a SubGraph of G with the given (local) vertices
   SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices);
 
+  // Checks whether this really represents an induced subgraph.
+  // Note: expensive!
+  void AssertValidSubGraph() const;
+
+  // Vector of connected components of the subset given by sub_vertices.
+  std::vector<SubGraph> ConnectedSubGraphs(
+      const std::vector<int> &sub_vertices) const;
+
   // Get the adjacency list for a given vertex.
   const std::vector<int> &Adj(int v) const;
+
+  // Get the local coordinate for a given vertex.
+  int LocalIndex(Vertex *v) const;
+
+  // Get all minimal separators for the given graph (as lists of local
+  // coordinates).
+  std::vector<Separator> AllMinimalSeparators() const;
+
+  bool FullyMinimal(Separator &) const;
+
+  // Create a connected components of the subgraph without the given vertices.
+  std::vector<SubGraph> WithoutVertices(const std::vector<int> &S) const;
 
   // Create a connected components of the subgraph without the given vertex.
   std::vector<SubGraph> WithoutVertex(int v) const;

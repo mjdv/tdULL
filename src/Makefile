@@ -1,5 +1,5 @@
 
-CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -Wpadded
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native
 
 N=001
 F=001
@@ -10,20 +10,20 @@ OUTPUT_DIR=../output/exact
 
 all: set_trie_test graph_test treedepth_test main verify generate_exact_cache centrality_test
 
-instance: main
+instance: main verify
 	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
 	./verify $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
 
-until: main
+until: main verify
 	bash from_to.sh $(T)
 
-fromto: main
+fromto: main verify
 	bash from_to.sh $(F) $(T)
 
-timing: main
+timing: main verify
 	mkdir -p timings
-	echo "fn,treedepth,time,error" > timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
-	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --short HEAD).csv
+	echo "fn,treedepth,time,error" > timings/computed_treedepths_$(shell git rev-parse --abbrev-ref HEAD)_$(shell git rev-parse --short HEAD).csv
+	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --abbrev-ref HEAD)_$(shell git rev-parse --short HEAD).csv
 
 main: main.o graph.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^
