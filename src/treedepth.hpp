@@ -162,6 +162,15 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   // empty, we recursively calculate the treedepth on this core first. This
   // should give a nice lower bound pretty rapidly.
   auto cc_core = G.kCore(G.min_degree + 1);
+
+  // If we do not have a kcore, simply remove a singly min degree vertex.
+  if (cc_core.empty())
+    for (int v = 0; v < N; ++v)
+      if (G.Adj(v).size() == G.min_degree) {
+        cc_core = G.WithoutVertex(v);
+        break;
+      }
+
   if (!cc_core.empty()) {
     assert(cc_core[0].vertices.size() < N);
 
@@ -219,6 +228,10 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
             [](const Separator &s1, const Separator &s2) {
               return s1.maxCompSize() < s2.maxCompSize();
             });
+
+  if (N == full_graph_as_sub.vertices.size())
+    std::cout << "Full graph has " << separators.size() << " separators. "
+              << std::endl;
 
   for (const Separator &separator : separators) {
     // Check whether we are still in the time limits.
