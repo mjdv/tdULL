@@ -162,6 +162,14 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
   // empty, we recursively calculate the treedepth on this core first. This
   // should give a nice lower bound pretty rapidly.
   auto cc_core = G.kCore(G.min_degree + 1);
+
+  // If we do not have a kcore, simply remove a singly min degree vertex.
+  if (cc_core.empty())
+    for (int v = 0; v < N; ++v)
+      if (G.Adj(v).size() == G.min_degree) {
+        cc_core = G.WithoutVertex(v);
+        break;
+      }
   if (!cc_core.empty()) {
     assert(cc_core[0].vertices.size() < N);
 
@@ -205,9 +213,11 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     // If G is a new graph in the cache, compute its DfsTree-tree from
     // the most promising node once, and then evaluate the treedepth_tree on
     // this tree.
-    node->lower_bound = lower =
-        std::max(lower, treedepth_tree(G.DfsTree(vertices[0])).first);
-    if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
+    for (int v = 0; v < 3; v++) {
+      node->lower_bound = lower =
+          std::max(lower, treedepth_tree(G.DfsTree(vertices[v])).first);
+      if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
+    }
   }
 
   // Main loop: try every separator as a set of roots.
