@@ -5,9 +5,9 @@
 #include <set>
 #include <stack>
 
-SubGraph full_graph_as_sub;
+Graph full_graph;
 
-SubGraph::SubGraph(std::istream &stream) {
+Graph::Graph(std::istream &stream) {
   std::string str;
   stream >> str;
   assert(str == "p");
@@ -36,11 +36,11 @@ SubGraph::SubGraph(std::istream &stream) {
   }
 }
 
-SubGraph::SubGraph() {}
+Graph::Graph() {}
 
-// Create a SubGraph of G with the given (local) vertices
-SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
-    : SubGraph() {
+// Create a Graph of G with the given (local) vertices
+Graph::Graph(const Graph &G, const std::vector<int> &sub_vertices)
+    : Graph() {
   assert(G.N > sub_vertices.size());  // This is silly.
   N = sub_vertices.size();
   global.reserve(sub_vertices.size());
@@ -84,7 +84,7 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
   M /= 2;
 }
 
-void SubGraph::AssertValidSubGraph() const {
+void Graph::AssertValidGraph() const {
   assert(N > 0);
 
   // Check that no vertex occurs twice.
@@ -144,13 +144,13 @@ void SubGraph::AssertValidSubGraph() const {
 
 // Gives a vector of all the components of the possibly disconnected subgraph
 // of G given by sub_vertices (in local coordinates).
-std::vector<SubGraph> SubGraph::ConnectedSubGraphs(
+std::vector<Graph> Graph::ConnectedGraphs(
     const std::vector<int> &sub_vertices) const {
   std::vector<bool> in_sub_verts(N, false);
   std::vector<bool> visited(N, false);
   for (int v : sub_vertices) in_sub_verts[v] = true;
 
-  std::vector<SubGraph> cc;
+  std::vector<Graph> cc;
 
   static std::stack<int> stack;
   static std::vector<int> component;
@@ -177,19 +177,19 @@ std::vector<SubGraph> SubGraph::ConnectedSubGraphs(
   return cc;
 }
 
-const std::vector<int> &SubGraph::Adj(int v) const {
+const std::vector<int> &Graph::Adj(int v) const {
   assert(v >= 0 && v < N && adj.size() == N);
   return adj[v];
 }
 
-int SubGraph::LocalIndex(int global_index) const {
+int Graph::LocalIndex(int global_index) const {
   for (int v_local = 0; v_local < N; ++v_local) {
     if (global[v_local] == global_index) return v_local;
   }
   assert(false);
 }
 
-std::vector<Separator> SubGraph::AllMinimalSeparators() const {
+std::vector<Separator> Graph::AllMinimalSeparators() const {
   // Complete graphs don't have separators. We want this to return a non-empty
   // vector.
   assert(!IsCompleteGraph());
@@ -335,7 +335,7 @@ std::vector<Separator> SubGraph::AllMinimalSeparators() const {
 // It also writes some info to the Separator struct: the number of vertices and
 // edges in the components that remain when removing this separator from the
 // graph.
-bool SubGraph::FullyMinimal(Separator &separator) const {
+bool Graph::FullyMinimal(Separator &separator) const {
   // Shared datastructure.
   static std::stack<int> component;
 
@@ -385,7 +385,7 @@ bool SubGraph::FullyMinimal(Separator &separator) const {
   return true;
 }
 
-std::vector<SubGraph> SubGraph::WithoutVertices(
+std::vector<Graph> Graph::WithoutVertices(
     const std::vector<int> &S) const {
 
   std::vector<bool> in_S(N, false);
@@ -397,12 +397,12 @@ std::vector<SubGraph> SubGraph::WithoutVertices(
     if (!in_S[i]) remaining.push_back(i);
   }
 
-  return ConnectedSubGraphs(remaining);
+  return ConnectedGraphs(remaining);
 }
 
-std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
+std::vector<Graph> Graph::WithoutVertex(int w) const {
   assert(w >= 0 && w < N);
-  std::vector<SubGraph> cc;
+  std::vector<Graph> cc;
   static std::vector<int> stack;
 
   // This table will keep the mapping from our indices <-> indices subgraph.
@@ -436,7 +436,7 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
           }
       }
 
-      // Create a SubGraph for this component.
+      // Create a Graph for this component.
       cc.emplace_back(*this, sub_vertices);
     }
   }
@@ -444,7 +444,7 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
   return cc;
 }
 
-std::vector<int> SubGraph::Bfs(int root) const {
+std::vector<int> Graph::Bfs(int root) const {
   //assert(mask[vertices[root]->n]);
   std::vector<bool> visited(N, false);
 
@@ -467,12 +467,12 @@ std::vector<int> SubGraph::Bfs(int root) const {
   return result;
 }
 
-SubGraph SubGraph::BfsTree(int root) const {
+Graph Graph::BfsTree(int root) const {
   //assert(mask[vertices[root]->n]);
 
   std::vector<bool> visited(N, false);
 
-  SubGraph result;
+  Graph result;
   result.N = N;
   //result.mask = mask;
   result.global.reserve(N);
@@ -505,11 +505,11 @@ SubGraph SubGraph::BfsTree(int root) const {
   return result;
 }
 
-SubGraph SubGraph::DfsTree(int root) const {
+Graph Graph::DfsTree(int root) const {
   //assert(mask[vertices[root]->n]);
   std::vector<bool> visited(N, false);
 
-  SubGraph result;
+  Graph result;
   result.N = N;
   //result.mask = mask;
   result.global.reserve(N);
@@ -542,7 +542,7 @@ SubGraph SubGraph::DfsTree(int root) const {
   return result;
 }
 
-std::vector<SubGraph> SubGraph::kCore(int k) const {
+std::vector<Graph> Graph::kCore(int k) const {
   static std::vector<int> stack;
   assert(!IsTreeGraph());
   std::vector<bool> visited(N, false);
@@ -582,7 +582,7 @@ std::vector<SubGraph> SubGraph::kCore(int k) const {
 
   // Note that the subgraph does not need to be connected, so
   // ceate all subgraphs with vertices that are not removed.
-  std::vector<SubGraph> cc;
+  std::vector<Graph> cc;
 
   static std::vector<int> sub_vertices;
   sub_vertices.reserve(vertices_left);
@@ -611,7 +611,7 @@ std::vector<SubGraph> SubGraph::kCore(int k) const {
   return cc;
 }
 
-SubGraph SubGraph::TwoCore() const {
+Graph Graph::TwoCore() const {
   assert(!IsTreeGraph());
   int vertices_left = N;
 
@@ -647,12 +647,12 @@ SubGraph SubGraph::TwoCore() const {
   for (int v = 0; v < N; v++)
     if (degrees[v]) sub_vertices.push_back(v);
 
-  return SubGraph(*this, sub_vertices);
+  return Graph(*this, sub_vertices);
 }
 
 void LoadGraph(std::istream &stream) {
-  full_graph_as_sub = SubGraph(stream);
+  full_graph = Graph(stream);
 
-  std::cout << "Initalized a graph having " << full_graph_as_sub.N << " vertices with "
-            << full_graph_as_sub.M << " edges. " << std::endl;
+  std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
+            << full_graph.M << " edges. " << std::endl;
 }

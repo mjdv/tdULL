@@ -18,7 +18,7 @@ struct Separator {
   }
 };
 
-struct SubGraph {
+struct Graph {
   size_t max_degree = 0;        // Max degree of nodes inside this graph.
   size_t min_degree = INT_MAX;  // Min degree of nodes inside this graph.
   int N = 0;                    // Number of vertices in this graph.
@@ -28,21 +28,21 @@ struct SubGraph {
                                 // this graph.
   std::vector<std::vector<int>> adj;  // Adjacency list (local indexing).
 
-  // Create an empty SubGraph.
-  SubGraph();
+  // Create an empty Graph.
+  Graph();
 
-  // Create a SubGraph from a stream.
-  SubGraph(std::istream &stream);
+  // Create a Graph from a stream.
+  Graph(std::istream &stream);
 
-  // Create a SubGraph of G with the given (local) vertices
-  SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices);
+  // Create a Graph of G with the given (local) vertices
+  Graph(const Graph &G, const std::vector<int> &sub_vertices);
 
   // Checks whether this really represents an induced subgraph.
   // Note: expensive!
-  void AssertValidSubGraph() const;
+  void AssertValidGraph() const;
 
   // Vector of connected components of the subset given by sub_vertices.
-  std::vector<SubGraph> ConnectedSubGraphs(
+  std::vector<Graph> ConnectedGraphs(
       const std::vector<int> &sub_vertices) const;
 
   // Get the adjacency list for a given vertex.
@@ -58,21 +58,21 @@ struct SubGraph {
   bool FullyMinimal(Separator &) const;
 
   // Create a connected components of the subgraph without the given vertices.
-  std::vector<SubGraph> WithoutVertices(const std::vector<int> &S) const;
+  std::vector<Graph> WithoutVertices(const std::vector<int> &S) const;
 
   // Create a connected components of the subgraph without the given vertex.
-  std::vector<SubGraph> WithoutVertex(int v) const;
+  std::vector<Graph> WithoutVertex(int v) const;
 
   // Recursively removes all vertices with deg < 2.
-  SubGraph TwoCore() const;
-  std::vector<SubGraph> kCore(int k) const;
+  Graph TwoCore() const;
+  std::vector<Graph> kCore(int k) const;
 
   // Do a BFS from the given vertex.
   std::vector<int> Bfs(int v) const;
 
   // Compute trees from the given roots.
-  SubGraph BfsTree(int root) const;
-  SubGraph DfsTree(int root) const;
+  Graph BfsTree(int root) const;
+  Graph DfsTree(int root) const;
 
   // Returns whether this is a complete graph.
   bool IsCompleteGraph() const {
@@ -107,7 +107,7 @@ struct SubGraph {
   }
 };
 
-extern SubGraph full_graph_as_sub;  // The full graph in a SubGraph format.
+extern Graph full_graph;  // The full graph.
 
 // This initalizes the above global variables, important!
 void LoadGraph(std::istream &stream);

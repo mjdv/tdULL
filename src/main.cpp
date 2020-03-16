@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
   std::cout << "Calculating treedepth for " << ExtractFileName(argv[1])
             << std::endl;
   try {
-    auto [td, tree] = treedepth(full_graph_as_sub);
+    auto [td, tree] = treedepth(full_graph);
     time(&end);
     std::cout << "Treedepth is: " << td << std::endl;
     std::cout << "Elapsed time is " << difftime(end, start) << " seconds.\n";

@@ -26,7 +26,7 @@
  */
 
 
-void root_rank(const SubGraph &G, int v, int v_prev, std::vector<std::set<int>> &L, int d,
+void root_rank(const Graph &G, int v, int v_prev, std::vector<std::set<int>> &L, int d,
     std::vector<int> &rank) {
   int a = 0;
   // a will contain the maximum over all elements of the L of neighbors of v
@@ -75,7 +75,7 @@ void root_rank(const SubGraph &G, int v, int v_prev, std::vector<std::set<int>> 
   }
 }
 
-void critical_rank_tree(const SubGraph &G, int v, int v_prev, 
+void critical_rank_tree(const Graph &G, int v, int v_prev, 
     std::vector<std::set<int>> &L, std::vector<int> &rank) {
 
   // if you are a leaf node and we're not the first node we're visiting
@@ -95,7 +95,7 @@ void critical_rank_tree(const SubGraph &G, int v, int v_prev,
   }
 }
 
-std::pair<int, int> treedepth_tree(const SubGraph &G) {
+std::pair<int, int> treedepth_tree(const Graph &G) {
   // Create vector of ranks, that we will pass around.
   int N = G.N;
   std::vector<int> rank(N, -1);

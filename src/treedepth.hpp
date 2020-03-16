@@ -13,7 +13,7 @@
 #include "treedepth_tree.hpp"
 
 // Trivial treedepth implementation, useful for simple sanity checks.
-int treedepth_trivial(const SubGraph &G) {
+int treedepth_trivial(const Graph &G) {
   if (G.N == 1) return 1;
   int td = G.N;
   for (int v = 0; v < G.N; ++v) {
@@ -26,10 +26,10 @@ int treedepth_trivial(const SubGraph &G) {
   return td;
 }
 
-// This function returns the treedepth and root of a SubGraph using simple
+// This function returns the treedepth and root of a Graph using simple
 // heuristics. This only works for special graphs. It returns -1, -1, if
 // no such exact heuristic is found.
-std::pair<int, int> treedepth_exact(const SubGraph &G) {
+std::pair<int, int> treedepth_exact(const Graph &G) {
   int N = G.N;
 
   // Do a quick check for special cases for which we know the answer.
@@ -105,7 +105,7 @@ int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 // graph.
 //
 // Parameters:
-// - SubGraph G, the graph for which we try to compute treedepth bounds.
+// - Graph G, the graph for which we try to compute treedepth bounds.
 // - int search_lbnd, the lower bound of which treedepths are useful.
 // - int search_ubnd, the upper bound of which treedepths are useful.
 //
@@ -125,7 +125,7 @@ int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 // there is no reason to try to get the treedepth of this subgraph any lower
 // than d. Thus if we find a decomposition that can has depth at most d, i.e.
 // upper is at most search_lbnd, we are done.
-std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
+std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
                                     int search_ubnd) {
   int N = G.N;
   if (N == 1) return {1, 1, G.global[0]};
@@ -229,7 +229,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
               return s1.maxCompSize() < s2.maxCompSize();
             });
 
-  if (N == full_graph_as_sub.N)
+  if (N == full_graph.N)
     std::cout << "Full graph has " << separators.size() << " separators. "
               << std::endl;
 
@@ -253,7 +253,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 
     // Sort the components of G \ separator on density.
     auto cc = G.WithoutVertices(separator.vertices);
-    std::sort(cc.begin(), cc.end(), [](const SubGraph &c1, const SubGraph &c2) {
+    std::sort(cc.begin(), cc.end(), [](const Graph &c1, const Graph &c2) {
       return c1.M / c1.N > c2.M / c2.N;
     });
 
@@ -274,7 +274,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
       node->root = root = G.global[separator.vertices[0]];
 
       // Iteratively remove the seperator from G and update bounds.
-      SubGraph H = G;
+      Graph H = G;
       for (int i = 1; i < separator.vertices.size(); i++) {
         // Get the subgraph after removing seperator[i-1].
         auto cc = H.WithoutVertex(
@@ -305,7 +305,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 }
 
 // Recursive function to reconstruct the tree that atains the treedepth.
-void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
+void reconstruct(const Graph &G, int root, std::vector<int> &tree, int td) {
   assert(G.N);
 
   // Ensure that the cache contains the correct node.
@@ -326,7 +326,7 @@ void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
 }
 
 // Little helper function that returns the treedepth for the given graph.
-std::pair<int, std::vector<int>> treedepth(const SubGraph &G) {
+std::pair<int, std::vector<int>> treedepth(const Graph &G) {
   cache = SetTrie();
   time(&time_start_treedepth);
   int td = std::get<1>(treedepth(G, 1, G.N));

@@ -21,8 +21,8 @@ int main() {
   std::cout
       << "Degree centrality of K_{3, 2}:"
       << std::endl;
-  auto degree = DegreeCentrality(full_graph_as_sub);
-  for (int v = 0; v < full_graph_as_sub.N; ++v) {
+  auto degree = DegreeCentrality(full_graph);
+  for (int v = 0; v < full_graph.N; ++v) {
       std::cout << degree[v] << " ";
   }
   std::cout << std::endl;
@@ -30,8 +30,8 @@ int main() {
   std::cout
       << "Betweenness centrality of K_{3, 2}:"
       << std::endl;
-  auto betweenness = BetweennessCentrality(full_graph_as_sub);
-  for (int v = 0; v < full_graph_as_sub.N; ++v) {
+  auto betweenness = BetweennessCentrality(full_graph);
+  for (int v = 0; v < full_graph.N; ++v) {
       std::cout << betweenness[v] << " ";
   }
   std::cout << std::endl;
@@ -52,8 +52,8 @@ int main() {
   std::cout
       << "Degree centrality of L_7:"
       << std::endl;
-  degree = DegreeCentrality(full_graph_as_sub);
-  for (int v = 0; v < full_graph_as_sub.N; ++v) {
+  degree = DegreeCentrality(full_graph);
+  for (int v = 0; v < full_graph.N; ++v) {
       std::cout << degree[v] << " ";
   }
   std::cout << std::endl;
@@ -61,8 +61,8 @@ int main() {
   std::cout
       << "Betweenness centrality of L_7:"
       << std::endl;
-  betweenness = BetweennessCentrality(full_graph_as_sub);
-  for (int v = 0; v < full_graph_as_sub.N; ++v) {
+  betweenness = BetweennessCentrality(full_graph);
+  for (int v = 0; v < full_graph.N; ++v) {
       std::cout << betweenness[v] << " ";
   }
   std::cout << std::endl;

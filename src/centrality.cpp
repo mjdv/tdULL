@@ -3,14 +3,14 @@
 #include <stack>
 #include <cmath>
 
-std::vector<int> DegreeCentrality(const SubGraph &G) {
+std::vector<int> DegreeCentrality(const Graph &G) {
     std::vector<int> degree(G.N);
     for(int i = 0; i < G.N; i++)
         degree[i] = G.Adj(i).size();
     return degree;
 }
 
-std::vector<double> BetweennessCentrality(const SubGraph &G) {
+std::vector<double> BetweennessCentrality(const Graph &G) {
     int N = G.N;
 
     std::vector<double> betweenness(N, 0.0);
@@ -57,7 +57,7 @@ std::vector<double> BetweennessCentrality(const SubGraph &G) {
     return betweenness;
 }
 
-std::vector<double> EigenvectorCentrality(const SubGraph &G, size_t steps) {
+std::vector<double> EigenvectorCentrality(const Graph &G, size_t steps) {
   int N = G.N;
   std::vector<double> centrality(N, sqrt(1.0/N));
   for (size_t step = 0; step < steps; step++) {
@@ -76,7 +76,7 @@ std::vector<double> EigenvectorCentrality(const SubGraph &G, size_t steps) {
   return centrality;
 }
 
-std::vector<double> PageRankCentrality(const SubGraph &G, size_t steps, double damping) {
+std::vector<double> PageRankCentrality(const Graph &G, size_t steps, double damping) {
   int N = G.N;
   std::vector<double> centrality(N, sqrt(1.0/N));
   for (size_t step = 0; step < steps; step++) {

@@ -14,10 +14,10 @@ int main() {
   std::cout
       << "Removing one vertex at and check number of connected componenets"
       << std::endl;
-  for (int v = 0; v < full_graph_as_sub.N; ++v) {
-    auto cc = full_graph_as_sub.WithoutVertex(v);
+  for (int v = 0; v < full_graph.N; ++v) {
+    auto cc = full_graph.WithoutVertex(v);
 
-    std::cout << "\tG\\{" << full_graph_as_sub.global[v] << "} has "
+    std::cout << "\tG\\{" << full_graph.global[v] << "} has "
               << cc.size() << " connnected components:" << std::endl;
     for (int c = 0; c < cc.size(); c++)
       std::cout << "\t\tComponent " << c << " has " << cc[c].N
@@ -28,14 +28,14 @@ int main() {
   std::istringstream stream_2core(
       "p tdp 11 12 1 2 2 3 3 1 3 4 4 5 5 6 6 7 7 4 6 8 7 9 9 10 10 11");
   LoadGraph(stream_2core);
-  auto core = full_graph_as_sub.TwoCore();
+  auto core = full_graph.TwoCore();
   assert(core.N == 7);
   assert(core.M == 8);
 
   std::istringstream stream_3core(
       "p tdp 11 14 1 2 2 3 3 1 3 4 4 5 5 6 6 7 7 4 6 8 7 9 9 10 10 11 4 6 5 7");
   LoadGraph(stream_3core);
-  auto cc_core3 = full_graph_as_sub.kCore(3);
+  auto cc_core3 = full_graph.kCore(3);
   assert(cc_core3.size() == 1);
   auto core3 = cc_core3[0];
   std::cout << core3.N << " " << core3.M << std::endl;
@@ -44,30 +44,30 @@ int main() {
 
   std::istringstream stream_allminsep("p tdp 6 5 1 2 1 3 1 4 1 5 1 6");
   LoadGraph(stream_allminsep);
-  auto v_ams = full_graph_as_sub.AllMinimalSeparators();
+  auto v_ams = full_graph.AllMinimalSeparators();
   assert(v_ams.size() == 1);
   assert(v_ams[0].vertices.size() == 1);
 
   std::istringstream stream_allminsep2("p tdp 6 6 1 2 2 3 3 4 4 5 5 6 6 1");
   LoadGraph(stream_allminsep2);
-  auto v_ams2 = full_graph_as_sub.AllMinimalSeparators();
+  auto v_ams2 = full_graph.AllMinimalSeparators();
   assert(v_ams2.size() == 9);
 
   std::cout << "The minimal separators of the 6-cycle are:" << std::endl;
   for (auto v : v_ams2) {
     assert(v.vertices.size() == 2);
-    for (int x : v.vertices) std::cout << full_graph_as_sub.global[x] << " ";
+    for (int x : v.vertices) std::cout << full_graph.global[x] << " ";
     std::cout << std::endl;
   }
 
   std::istringstream stream_ams3("p tdp 6 6 1 2 2 3 3 4 4 1 3 5 4 6");
   LoadGraph(stream_ams3);
-  auto v_ams3 = full_graph_as_sub.AllMinimalSeparators();
+  auto v_ams3 = full_graph.AllMinimalSeparators();
   std::cout << "The minimal separators of the 4-cycle with two extra leaves "
                "attached to adjacent nodes are:"
             << std::endl;
   for (auto v : v_ams3) {
-    for (int x : v.vertices) std::cout << full_graph_as_sub.global[x] << " ";
+    for (int x : v.vertices) std::cout << full_graph.global[x] << " ";
     std::cout << std::endl;
   }
 
@@ -92,7 +92,7 @@ int main() {
       "20 38 20 40 38 23 38 27 11 27 11 8 27 8 27 10 23 40 8 10");
   LoadGraph(stream_043);
   std::cout << "Computing all minimal separators for exact_043.gr...\n";
-  auto v_ams43 = full_graph_as_sub.AllMinimalSeparators();
+  auto v_ams43 = full_graph.AllMinimalSeparators();
   std::cout << "There are " << v_ams43.size() << " of them." << std::endl;
 
 

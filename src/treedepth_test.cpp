@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     time(&start);
     std::ifstream input(root + fn, std::ios::in);
     LoadGraph(input);
-    auto [depth, tree] = treedepth(full_graph_as_sub);
+    auto [depth, tree] = treedepth(full_graph);
     if (depth != true_depth) {
       std::cout << "TEST FAILED!" << std::endl
                 << "\t example " << fn << " gives treedepth " << depth
