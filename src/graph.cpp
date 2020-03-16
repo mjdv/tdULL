@@ -349,7 +349,6 @@ Graph Graph::DfsTree(int root) const {
 std::vector<Graph> Graph::kCore(int k) const {
   static std::vector<int> stack;
   assert(!IsTreeGraph());
-  std::vector<bool> visited(N, false);
   int vertices_left = N;
 
   // This will keep a list of all the (local) degrees.
@@ -388,31 +387,12 @@ std::vector<Graph> Graph::kCore(int k) const {
   // ceate all subgraphs with vertices that are not removed.
   std::vector<Graph> cc;
 
-  static std::vector<int> sub_vertices;
-  sub_vertices.reserve(vertices_left);
+  std::vector<int> remaining;
+  remaining.reserve(vertices_left);
   for (int v = 0; v < N; v++)
-    if (degrees[v] && !visited[v]) {
-      sub_vertices.clear();
-      stack.emplace_back(v);
-      visited[v] = true;
-      while (!stack.empty()) {
-        int v = stack.back();
-        stack.pop_back();
-        sub_vertices.push_back(v);
-        for (int nghb : Adj(v))
-          if (degrees[nghb] && !visited[nghb]) {
-            stack.push_back(nghb);
-            visited[nghb] = true;
-          }
-      }
-      cc.emplace_back(*this, sub_vertices);
-    }
+    if (degrees[v]) remaining.emplace_back(v);
 
-  for (int v = 0; v < N; v++) {
-    assert(visited[v] == (degrees[v] > 0));
-  }
-
-  return cc;
+  return ConnectedGraphs(remaining);
 }
 
 Graph Graph::TwoCore() const {
