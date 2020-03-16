@@ -131,7 +131,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   if (N == 1) return {1, 1, G.global[0]};
 
   // Try the trivial bounds.
-  int lower = G.M / N + 1;
+  int lower = std::max(G.M / N + 1, int(G.min_degree));
   int upper = N;
   int root = G.global[0];
 
