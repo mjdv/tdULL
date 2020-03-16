@@ -1,22 +1,14 @@
 #pragma once
 #include <algorithm>
 #include <climits>
+#include <deque>
 #include <iostream>
 #include <map>
+#include <queue>
+#include <set>
+#include <stack>
+#include <unordered_set>
 #include <vector>
-#include <climits>
-
-struct Separator {
-  std::vector<int> vertices;
-
-  std::vector<std::pair<int, int>> comp;
-
-  int maxCompSize() const {
-    int result = 0;
-    for (auto [N, M] : comp) result = std::max(result, N);
-    return result;
-  }
-};
 
 struct Graph {
   size_t max_degree = 0;        // Max degree of nodes inside this graph.
@@ -24,8 +16,8 @@ struct Graph {
   int N = 0;                    // Number of vertices in this graph.
   int M = 0;                    // Number of edges in this graph.
 
-  std::vector<int> global;      // The global coordinates of the vertices in
-                                // this graph.
+  std::vector<int> global;  // The global coordinates of the vertices in
+                            // this graph.
   std::vector<std::vector<int>> adj;  // Adjacency list (local indexing).
 
   // Create an empty Graph.
@@ -51,12 +43,6 @@ struct Graph {
   // Get the local coordinate for a given vertex.
   int LocalIndex(int global_index) const;
 
-  // Get all minimal separators for the given graph (as lists of local
-  // coordinates).
-  std::vector<Separator> AllMinimalSeparators() const;
-
-  bool FullyMinimal(Separator &) const;
-
   // Create a connected components of the subgraph without the given vertices.
   std::vector<Graph> WithoutVertices(const std::vector<int> &S) const;
 
@@ -75,29 +61,19 @@ struct Graph {
   Graph DfsTree(int root) const;
 
   // Returns whether this is a complete graph.
-  bool IsCompleteGraph() const {
-    return N * (N - 1) == 2 * M;
-  }
+  bool IsCompleteGraph() const { return N * (N - 1) == 2 * M; }
 
   // Returns whether this is a path graph.
-  bool IsPathGraph() const {
-    return (N - 1 == M) && (max_degree < 3);
-  }
+  bool IsPathGraph() const { return (N - 1 == M) && (max_degree < 3); }
 
   // Returns whether this is a star graph.
-  bool IsStarGraph() const {
-    return (N - 1 == M) && (M == max_degree);
-  }
+  bool IsStarGraph() const { return (N - 1 == M) && (M == max_degree); }
 
   // Returns whether this is a cycle graph.
-  bool IsCycleGraph() const {
-    return (M == N) && (max_degree == 2);
-  }
+  bool IsCycleGraph() const { return (M == N) && (max_degree == 2); }
 
   // Returns whether this is a tree.
-  bool IsTreeGraph() const {
-    return N - 1 == M;
-  }
+  bool IsTreeGraph() const { return N - 1 == M; }
 
   // Explicit conversion to vector of ints.
   operator std::vector<int>() const {
@@ -111,3 +87,52 @@ extern Graph full_graph;  // The full graph.
 
 // This initalizes the above global variables, important!
 void LoadGraph(std::istream &stream);
+
+struct Separator {
+  std::vector<int> vertices;
+  std::vector<std::pair<int, int>> comp;
+
+  Separator() {}
+  Separator(std::vector<int> &&vertices) : vertices(std::move(vertices)) {}
+
+  std::pair<int, int> maxCompSize() const {
+    int best_comp = 0;
+    int best_M = 0;
+    for (auto [N, M] : comp)
+      if (N > best_comp) {
+        best_comp = N;
+        best_M = M;
+      }
+
+    return {best_comp, best_M};
+  }
+};
+
+class SeparatorGenerator {
+ public:
+  SeparatorGenerator(const Graph &G);
+
+  bool HasNext() const { return !queue.empty(); }
+  std::vector<Separator> Next(int k = 10000);
+
+  void clear() {
+    done.clear();
+    queue = {};
+  }
+
+ protected:
+  // Helper function.
+  bool FullyMinimal(Separator &) const;
+
+  // Reference to the graph for which we are generating separators.
+  const Graph &G;
+
+  // In done we keep the seperators we have already enqueued, to make sure they
+  // aren't processed again.
+  // In queue we keep all the ones we have generated, but which we have not yet
+  // used to generate new ones.
+  std::queue<std::vector<int>> queue;
+  std::unordered_set<std::vector<bool>> done;
+
+  std::vector<bool> in_nbh;
+};

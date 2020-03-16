@@ -64,7 +64,7 @@ std::pair<int, int> treedepth_exact(const Graph &G) {
         }
         return {bnd, G.global[v]};
       }
-  } else if (N < exactCacheSize) {
+  } else if (G.N < exactCacheSize) {
     auto [td, root] = exactCache(G.adj);
     return {td, G.global[root]};
   } else if (G.IsTreeGraph()) {
@@ -157,6 +157,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
   }
+  if (N == full_graph.N) std::cout << "full_graph::kCore" << std::endl;
 
   // Below we calculate the smallest k-core that G can contain. If this is non-
   // empty, we recursively calculate the treedepth on this core first. This
@@ -175,9 +176,8 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     assert(cc_core[0].N < N);
 
     // Sort the components on density.
-    std::sort(cc_core.begin(), cc_core.end(), [](auto &c1, auto &c2) {
-      return c1.M / c1.N > c2.M / c2.N;
-    });
+    std::sort(cc_core.begin(), cc_core.end(),
+              [](auto &c1, auto &c2) { return c1.M / c1.N > c2.M / c2.N; });
     for (const auto &cc : cc_core) {
       lower =
           std::max(lower, std::get<0>(treedepth(cc, search_lbnd, search_ubnd)));
@@ -221,83 +221,90 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
   // Main loop: try every separator as a set of roots.
   // new_lower tries to find a new treedepth lower bound on this subgraph.
-  int new_lower = N;
+  int new_lower = G.N;
 
-  auto separators = G.AllMinimalSeparators();
-  std::sort(separators.begin(), separators.end(),
-            [](const Separator &s1, const Separator &s2) {
-              return s1.maxCompSize() < s2.maxCompSize();
-            });
+  if (G.N == full_graph.N)
+    std::cout << "Initialize full_graph sep_generator." << std::endl;
+  SeparatorGenerator sep_generator(G);
+  size_t total_separators = 0;
+  while (sep_generator.HasNext()) {
+    auto separators = sep_generator.Next(100000);
+    total_separators += separators.size();
+    if (G.N == full_graph.N)
+      std::cout << "full_graph generated total of " << total_separators
+                << " separators so far." << std::endl;
 
-  if (N == full_graph.N)
-    std::cout << "Full graph has " << separators.size() << " separators. "
-              << std::endl;
+    std::sort(separators.begin(), separators.end(),
+              [](const Separator &s1, const Separator &s2) {
+                return s1.maxCompSize() < s2.maxCompSize();
+              });
 
-  for (const Separator &separator : separators) {
-    // Check whether we are still in the time limits.
-    time_t now;
-    time(&now);
-    if (difftime(now, time_start_treedepth) > max_time_treedepth)
-      throw std::runtime_error(
-          "Ran out of time, spent " +
-          std::to_string(difftime(now, time_start_treedepth)) + " seconds.");
+    for (const Separator &separator : separators) {
+      // Check whether we are still in the time limits.
+      time_t now;
+      time(&now);
+      if (difftime(now, time_start_treedepth) > max_time_treedepth)
+        throw std::runtime_error(
+            "Ran out of time, spent " +
+            std::to_string(difftime(now, time_start_treedepth)) + " seconds.");
 
-    int sep_size = separator.vertices.size();
+      int sep_size = separator.vertices.size();
 
-    int search_ubnd_sep =
-        std::max(1, std::min(search_ubnd - sep_size, upper - sep_size));
-    int search_lbnd_sep = std::max(search_lbnd - sep_size, 1);
+      int search_ubnd_sep =
+          std::max(1, std::min(search_ubnd - sep_size, upper - sep_size));
+      int search_lbnd_sep = std::max(search_lbnd - sep_size, 1);
 
-    int upper_sep = 0;
-    int lower_sep = lower - sep_size;
+      int upper_sep = 0;
+      int lower_sep = lower - sep_size;
 
-    // Sort the components of G \ separator on density.
-    auto cc = G.WithoutVertices(separator.vertices);
-    std::sort(cc.begin(), cc.end(), [](const Graph &c1, const Graph &c2) {
-      return c1.M / c1.N > c2.M / c2.N;
-    });
+      // Sort the components of G \ separator on density.
+      auto cc = G.WithoutVertices(separator.vertices);
+      std::sort(cc.begin(), cc.end(), [](const Graph &c1, const Graph &c2) {
+        return c1.M / c1.N > c2.M / c2.N;
+      });
 
-    for (auto &&H : cc) {
-      auto [lower_H, upper_H, root_H] =
-          treedepth(H, search_lbnd_sep, search_ubnd_sep);
+      for (auto &&H : cc) {
+        auto [lower_H, upper_H, root_H] =
+            treedepth(H, search_lbnd_sep, search_ubnd_sep);
 
-      upper_sep = std::max(upper_sep, upper_H);
-      lower_sep = std::max(lower_sep, lower_H);
-      search_lbnd_sep = std::max(search_lbnd_sep, lower_H);
-    }
+        upper_sep = std::max(upper_sep, upper_H);
+        lower_sep = std::max(lower_sep, lower_H);
+        search_lbnd_sep = std::max(search_lbnd_sep, lower_H);
+      }
+      new_lower = std::min(new_lower, lower_sep + sep_size);
 
-    new_lower = std::min(new_lower, lower_sep + sep_size);
+      // If we find a new upper bound, update the cache accordingly :-).
+      if (upper_sep + sep_size < upper) {
+        node->upper_bound = upper = upper_sep + sep_size;
+        node->root = root = G.global[separator.vertices[0]];
 
-    // If we find a new upper bound, update the cache accordingly :-).
-    if (upper_sep + sep_size < upper) {
-      node->upper_bound = upper = upper_sep + sep_size;
-      node->root = root = G.global[separator.vertices[0]];
+        // Iteratively remove the seperator from G and update bounds.
+        Graph H = G;
+        for (int i = 1; i < separator.vertices.size(); i++) {
+          // Get the subgraph after removing seperator[i-1].
+          auto cc = H.WithoutVertex(
+              H.LocalIndex(G.global[separator.vertices[i - 1]]));
+          assert(cc.size() == 1);
+          H = cc[0];
+          auto [node_H, inserted_H] = cache.Insert(H);
 
-      // Iteratively remove the seperator from G and update bounds.
-      Graph H = G;
-      for (int i = 1; i < separator.vertices.size(); i++) {
-        // Get the subgraph after removing seperator[i-1].
-        auto cc = H.WithoutVertex(
-            H.LocalIndex(G.global[separator.vertices[i - 1]]));
-        assert(cc.size() == 1);
-        H = cc[0];
-        auto [node_H, inserted_H] = cache.Insert(H);
-
-        // Now if H was new to the cache, or we have better bounds, lets update!
-        if (inserted_H || (upper - i < node_H->upper_bound)) {
-          node_H->upper_bound = upper - i;
-          node_H->lower_bound = std::max(lower - i, node_H->lower_bound);
-          node_H->root = G.global[separator.vertices[i]];
+          // Now if H was new to the cache, or we have better bounds, lets
+          // update!
+          if (inserted_H || (upper - i < node_H->upper_bound)) {
+            node_H->upper_bound = upper - i;
+            node_H->lower_bound = std::max(lower - i, node_H->lower_bound);
+            node_H->root = G.global[separator.vertices[i]];
+          }
         }
       }
-    }
 
-    if (upper <= search_lbnd || lower == upper) {
-      // Choosing seperator already gives us a treedepth decomposition which is
-      // good enough (either a sister branch is at least this long, or it
-      // matches a previously proved lower bound for this subgraph) so we
-      // can use v as our root.
-      return {lower, upper, root};
+      if (upper <= search_lbnd || lower == upper) {
+        // Choosing seperator already gives us a treedepth decomposition which
+        // is good enough (either a sister branch is at least this long, or it
+        // matches a previously proved lower bound for this subgraph) so we
+        // can use v as our root.
+        return {lower, upper, root};
+      }
     }
   }
   node->lower_bound = lower = std::max(lower, new_lower);

@@ -1,9 +1,6 @@
 #include "graph.hpp"
 
 #include <cassert>
-#include <queue>
-#include <set>
-#include <stack>
 
 Graph full_graph;
 
@@ -30,7 +27,7 @@ Graph::Graph(std::istream &stream) {
     adj[b].emplace_back(a);
   }
 
-  for(int v = 0; v < N; v++) {
+  for (int v = 0; v < N; v++) {
     min_degree = std::min(min_degree, adj[v].size());
     max_degree = std::max(max_degree, adj[v].size());
   }
@@ -39,16 +36,14 @@ Graph::Graph(std::istream &stream) {
 Graph::Graph() {}
 
 // Create a Graph of G with the given (local) vertices
-Graph::Graph(const Graph &G, const std::vector<int> &sub_vertices)
-    : Graph() {
+Graph::Graph(const Graph &G, const std::vector<int> &sub_vertices) : Graph() {
   assert(G.N > sub_vertices.size());  // This is silly.
   N = sub_vertices.size();
   global.reserve(sub_vertices.size());
 
   // TODO Raymond: fix dat dit weer met een (global, enorme) mask kan.
   std::set<int> global_sub_vertices;
-  for(int v : sub_vertices)
-    global_sub_vertices.insert(G.global[v]);
+  for (int v : sub_vertices) global_sub_vertices.insert(G.global[v]);
 
   // This table will keep the mapping from G indices <-> indices subgraph.
   std::vector<int> new_indices(G.N, -1);
@@ -67,7 +62,8 @@ Graph::Graph(const Graph &G, const std::vector<int> &sub_vertices)
     std::vector<int> nghbrs;
     nghbrs.reserve(G.Adj(v_old).size());
     for (int nghb_old : G.Adj(v_old))
-      if (global_sub_vertices.find(G.global[nghb_old]) != global_sub_vertices.end()) {
+      if (global_sub_vertices.find(G.global[nghb_old]) !=
+          global_sub_vertices.end()) {
         assert(new_indices[nghb_old] >= 0 &&
                new_indices[nghb_old] < sub_vertices.size());
         nghbrs.emplace_back(new_indices[nghb_old]);
@@ -189,205 +185,7 @@ int Graph::LocalIndex(int global_index) const {
   assert(false);
 }
 
-std::vector<Separator> Graph::AllMinimalSeparators() const {
-  // Complete graphs don't have separators. We want this to return a non-empty
-  // vector.
-  assert(!IsCompleteGraph());
-  std::vector<bool> visited(N, false);
-
-  // Result will contain all generated MinimalSeparators. In done we keep the
-  // ones we have already enqueued, to make sure they aren't processed again.
-  // In queue we keep all the ones we have generated, but which we have not yet
-  // used to generate new ones.
-  std::queue<std::vector<int>> queue;
-  std::set<std::vector<int>> done;
-  std::vector<Separator> result;
-
-  std::vector<bool> in_nbh(N, false);
-
-  // Datatypes that will be reused.
-  std::stack<int> component;
-  std::vector<int> separator;
-
-  // First we generate all the "seeds": we take the neighborhood of a point
-  // (including the point), take all the connected components in the
-  // complement, and then take the neighborhoods of those components. Each of
-  // those is a minimal separator (in fact, one that separates the original
-  // point).
-  std::vector<int> neighborhood;
-  for (int i = 0; i < N; i++) {
-    if (Adj(i).size() == N - 1) continue;
-    neighborhood.clear();
-    neighborhood.push_back(i);
-    neighborhood.insert(neighborhood.end(), Adj(i).begin(), Adj(i).end());
-
-    for (int v : neighborhood) in_nbh[v] = true;
-
-    // Now we start off by enqueueing all neighborhoods of connected components
-    // in the complement of this neighborhood.
-    for (int j = 0; j < N; j++) {
-      if (in_nbh[j] || visited[j]) continue;
-
-      // Reset shared datastructures.
-      assert(component.empty());
-      separator.clear();
-
-      component.push(j);
-      visited[j] = true;
-
-      while (!component.empty()) {
-        int cur = component.top();
-        component.pop();
-
-        for (int nb : Adj(cur)) {
-          if (!visited[nb]) {
-            if (in_nbh[nb]) {
-              separator.push_back(nb);
-            } else {
-              component.push(nb);
-            }
-            visited[nb] = true;
-          }
-        }
-      }
-
-      for (auto k : neighborhood) visited[k] = false;
-      std::sort(separator.begin(), separator.end());
-      if (done.find(separator) == done.end()) {
-        queue.push(separator);
-        done.insert(separator);
-      }
-    }
-
-    for (int j = 0; j < N; j++) visited[j] = false;
-    for (int v : neighborhood) in_nbh[v] = false;
-  }
-
-  while (!queue.empty()) {
-    auto cur_separator = queue.front();
-    queue.pop();
-
-    for (int x : cur_separator) {
-      for (int j : Adj(x)) in_nbh[j] = true;
-      for (int j : cur_separator) in_nbh[j] = true;
-
-      for (int j = 0; j < N; j++) {
-        if (in_nbh[j] || visited[j]) continue;
-        // Reset shared datastructures.
-        assert(component.empty());
-        separator.clear();
-
-        component.push(j);
-        visited[j] = true;
-
-        while (!component.empty()) {
-          int cur = component.top();
-          component.pop();
-
-          for (int nb : Adj(cur)) {
-            if (!visited[nb]) {
-              if (in_nbh[nb]) {
-                separator.push_back(nb);
-              } else {
-                component.push(nb);
-              }
-              visited[nb] = true;
-            }
-          }
-        }
-
-        for (auto k : cur_separator) visited[k] = false;
-        for (auto k : Adj(x)) visited[k] = false;
-        std::sort(separator.begin(), separator.end());
-        if (done.find(separator) == done.end()) {
-          queue.push(separator);
-          done.insert(separator);
-        }
-      }
-
-      for (int j : cur_separator) in_nbh[j] = false;
-      for (int j : Adj(x)) in_nbh[j] = false;
-      for (int j = 0; j < N; j++) visited[j] = false;
-    }
-
-    // Finally, there is the following problem: this algorithm generates all
-    // _minimal a,b-separators_, for each pair of vertices a, b in G. These are
-    // a strict superset of what we are after: it may be that a set S is a
-    // minimal a,b-separator, yet it still has a strict subset which is a
-    // separator: it just may be that there is a c,d-separator which is a
-    // strict subset.
-    //
-    // Fortunately, checking whether or not this is the case is relatively
-    // fast.
-
-    Separator sep;
-    sep.vertices = std::move(cur_separator);
-    if (FullyMinimal(sep)) result.push_back(std::move(sep));
-  }
-
-  return result;
-}
-
-// Checks whether or not the separator of G given by separator is "truly
-// minimal": it contains no separator as a strict subset. (Name subject to
-// change.)
-//
-// It also writes some info to the Separator struct: the number of vertices and
-// edges in the components that remain when removing this separator from the
-// graph.
-bool Graph::FullyMinimal(Separator &separator) const {
-  // Shared datastructure.
-  static std::stack<int> component;
-
-  std::vector<bool> visited(N, false);
-  std::vector<bool> in_sep(N, false);
-  for (int s : separator.vertices) {
-    assert(s < N);
-    in_sep[s] = true;
-  }
-
-  for (int i = 0; i < N; i++) {
-    if (!visited[i] && !in_sep[i]) {
-      assert(component.empty());
-
-      int comp_N = 1;
-      int comp_M = 0;
-
-      component.push(i);
-      visited[i] = true;
-      while (component.size()) {
-        int cur = component.top();
-        component.pop();
-        for (int nb : Adj(cur)) {
-          if (!in_sep[nb]) {
-            comp_M++;
-            if (!visited[nb]) {
-              comp_N++;
-              component.push(nb);
-            }
-          }
-          visited[nb] = true;
-        }
-      }
-      for (int s : separator.vertices) {
-        if (!visited[s]) {
-          // This connected component dit not hit this vertex, so we can remove
-          // this vertex and have a separator left; so this separator is not
-          // fully minimal.
-          return false;
-        }
-        visited[s] = false;
-      }
-      separator.comp.push_back({comp_N, comp_M});
-    }
-  }
-
-  return true;
-}
-
-std::vector<Graph> Graph::WithoutVertices(
-    const std::vector<int> &S) const {
-
+std::vector<Graph> Graph::WithoutVertices(const std::vector<int> &S) const {
   std::vector<bool> in_S(N, false);
   for (auto s : S) in_S[s] = true;
 
@@ -445,7 +243,7 @@ std::vector<Graph> Graph::WithoutVertex(int w) const {
 }
 
 std::vector<int> Graph::Bfs(int root) const {
-  //assert(mask[vertices[root]->n]);
+  // assert(mask[vertices[root]->n]);
   std::vector<bool> visited(N, false);
 
   std::vector<int> result;
@@ -468,13 +266,13 @@ std::vector<int> Graph::Bfs(int root) const {
 }
 
 Graph Graph::BfsTree(int root) const {
-  //assert(mask[vertices[root]->n]);
+  // assert(mask[vertices[root]->n]);
 
   std::vector<bool> visited(N, false);
 
   Graph result;
   result.N = N;
-  //result.mask = mask;
+  // result.mask = mask;
   result.global.reserve(N);
   result.adj.resize(N);
 
@@ -506,12 +304,12 @@ Graph Graph::BfsTree(int root) const {
 }
 
 Graph Graph::DfsTree(int root) const {
-  //assert(mask[vertices[root]->n]);
+  // assert(mask[vertices[root]->n]);
   std::vector<bool> visited(N, false);
 
   Graph result;
   result.N = N;
-  //result.mask = mask;
+  // result.mask = mask;
   result.global.reserve(N);
   result.adj.resize(N);
 
@@ -655,4 +453,207 @@ void LoadGraph(std::istream &stream) {
 
   std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
             << full_graph.M << " edges. " << std::endl;
+}
+
+SeparatorGenerator::SeparatorGenerator(const Graph &G)
+    : G(G), in_nbh(G.N, false) {
+  // Complete graphs don't have separators. We want this to return a non-empty
+  // vector.
+  assert(!G.IsCompleteGraph());
+
+  // Datatypes that will be reused.
+  std::stack<int> component;
+  std::vector<int> separator;
+  std::vector<bool> sep_mask(G.N, false);
+  std::vector<bool> visited(G.N, false);
+
+  // First we generate all the "seeds": we take the neighborhood of a point
+  // (including the point), take all the connected components in the
+  // complement, and then take the neighborhoods of those components. Each of
+  // those is a minimal separator (in fact, one that separates the original
+  // point).
+  std::vector<int> neighborhood;
+  for (int i = 0; i < G.N; i++) {
+    if (G.Adj(i).size() == G.N - 1) continue;
+    neighborhood.clear();
+    neighborhood.push_back(i);
+    neighborhood.insert(neighborhood.end(), G.Adj(i).begin(), G.Adj(i).end());
+
+    for (int v : neighborhood) in_nbh[v] = true;
+
+    // Now we start off by enqueueing all neighborhoods of connected components
+    // in the complement of this neighborhood.
+    for (int j = 0; j < G.N; j++) {
+      if (in_nbh[j] || visited[j]) continue;
+
+      // Reset shared datastructures.
+      assert(component.empty());
+      separator.clear();
+
+      component.push(j);
+      visited[j] = true;
+
+      while (!component.empty()) {
+        int cur = component.top();
+        component.pop();
+
+        for (int nb : G.Adj(cur)) {
+          if (!visited[nb]) {
+            if (in_nbh[nb]) {
+              separator.push_back(nb);
+            } else {
+              component.push(nb);
+            }
+            visited[nb] = true;
+          }
+        }
+      }
+
+      for (auto k : neighborhood) visited[k] = false;
+
+      // std::sort(separator.begin(), separator.end());
+      for (int k : separator) sep_mask[k] = true;
+      if (done.find(sep_mask) == done.end()) {
+        queue.push(separator);
+        done.insert(sep_mask);
+      }
+      for (int k : separator) sep_mask[k] = false;
+    }
+
+    for (int j = 0; j < G.N; j++) visited[j] = false;
+    for (int v : neighborhood) in_nbh[v] = false;
+  }
+}
+
+std::vector<Separator> SeparatorGenerator::Next(int k) {
+  // Datatypes that will be reused.
+  std::stack<int> component;
+  std::vector<int> separator;
+  std::vector<bool> sep_mask(G.N, false);
+  std::vector<bool> visited(G.N, false);
+
+  std::vector<Separator> result;
+  while (!queue.empty() && result.size() < k) {
+    auto cur_separator = queue.front();
+    queue.pop();
+
+    for (int x : cur_separator) {
+      for (int j : G.Adj(x)) in_nbh[j] = true;
+      for (int j : cur_separator) in_nbh[j] = true;
+
+      for (int j = 0; j < G.N; j++) {
+        if (in_nbh[j] || visited[j]) continue;
+        // Reset shared datastructures.
+        assert(component.empty());
+        separator.clear();
+
+        component.push(j);
+        visited[j] = true;
+
+        while (!component.empty()) {
+          int cur = component.top();
+          component.pop();
+
+          for (int nb : G.Adj(cur)) {
+            if (!visited[nb]) {
+              if (in_nbh[nb]) {
+                separator.push_back(nb);
+              } else {
+                component.push(nb);
+              }
+              visited[nb] = true;
+            }
+          }
+        }
+
+        for (auto k : cur_separator) visited[k] = false;
+        for (auto k : G.Adj(x)) visited[k] = false;
+
+        // std::sort(separator.begin(), separator.end());
+        for (int k : separator) sep_mask[k] = true;
+        if (done.find(sep_mask) == done.end()) {
+          queue.push(separator);
+          done.insert(sep_mask);
+        }
+        for (int k : separator) sep_mask[k] = false;
+      }
+
+      for (int j : cur_separator) in_nbh[j] = false;
+      for (int j : G.Adj(x)) in_nbh[j] = false;
+      for (int j = 0; j < G.N; j++) visited[j] = false;
+    }
+
+    // Finally, there is the following problem: this algorithm generates all
+    // _minimal a,b-separators_, for each pair of vertices a, b in G. These are
+    // a strict superset of what we are after: it may be that a set S is a
+    // minimal a,b-separator, yet it still has a strict subset which is a
+    // separator: it just may be that there is a c,d-separator which is a
+    // strict subset.
+    //
+    // Fortunately, checking whether or not this is the case is relatively
+    // fast.
+
+    Separator sep;
+    sep.vertices = std::move(cur_separator);
+    if (FullyMinimal(sep)) result.push_back(std::move(sep));
+  }
+
+  return result;
+}
+
+// Checks whether or not the separator of G given by separator is "truly
+// minimal": it contains no separator as a strict subset. (Name subject to
+// change.)
+//
+// It also writes some info to the Separator struct: the number of vertices
+// and edges in the components that remain when removing this separator from
+// the graph.
+bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
+  // Shared datastructure.
+  static std::stack<int> component;
+
+  std::vector<bool> visited(G.N, false);
+  std::vector<bool> in_sep(G.N, false);
+  for (int s : separator.vertices) {
+    assert(s < G.N);
+    in_sep[s] = true;
+  }
+
+  for (int i = 0; i < G.N; i++) {
+    if (!visited[i] && !in_sep[i]) {
+      assert(component.empty());
+
+      int comp_N = 1;
+      int comp_M = 0;
+
+      component.push(i);
+      visited[i] = true;
+      while (component.size()) {
+        int cur = component.top();
+        component.pop();
+        for (int nb : G.Adj(cur)) {
+          if (!in_sep[nb]) {
+            comp_M++;
+            if (!visited[nb]) {
+              comp_N++;
+              component.push(nb);
+            }
+          }
+          visited[nb] = true;
+        }
+      }
+      for (int s : separator.vertices) {
+        if (!visited[s]) {
+          // This connected component dit not hit this vertex, so we can
+          // remove this vertex and have a separator left; so this separator
+          // is not fully minimal.
+          return false;
+        }
+        visited[s] = false;
+      }
+      separator.comp.push_back({comp_N, comp_M});
+    }
+  }
+
+  return true;
 }
