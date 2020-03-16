@@ -16,16 +16,6 @@ struct Vertex {
   Vertex(int n) : n(n) {}
 };
 
-struct Graph {
-  int N;                              // Number of vertices in this graph
-  int M;                              // Number of edges in this graph.
-  std::vector<Vertex> vertices;       // Vector containing all vertices.
-  std::vector<std::vector<int>> adj;  // The adjacency lists for the full graph.
-
-  Graph(std::istream &stream);
-  Graph() : N(0), M(0) {}
-};
-
 struct Separator {
   std::vector<int> vertices;
 
@@ -50,6 +40,9 @@ struct SubGraph {
 
   // Create an empty SubGraph.
   SubGraph();
+
+  // Create a SubGraph from a stream.
+  SubGraph(std::istream &stream);
 
   // Create a SubGraph of G with the given (local) vertices
   SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices);
@@ -124,7 +117,6 @@ struct SubGraph {
   }
 };
 
-extern Graph full_graph;  // The datastructure containing the full graph.
 extern SubGraph full_graph_as_sub;  // The full graph in a SubGraph format.
 
 // This initalizes the above global variables, important!

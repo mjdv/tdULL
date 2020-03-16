@@ -5,10 +5,9 @@
 #include <set>
 #include <stack>
 
-Graph full_graph;
 SubGraph full_graph_as_sub;
 
-Graph::Graph(std::istream &stream) {
+SubGraph::SubGraph(std::istream &stream) {
   std::string str;
   stream >> str;
   assert(str == "p");
@@ -17,8 +16,8 @@ Graph::Graph(std::istream &stream) {
   stream >> N >> M;
 
   // Create the vector of vertices.
-  vertices.reserve(N);
-  for (int v = 0; v < N; v++) vertices.emplace_back(v);
+  global.reserve(N);
+  for (int v = 0; v < N; v++) global.push_back(v);
   adj.resize(N);
   for (int e = 0; e < M; e++) {
     int a, b;
@@ -29,6 +28,11 @@ Graph::Graph(std::istream &stream) {
 
     adj[a].emplace_back(b);
     adj[b].emplace_back(a);
+  }
+
+  for(int v = 0; v < N; v++) {
+    min_degree = std::min(min_degree, adj[v].size());
+    max_degree = std::max(max_degree, adj[v].size());
   }
 }
 
@@ -41,6 +45,7 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
   N = sub_vertices.size();
   global.reserve(sub_vertices.size());
 
+  // TODO Raymond: fix dat dit weer met een (global, enorme) mask kan.
   std::set<int> global_sub_vertices;
   for(int v : sub_vertices)
     global_sub_vertices.insert(G.global[v]);
@@ -646,24 +651,8 @@ SubGraph SubGraph::TwoCore() const {
 }
 
 void LoadGraph(std::istream &stream) {
-  full_graph_as_sub = SubGraph();
-  full_graph = Graph(stream);
+  full_graph_as_sub = SubGraph(stream);
 
-  // Create the subgraph.
-  full_graph_as_sub.M = full_graph.M;
-  full_graph_as_sub.N = full_graph.N;
-  //full_graph_as_sub.mask = std::vector<bool>(full_graph.N, true);
-  for (int v = 0; v < full_graph.N; ++v) {
-    Vertex &vertex = full_graph.vertices[v];
-    assert(vertex.n == v);
-    full_graph_as_sub.global.emplace_back(v);
-    full_graph_as_sub.adj.emplace_back(full_graph.adj[v]);
-    full_graph_as_sub.max_degree =
-        std::max(full_graph_as_sub.max_degree, full_graph.adj[v].size());
-    full_graph_as_sub.min_degree =
-        std::min(full_graph_as_sub.min_degree, full_graph.adj[v].size());
-  }
-
-  std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
-            << full_graph.M << " edges. " << std::endl;
+  std::cout << "Initalized a graph having " << full_graph_as_sub.N << " vertices with "
+            << full_graph_as_sub.M << " edges. " << std::endl;
 }
