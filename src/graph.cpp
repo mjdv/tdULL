@@ -4,6 +4,10 @@
 
 Graph full_graph;
 std::vector<bool> full_graph_mask;
+std::vector<std::vector<int>> global_to_vertices;
+std::map<std::vector<int>, int> vertices_to_global;
+
+int GetIndex(const std::vector<int> vertices);
 
 Graph::Graph(std::istream &stream) {
   std::string str;
@@ -180,6 +184,9 @@ std::vector<Graph> Graph::ConnectedGraphs(
 }
 
 const std::vector<int> &Graph::Adj(int v) const {
+  /*std::cout << "\n\n";
+  std::cout << v << " " << N << " " << adj.size() << std::endl;
+  std::cout << "\n\n";*/
   assert(v >= 0 && v < N && adj.size() == N);
   return adj[v];
 }
@@ -189,6 +196,107 @@ int Graph::LocalIndex(int global_index) const {
     if (global[v_local] == global_index) return v_local;
   }
   assert(false);
+}
+
+bool Graph::ConnectedSubset(const std::vector<int> vertices) const {
+  assert(vertices.size());
+
+  std::vector<bool> visited(N, false);
+  std::stack<int> s;
+  s.push(vertices[0]);
+  visited[vertices[0]] = true;
+  while(s.size()) {
+    int cur = s.top(); s.pop();
+    for(int nb : Adj(cur)) {
+      if(!visited[nb]) {
+        visited[nb] = true;
+        s.push(nb);
+      }
+    }
+  }
+  for(int v : vertices) {
+    if(!visited[v])
+      return false;
+  }
+  return true;
+}
+
+Graph Graph::Contract(const std::vector<int> &contractors) const {
+  assert(ConnectedSubset(contractors));
+
+  /*std::cout << "Contracting a graph with " << N << " nodes.\n";
+  std::cout << "Going to contract vertices: ";
+  for(auto v: contractors)
+    std::cout << v << " ";
+  std::cout << std::endl;*/
+
+  std::vector<bool> in_contractors(N, false);
+  for(auto v : contractors)
+    in_contractors[v] = true;
+
+  Graph contracted;
+  contracted.N = N - ((int)contractors.size()) + 1;
+  contracted.global.reserve(contracted.N);
+
+  // Is this what I need later?
+  std::vector<int> local_to_contracted_local(N, -1);
+  std::vector<int> contracted_local_to_local(contracted.N, -1);
+
+  //std::cout << "Basic setup done.\n";
+
+  for(int i = 0; i < N; i++) {
+    if(!in_contractors[i]) {
+      local_to_contracted_local[i] = contracted.global.size();
+      contracted_local_to_local[contracted.global.size()] = i;
+
+      contracted.global.push_back(global[i]);
+    }
+  }
+
+  //std::cout << "Created all but one of global.\n";
+
+  std::vector<int> original_contractors;
+  for(int contractor : contractors)
+    for(int original_contractor : global_to_vertices[global[contractor]])
+      original_contractors.push_back(original_contractor);
+
+  contracted.global.push_back(GetIndex(original_contractors));
+
+  //std::cout << "Created the global entry for the contracted vertex.\n";
+
+  //std::cout << "Going to fill contracted.adj.\n";
+  contracted.adj = std::vector<std::vector<int>>(contracted.N);
+
+  // Adjacency list for non-contracted vertices.
+  for(int i = 0; i < contracted.N - 1; i++) {
+    bool connected_to_contractors = false;
+    for(int nb : Adj(contracted_local_to_local[i])) {
+      if(in_contractors[nb]) {
+        if(!connected_to_contractors) {
+          connected_to_contractors = true;
+          contracted.adj[i].push_back(contracted.N - 1);
+          contracted.adj[contracted.N - 1].push_back(i);
+          contracted.M += 2;
+        }
+      }
+      else {
+        contracted.adj[i].push_back(local_to_contracted_local[nb]);
+        contracted.M++;
+      }
+    }
+  }
+
+  assert(contracted.M % 2 == 0);
+  contracted.M /= 2;
+
+  //std::cout << "Found " << contracted.M << " edges.\n";
+
+  for(int i = 0; i < contracted.N; i++) {
+    contracted.min_degree = std::min(contracted.min_degree, contracted.adj[i].size());
+    contracted.max_degree = std::max(contracted.max_degree, contracted.adj[i].size());
+  }
+
+  return contracted;
 }
 
 std::vector<Graph> Graph::WithoutVertices(const std::vector<int> &S) const {
@@ -437,8 +545,30 @@ Graph Graph::TwoCore() const {
 void LoadGraph(std::istream &stream) {
   full_graph = Graph(stream);
 
+  global_to_vertices = std::vector<std::vector<int>>();
+  vertices_to_global = std::map<std::vector<int>, int>();
+
+  for(int i = 0; i < full_graph.N; i++) {
+    std::vector<int> i_vec = {i};
+    global_to_vertices.push_back(i_vec);
+    vertices_to_global[i_vec] = i;
+  }
+
   std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
             << full_graph.M << " edges. " << std::endl;
+}
+
+int GetIndex(std::vector<int> vertices) {
+  sort(vertices.begin(), vertices.end());
+  auto it = vertices_to_global.find(vertices);
+  if(it == vertices_to_global.end()) {
+    int new_index = vertices_to_global.size();
+    vertices_to_global[vertices] = new_index;
+    global_to_vertices.push_back(vertices);
+    full_graph_mask.push_back(false);
+    return new_index;
+  }
+  return it->second;
 }
 
 SeparatorGenerator::SeparatorGenerator(const Graph &G)
