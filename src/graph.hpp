@@ -76,7 +76,11 @@ struct Graph {
   bool IsTreeGraph() const { return N - 1 == M; }
 
   // Explicit conversion to vector of ints.
-  operator const std::vector<int> &() const { return global; }
+  operator std::vector<int>() const {
+    std::vector<int> result = global;
+    std::sort(result.begin(), result.end());
+    return result;
+  }
 };
 
 extern Graph full_graph;                   // The full graph.
