@@ -13,10 +13,10 @@
 #include "treedepth_tree.hpp"
 
 // Trivial treedepth implementation, useful for simple sanity checks.
-int treedepth_trivial(const SubGraph &G) {
-  if (G.vertices.size() == 1) return 1;
-  int td = G.vertices.size();
-  for (int v = 0; v < G.vertices.size(); ++v) {
+int treedepth_trivial(const Graph &G) {
+  if (G.N == 1) return 1;
+  int td = G.N;
+  for (int v = 0; v < G.N; ++v) {
     int td_for_this_root = 0;
     for (auto cc : G.WithoutVertex(v)) {
       td_for_this_root = std::max(td_for_this_root, treedepth_trivial(cc) + 1);
@@ -26,47 +26,47 @@ int treedepth_trivial(const SubGraph &G) {
   return td;
 }
 
-// This function returns the treedepth and root of a SubGraph using simple
+// This function returns the treedepth and root of a Graph using simple
 // heuristics. This only works for special graphs. It returns -1, -1, if
 // no such exact heuristic is found.
-std::pair<int, int> treedepth_exact(const SubGraph &G) {
-  int N = G.vertices.size();
+std::pair<int, int> treedepth_exact(const Graph &G) {
+  int N = G.N;
 
   // Do a quick check for special cases for which we know the answer.
   if (G.IsCompleteGraph()) {
-    return {N, G.vertices[0]->n};
+    return {N, G.global[0]};
   } else if (G.IsStarGraph()) {
     // Find node with max_degree.
-    for (int v = 0; v < G.vertices.size(); ++v)
-      if (G.Adj(v).size() == G.max_degree) return {2, G.vertices[v]->n};
+    for (int v = 0; v < G.N; ++v)
+      if (G.Adj(v).size() == G.max_degree) return {2, G.global[v]};
   } else if (G.IsCycleGraph()) {
     // Find the bound, 1 + td of path of length N - 1.
     N--;
     int bnd = 2;
     while (N >>= 1) bnd++;
-    return {bnd, G.vertices[0]->n};
+    return {bnd, G.global[0]};
   } else if (G.IsPathGraph()) {
     // Find the bound, this is the ceil(log_2(N)).
     int bnd = 1;
     while (N >>= 1) bnd++;
 
     // Find a leaf and then find the middle node.
-    for (int v = 0; v < G.vertices.size(); ++v)
+    for (int v = 0; v < G.N; ++v)
       if (G.Adj(v).size() == 1) {
         int prev = v;
         v = G.adj[v][0];
 
         // Find the middle node.
-        for (int i = 1; i < G.vertices.size() / 2; i++) {
+        for (int i = 1; i < G.N / 2; i++) {
           int tmp = v;
           v = (prev ^ G.adj[v][0] ^ G.adj[v][1]);
           prev = tmp;
         }
-        return {bnd, G.vertices[v]->n};
+        return {bnd, G.global[v]};
       }
-  } else if (N < exactCacheSize) {
+  } else if (G.N < exactCacheSize) {
     auto [td, root] = exactCache(G.adj);
-    return {td, G.vertices[root]->n};
+    return {td, G.global[root]};
   } else if (G.IsTreeGraph()) {
     // TODO: this one is semi-expensive, but probably doesn't occur often.
     return treedepth_tree(G);
@@ -105,7 +105,7 @@ int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 // graph.
 //
 // Parameters:
-// - SubGraph G, the graph for which we try to compute treedepth bounds.
+// - Graph G, the graph for which we try to compute treedepth bounds.
 // - int search_lbnd, the lower bound of which treedepths are useful.
 // - int search_ubnd, the upper bound of which treedepths are useful.
 //
@@ -125,15 +125,15 @@ int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 // there is no reason to try to get the treedepth of this subgraph any lower
 // than d. Thus if we find a decomposition that can has depth at most d, i.e.
 // upper is at most search_lbnd, we are done.
-std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
+std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
                                     int search_ubnd) {
-  int N = G.vertices.size();
-  if (N == 1) return {1, 1, G.vertices[0]->n};
+  int N = G.N;
+  if (N == 1) return {1, 1, G.global[0]};
 
   // Try the trivial bounds.
   int lower = G.M / N + 1;
   int upper = N;
-  int root = G.vertices[0]->n;
+  int root = G.global[0];
 
   // If the trivial bounds suffice, we are done.
   if (search_ubnd <= lower || search_lbnd >= upper || lower == upper ||
@@ -157,8 +157,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
   }
-  if (N == full_graph_as_sub.vertices.size())
-    std::cout << "full_graph::kCore" << std::endl;
+  if (N == full_graph.N) std::cout << "full_graph::kCore" << std::endl;
 
   // Below we calculate the smallest k-core that G can contain. If this is non-
   // empty, we recursively calculate the treedepth on this core first. This
@@ -174,12 +173,11 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
       }
 
   if (!cc_core.empty()) {
-    assert(cc_core[0].vertices.size() < N);
+    assert(cc_core[0].N < N);
 
     // Sort the components on density.
-    std::sort(cc_core.begin(), cc_core.end(), [](auto &c1, auto &c2) {
-      return c1.M / c1.vertices.size() > c2.M / c2.vertices.size();
-    });
+    std::sort(cc_core.begin(), cc_core.end(),
+              [](auto &c1, auto &c2) { return c1.M / c1.N > c2.M / c2.N; });
     for (const auto &cc : cc_core) {
       lower =
           std::max(lower, std::get<0>(treedepth(cc, search_lbnd, search_ubnd)));
@@ -197,10 +195,10 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 
     // If the graph has at least 3 vertices, we never want a leaf (degree 1
     // node) as a root.
-    assert(G.vertices.size() > 2 && G.max_degree >= 2);
+    assert(G.N > 2 && G.max_degree >= 2);
     std::vector<int> vertices;
     vertices.reserve(N);
-    for (int v = 0; v < G.vertices.size(); ++v) {
+    for (int v = 0; v < G.N; ++v) {
       // Only add vertices with deg > 1.
       if (G.Adj(v).size() > 1) vertices.emplace_back(v);
     }
@@ -223,16 +221,16 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 
   // Main loop: try every separator as a set of roots.
   // new_lower tries to find a new treedepth lower bound on this subgraph.
-  int new_lower = N;
+  int new_lower = G.N;
 
-  if (N == full_graph_as_sub.vertices.size())
+  if (G.N == full_graph.N)
     std::cout << "Initialize full_graph sep_generator." << std::endl;
   SeparatorGenerator sep_generator(G);
   size_t total_separators = 0;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(100000);
     total_separators += separators.size();
-    if (N == full_graph_as_sub.vertices.size())
+    if (G.N == full_graph.N)
       std::cout << "full_graph generated total of " << total_separators
                 << " separators so far." << std::endl;
 
@@ -261,14 +259,15 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 
       // Sort the components of G \ separator on density.
       auto cc = G.WithoutVertices(separator.vertices);
-      std::sort(cc.begin(), cc.end(),
-                [](const SubGraph &c1, const SubGraph &c2) {
-                  return c1.M / c1.vertices.size() > c2.M / c2.vertices.size();
-                });
+      std::sort(cc.begin(), cc.end(), [](const Graph &c1, const Graph &c2) {
+        return c1.M / c1.N > c2.M / c2.N;
+      });
 
       for (auto &&H : cc) {
-        auto [lower_H, upper_H, root_H] =
-            treedepth(H, search_lbnd_sep, search_ubnd_sep);
+        auto tuple = treedepth(H, search_lbnd_sep, search_ubnd_sep);
+
+        int lower_H = std::get<0>(tuple);
+        int upper_H = std::get<1>(tuple);
 
         upper_sep = std::max(upper_sep, upper_H);
         lower_sep = std::max(lower_sep, lower_H);
@@ -279,14 +278,14 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
       // If we find a new upper bound, update the cache accordingly :-).
       if (upper_sep + sep_size < upper) {
         node->upper_bound = upper = upper_sep + sep_size;
-        node->root = root = G.vertices[separator.vertices[0]]->n;
+        node->root = root = G.global[separator.vertices[0]];
 
         // Iteratively remove the seperator from G and update bounds.
-        SubGraph H = G;
+        Graph H = G;
         for (int i = 1; i < separator.vertices.size(); i++) {
           // Get the subgraph after removing seperator[i-1].
           auto cc = H.WithoutVertex(
-              H.LocalIndex(G.vertices[separator.vertices[i - 1]]));
+              H.LocalIndex(G.global[separator.vertices[i - 1]]));
           assert(cc.size() == 1);
           H = cc[0];
           auto [node_H, inserted_H] = cache.Insert(H);
@@ -296,7 +295,7 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
           if (inserted_H || (upper - i < node_H->upper_bound)) {
             node_H->upper_bound = upper - i;
             node_H->lower_bound = std::max(lower - i, node_H->lower_bound);
-            node_H->root = G.vertices[separator.vertices[i]]->n;
+            node_H->root = G.global[separator.vertices[i]];
           }
         }
       }
@@ -315,18 +314,18 @@ std::tuple<int, int, int> treedepth(const SubGraph &G, int search_lbnd,
 }
 
 // Recursive function to reconstruct the tree that atains the treedepth.
-void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
-  assert(G.vertices.size());
+void reconstruct(const Graph &G, int root, std::vector<int> &tree, int td) {
+  assert(G.N);
 
   // Ensure that the cache contains the correct node.
-  int new_root = std::get<2>(treedepth(G, td, G.vertices.size()));
+  int new_root = std::get<2>(treedepth(G, td, G.N));
   assert(new_root > -1);
   tree.at(new_root) = root;
 
   // Root is the global coordinate, find its local coordinate.
   int local_root = -1;
-  for (int v = 0; v < G.vertices.size(); ++v)
-    if (G.vertices[v]->n == new_root) {
+  for (int v = 0; v < G.N; ++v)
+    if (G.global[v] == new_root) {
       local_root = v;
       break;
     }
@@ -336,11 +335,11 @@ void reconstruct(const SubGraph &G, int root, std::vector<int> &tree, int td) {
 }
 
 // Little helper function that returns the treedepth for the given graph.
-std::pair<int, std::vector<int>> treedepth(const SubGraph &G) {
+std::pair<int, std::vector<int>> treedepth(const Graph &G) {
   cache = SetTrie();
   time(&time_start_treedepth);
-  int td = std::get<1>(treedepth(G, 1, G.vertices.size()));
-  std::vector<int> tree(G.vertices.size(), -2);
+  int td = std::get<1>(treedepth(G, 1, G.N));
+  std::vector<int> tree(G.N, -2);
   reconstruct(G, -1, tree, td);
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
   for (auto &v : tree) v++;
