@@ -152,6 +152,7 @@ std::vector<Graph> Graph::ConnectedGraphs(
   for (int v : sub_vertices) in_sub_verts[v] = true;
 
   std::vector<Graph> cc;
+  cc.reserve(2);
 
   static std::stack<int> stack;
   static std::vector<int> component;
