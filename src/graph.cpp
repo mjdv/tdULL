@@ -55,8 +55,6 @@ Graph::Graph(const Graph &G, std::vector<int> &sub_vertices) : Graph() {
   std::vector<int> new_indices(G.N, -1);
 
   // Add all new vertices to our subgraph, in order.
-  std::sort(sub_vertices.begin(), sub_vertices.end(),
-            [&](int v1, int v2) { return G.global[v1] < G.global[v2]; });
   for (int v_new = 0; v_new < sub_vertices.size(); ++v_new) {
     int v_old = sub_vertices[v_new];
     new_indices[v_old] = v_new;
@@ -156,7 +154,6 @@ std::vector<Graph> Graph::ConnectedGraphs(
   for (int v : sub_vertices) in_sub_verts[v] = true;
 
   std::vector<Graph> cc;
-  cc.reserve(2);
 
   static std::stack<int> stack;
   static std::vector<int> component;
@@ -460,9 +457,9 @@ std::vector<Graph> Graph::kCore(int k) const {
   int vertices_left = N;
 
   // This will keep a list of all the (local) degrees.
-  std::vector<int> degrees;
-  degrees.reserve(N);
-  for (int i = 0; i < N; i++) degrees.push_back(Adj(i).size());
+  static std::vector<int> degrees;
+  if (degrees.size() < N) degrees.resize(N);
+  for (int i = 0; i < N; i++) degrees[i] = Adj(i).size();
 
   // Remove all nodes with degree < k.
   for (int v = 0; v < N; v++)
@@ -493,8 +490,6 @@ std::vector<Graph> Graph::kCore(int k) const {
 
   // Note that the subgraph does not need to be connected, so
   // ceate all subgraphs with vertices that are not removed.
-  std::vector<Graph> cc;
-
   std::vector<int> remaining;
   remaining.reserve(vertices_left);
   for (int v = 0; v < N; v++)
