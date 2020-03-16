@@ -264,8 +264,10 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
       });
 
       for (auto &&H : cc) {
-        auto [lower_H, upper_H, root_H] =
-            treedepth(H, search_lbnd_sep, search_ubnd_sep);
+        auto tuple = treedepth(H, search_lbnd_sep, search_ubnd_sep);
+
+        int lower_H = std::get<0>(tuple);
+        int upper_H = std::get<1>(tuple);
 
         upper_sep = std::max(upper_sep, upper_H);
         lower_sep = std::max(lower_sep, lower_H);

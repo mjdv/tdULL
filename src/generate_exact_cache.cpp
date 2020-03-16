@@ -82,7 +82,7 @@ int main() {
         sub.max_degree = std::max(sub.max_degree, sub.adj[v].size());
         sub.min_degree = std::min(sub.min_degree, sub.adj[v].size());
       }
-      auto [td, _] = treedepth(sub);
+      int td = treedepth(sub).first;
       int root = cache.Search(sub)->root;
       assert(root > -1 && td >= 1 && td <= N);
       output.put(uint8_t((td << 4) | root));
