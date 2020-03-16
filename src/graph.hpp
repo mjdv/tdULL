@@ -83,7 +83,8 @@ struct Graph {
   }
 };
 
-extern Graph full_graph;  // The full graph.
+extern Graph full_graph;                   // The full graph.
+extern std::vector<bool> full_graph_mask;  // Global variable to be reused.
 
 // This initalizes the above global variables, important!
 void LoadGraph(std::istream &stream);

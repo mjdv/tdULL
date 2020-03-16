@@ -3,6 +3,7 @@
 #include <cassert>
 
 Graph full_graph;
+std::vector<bool> full_graph_mask;
 
 Graph::Graph(std::istream &stream) {
   std::string str;
@@ -31,6 +32,7 @@ Graph::Graph(std::istream &stream) {
     min_degree = std::min(min_degree, adj[v].size());
     max_degree = std::max(max_degree, adj[v].size());
   }
+  full_graph_mask.resize(N, false);
 }
 
 Graph::Graph() {}
@@ -40,10 +42,10 @@ Graph::Graph(const Graph &G, const std::vector<int> &sub_vertices) : Graph() {
   assert(G.N > sub_vertices.size());  // This is silly.
   N = sub_vertices.size();
   global.reserve(sub_vertices.size());
+  adj.reserve(sub_vertices.size());
 
-  // TODO Raymond: fix dat dit weer met een (global, enorme) mask kan.
-  std::set<int> global_sub_vertices;
-  for (int v : sub_vertices) global_sub_vertices.insert(G.global[v]);
+  if (G.N > full_graph_mask.size()) full_graph_mask.resize(G.N, false);
+  for (int v : sub_vertices) full_graph_mask[G.global[v]] = true;
 
   // This table will keep the mapping from G indices <-> indices subgraph.
   std::vector<int> new_indices(G.N, -1);
@@ -62,8 +64,7 @@ Graph::Graph(const Graph &G, const std::vector<int> &sub_vertices) : Graph() {
     std::vector<int> nghbrs;
     nghbrs.reserve(G.Adj(v_old).size());
     for (int nghb_old : G.Adj(v_old))
-      if (global_sub_vertices.find(G.global[nghb_old]) !=
-          global_sub_vertices.end()) {
+      if (full_graph_mask[G.global[nghb_old]]) {
         assert(new_indices[nghb_old] >= 0 &&
                new_indices[nghb_old] < sub_vertices.size());
         nghbrs.emplace_back(new_indices[nghb_old]);
@@ -78,6 +79,8 @@ Graph::Graph(const Graph &G, const std::vector<int> &sub_vertices) : Graph() {
   if (min_degree == 0) assert(sub_vertices.size() == 1 && M == 0);
   assert(M % 2 == 0);
   M /= 2;
+
+  for (int v : sub_vertices) full_graph_mask[G.global[v]] = false;
 }
 
 void Graph::AssertValidGraph() const {
