@@ -26,8 +26,8 @@ struct Graph {
   // Create a Graph from a stream.
   Graph(std::istream &stream);
 
-  // Create a Graph of G with the given (local) vertices
-  Graph(const Graph &G, const std::vector<int> &sub_vertices);
+  // Create a Graph of G with the given (local) vertices.
+  Graph(const Graph &G, std::vector<int> &sub_vertices);
 
   // Checks whether this really represents an induced subgraph.
   // Note: expensive!
@@ -76,11 +76,7 @@ struct Graph {
   bool IsTreeGraph() const { return N - 1 == M; }
 
   // Explicit conversion to vector of ints.
-  operator std::vector<int>() const {
-    std::vector<int> result = global;
-    std::sort(result.begin(), result.end());
-    return result;
-  }
+  operator const std::vector<int> &() const { return global; }
 };
 
 extern Graph full_graph;                   // The full graph.

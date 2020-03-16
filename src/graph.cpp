@@ -38,7 +38,7 @@ Graph::Graph(std::istream &stream) {
 Graph::Graph() {}
 
 // Create a Graph of G with the given (local) vertices
-Graph::Graph(const Graph &G, const std::vector<int> &sub_vertices) : Graph() {
+Graph::Graph(const Graph &G, std::vector<int> &sub_vertices) : Graph() {
   assert(G.N > sub_vertices.size());  // This is silly.
   N = sub_vertices.size();
   global.reserve(sub_vertices.size());
@@ -50,7 +50,9 @@ Graph::Graph(const Graph &G, const std::vector<int> &sub_vertices) : Graph() {
   // This table will keep the mapping from G indices <-> indices subgraph.
   std::vector<int> new_indices(G.N, -1);
 
-  // Add all new vertices to our subgraph.
+  // Add all new vertices to our subgraph, in order.
+  std::sort(sub_vertices.begin(), sub_vertices.end(),
+            [&](int v1, int v2) { return G.global[v1] < G.global[v2]; });
   for (int v_new = 0; v_new < sub_vertices.size(); ++v_new) {
     int v_old = sub_vertices[v_new];
     new_indices[v_old] = v_new;
