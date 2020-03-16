@@ -1,10 +1,14 @@
 #pragma once
 #include <algorithm>
 #include <climits>
+#include <deque>
 #include <iostream>
 #include <map>
+#include <queue>
+#include <set>
+#include <stack>
+#include <unordered_set>
 #include <vector>
-#include <climits>
 
 struct Vertex {
   int n;         // The index of this vertex.
@@ -23,18 +27,6 @@ struct Graph {
 
   Graph(std::istream &stream);
   Graph() : N(0), M(0) {}
-};
-
-struct Separator {
-  std::vector<int> vertices;
-
-  std::vector<std::pair<int, int>> comp;
-
-  int maxCompSize() const {
-    int result = 0;
-    for (auto [N, M] : comp) result = std::max(result, N);
-    return result;
-  }
 };
 
 struct SubGraph {
@@ -65,12 +57,6 @@ struct SubGraph {
 
   // Get the local coordinate for a given vertex.
   int LocalIndex(Vertex *v) const;
-
-  // Get all minimal separators for the given graph (as lists of local
-  // coordinates).
-  std::vector<Separator> AllMinimalSeparators() const;
-
-  bool FullyMinimal(Separator &) const;
 
   // Create a connected components of the subgraph without the given vertices.
   std::vector<SubGraph> WithoutVertices(const std::vector<int> &S) const;
@@ -127,6 +113,55 @@ struct SubGraph {
     std::sort(result.begin(), result.end());
     return result;
   }
+};
+
+struct Separator {
+  std::vector<int> vertices;
+  std::vector<std::pair<int, int>> comp;
+
+  Separator() {}
+  Separator(std::vector<int> &&vertices) : vertices(std::move(vertices)) {}
+
+  std::pair<int, int> maxCompSize() const {
+    int best_comp = 0;
+    int best_M = 0;
+    for (auto [N, M] : comp)
+      if (N > best_comp) {
+        best_comp = N;
+        best_M = M;
+      }
+
+    return {best_comp, best_M};
+  }
+};
+
+class SeparatorGenerator {
+ public:
+  SeparatorGenerator(const SubGraph &G);
+
+  bool HasNext() const { return !queue.empty(); }
+  std::vector<Separator> Next(int k = 10000);
+
+  void clear() {
+    done.clear();
+    queue = {};
+  }
+
+ protected:
+  // Helper function.
+  bool FullyMinimal(Separator &) const;
+
+  const SubGraph &G;
+  int N;
+
+  // In done we keep the seperators we have already enqueued, to make sure they
+  // aren't processed again.
+  // In queue we keep all the ones we have generated, but which we have not yet
+  // used to generate new ones.
+  std::queue<std::vector<int>> queue;
+  std::unordered_set<std::vector<bool>> done;
+
+  std::vector<bool> in_nbh;
 };
 
 extern Graph full_graph;  // The datastructure containing the full graph.

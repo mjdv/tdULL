@@ -23,6 +23,16 @@ int main(int argc, char** argv) {
   std::cout << "Calculating treedepth for " << ExtractFileName(argv[1])
             << std::endl;
   try {
+    //    auto seperator_gen = SeparatorGenerator(full_graph_as_sub);
+    //    size_t total_count = 0;
+    //    while (seperator_gen.HasNext()) {
+    //      total_count += seperator_gen.Next(100000).size();
+    //      time(&end);
+    //      std::cout << "Total number of separators is " << total_count
+    //                << ". Speed is " << double(total_count) / difftime(end,
+    //                start)
+    //                << " seps / s.\n";
+    //    }
     auto [td, tree] = treedepth(full_graph_as_sub);
     time(&end);
     std::cout << "Treedepth is: " << td << std::endl;

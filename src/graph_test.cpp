@@ -44,14 +44,17 @@ int main() {
 
   std::istringstream stream_allminsep("p tdp 6 5 1 2 1 3 1 4 1 5 1 6");
   LoadGraph(stream_allminsep);
-  auto v_ams = full_graph_as_sub.AllMinimalSeparators();
+  auto gen = SeparatorGenerator(full_graph_as_sub);
+  auto v_ams = gen.Next(1'000'000);
+
   assert(v_ams.size() == 1);
   assert(v_ams[0].vertices.size() == 1);
   assert(full_graph_as_sub.vertices[v_ams[0].vertices[0]]->n == 0);
 
   std::istringstream stream_allminsep2("p tdp 6 6 1 2 2 3 3 4 4 5 5 6 6 1");
   LoadGraph(stream_allminsep2);
-  auto v_ams2 = full_graph_as_sub.AllMinimalSeparators();
+  auto gen2 = SeparatorGenerator(full_graph_as_sub);
+  auto v_ams2 = gen2.Next(1'000'000);
   assert(v_ams2.size() == 9);
 
   std::cout << "The minimal separators of the 6-cycle are:" << std::endl;
@@ -63,7 +66,8 @@ int main() {
 
   std::istringstream stream_ams3("p tdp 6 6 1 2 2 3 3 4 4 1 3 5 4 6");
   LoadGraph(stream_ams3);
-  auto v_ams3 = full_graph_as_sub.AllMinimalSeparators();
+  auto gen3 = SeparatorGenerator(full_graph_as_sub);
+  auto v_ams3 = gen3.Next(1'000'000);
   std::cout << "The minimal separators of the 4-cycle with two extra leaves "
                "attached to adjacent nodes are:"
             << std::endl;
@@ -93,7 +97,8 @@ int main() {
       "20 38 20 40 38 23 38 27 11 27 11 8 27 8 27 10 23 40 8 10");
   LoadGraph(stream_043);
   std::cout << "Computing all minimal separators for exact_043.gr...\n";
-  auto v_ams43 = full_graph_as_sub.AllMinimalSeparators();
+  auto gen43 = SeparatorGenerator(full_graph_as_sub);
+  auto v_ams43 = gen43.Next(1'000'000);
   std::cout << "There are " << v_ams43.size() << " of them." << std::endl;
 
 
