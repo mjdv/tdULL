@@ -97,7 +97,7 @@ void critical_rank_tree(const SubGraph &G, int v, int v_prev,
 
 std::pair<int, int> treedepth_tree(const SubGraph &G) {
   // Create vector of ranks, that we will pass around.
-  int N = G.vertices.size();
+  int N = G.N;
   std::vector<int> rank(N, -1);
 
   // Create list for every vertex
@@ -111,7 +111,7 @@ std::pair<int, int> treedepth_tree(const SubGraph &G) {
   for (int v = 0; v < N; v++) {
     if (rank[v] > maxr) {
       maxr = rank[v];
-      root = G.vertices[v]->n;
+      root = G.global[v];
     }
   }
   assert(root > -1);

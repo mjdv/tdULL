@@ -32,24 +32,28 @@ Graph::Graph(std::istream &stream) {
   }
 }
 
-SubGraph::SubGraph() : mask(full_graph.N, false) {}
+SubGraph::SubGraph() {}
 
 // Create a SubGraph of G with the given (local) vertices
 SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
     : SubGraph() {
-  assert(G.vertices.size() > sub_vertices.size());  // This is silly.
-  vertices.reserve(sub_vertices.size());
+  assert(G.N > sub_vertices.size());  // This is silly.
+  N = sub_vertices.size();
+  global.reserve(sub_vertices.size());
+
+  std::set<int> global_sub_vertices;
+  for(int v : sub_vertices)
+    global_sub_vertices.insert(G.global[v]);
 
   // This table will keep the mapping from G indices <-> indices subgraph.
-  std::vector<int> new_indices(G.vertices.size(), -1);
+  std::vector<int> new_indices(G.N, -1);
 
   // Add all new vertices to our subgraph.
   for (int v_new = 0; v_new < sub_vertices.size(); ++v_new) {
     int v_old = sub_vertices[v_new];
     new_indices[v_old] = v_new;
 
-    mask[G.vertices[v_old]->n] = true;
-    vertices.emplace_back(G.vertices[v_old]);
+    global.emplace_back(G.global[v_old]);
   }
 
   // Now find the new adjacency lists.
@@ -58,7 +62,7 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
     std::vector<int> nghbrs;
     nghbrs.reserve(G.Adj(v_old).size());
     for (int nghb_old : G.Adj(v_old))
-      if (mask[G.vertices[nghb_old]->n]) {
+      if (global_sub_vertices.find(G.global[nghb_old]) != global_sub_vertices.end()) {
         assert(new_indices[nghb_old] >= 0 &&
                new_indices[nghb_old] < sub_vertices.size());
         nghbrs.emplace_back(new_indices[nghb_old]);
@@ -76,17 +80,10 @@ SubGraph::SubGraph(const SubGraph &G, const std::vector<int> &sub_vertices)
 }
 
 void SubGraph::AssertValidSubGraph() const {
-  int N = vertices.size();
   assert(N > 0);
-  // First we do some sanity checks on the mask.
-  int N_mask = 0;
-  for (bool b : mask)
-    if (b) N_mask++;
-  assert(N_mask == N);
-  for (auto vtx : vertices) assert(mask[vtx->n]);
 
   // Check that no vertex occurs twice.
-  assert(std::set<Vertex *>(vertices.begin(), vertices.end()).size() == N);
+  assert(std::set<int>(global.begin(), global.end()).size() == N);
 
   // Check that the degrees coincide.
   assert(adj.size() == N);
@@ -101,7 +98,7 @@ void SubGraph::AssertValidSubGraph() const {
 
   // Create a mapping of global to local indices.
   std::map<int, int> glob_2_local;
-  for (int v = 0; v < N; ++v) glob_2_local[vertices[v]->n] = v;
+  for (int v = 0; v < N; ++v) glob_2_local[global[v]] = v;
   assert(glob_2_local.size() == N);
 
   // Now check that the adjacency matrix is indeed the `full` adjacency matrix.
@@ -111,15 +108,15 @@ void SubGraph::AssertValidSubGraph() const {
     assert(adj_set.size() == adj[v].size());
 
     // Loop over the global adjacency list.
-    int v_glob = vertices[v]->n;
+    int v_glob = global[v];
     assert(glob_2_local.count(v_glob));
-    for (int nghb_glob : full_graph.adj[v_glob]) {
+    /*for (int nghb_glob : full_graph.adj[v_glob]) {
       assert(glob_2_local.count(nghb_glob) == mask[nghb_glob]);
 
       // If we contain this nghbour, assert that its also in the local adj
       // list.
       if (mask[nghb_glob]) assert(adj_set.count(glob_2_local.at(nghb_glob)));
-    }
+    }*/
   }
 
   // Now check that this is indeed a connected graph.
@@ -144,7 +141,6 @@ void SubGraph::AssertValidSubGraph() const {
 // of G given by sub_vertices (in local coordinates).
 std::vector<SubGraph> SubGraph::ConnectedSubGraphs(
     const std::vector<int> &sub_vertices) const {
-  int N = vertices.size();
   std::vector<bool> in_sub_verts(N, false);
   std::vector<bool> visited(N, false);
   for (int v : sub_vertices) in_sub_verts[v] = true;
@@ -177,12 +173,13 @@ std::vector<SubGraph> SubGraph::ConnectedSubGraphs(
 }
 
 const std::vector<int> &SubGraph::Adj(int v) const {
-  assert(v >= 0 && v < vertices.size() && adj.size() == vertices.size());
+  assert(v >= 0 && v < N && adj.size() == N);
   return adj[v];
 }
-int SubGraph::LocalIndex(Vertex *v) const {
-  for (int v_local = 0; v_local < vertices.size(); ++v_local) {
-    if (vertices[v_local] == v) return v_local;
+
+int SubGraph::LocalIndex(int global_index) const {
+  for (int v_local = 0; v_local < N; ++v_local) {
+    if (global[v_local] == global_index) return v_local;
   }
   assert(false);
 }
@@ -191,7 +188,6 @@ std::vector<Separator> SubGraph::AllMinimalSeparators() const {
   // Complete graphs don't have separators. We want this to return a non-empty
   // vector.
   assert(!IsCompleteGraph());
-  int N = vertices.size();
   std::vector<bool> visited(N, false);
 
   // Result will contain all generated MinimalSeparators. In done we keep the
@@ -338,7 +334,6 @@ bool SubGraph::FullyMinimal(Separator &separator) const {
   // Shared datastructure.
   static std::stack<int> component;
 
-  int N = vertices.size();
   std::vector<bool> visited(N, false);
   std::vector<bool> in_sep(N, false);
   for (int s : separator.vertices) {
@@ -387,7 +382,6 @@ bool SubGraph::FullyMinimal(Separator &separator) const {
 
 std::vector<SubGraph> SubGraph::WithoutVertices(
     const std::vector<int> &S) const {
-  int N = vertices.size();
 
   std::vector<bool> in_S(N, false);
   for (auto s : S) in_S[s] = true;
@@ -402,7 +396,6 @@ std::vector<SubGraph> SubGraph::WithoutVertices(
 }
 
 std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
-  int N = vertices.size();
   assert(w >= 0 && w < N);
   std::vector<SubGraph> cc;
   static std::vector<int> stack;
@@ -413,8 +406,8 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
   std::vector<bool> visited(N, false);
 
   // Initiate a DFS from all of the vertices inside this subgraph.
-  int vertices_left = vertices.size();
-  for (int root = 0; root < vertices.size(); ++root) {
+  int vertices_left = N;
+  for (int root = 0; root < N; ++root) {
     if (vertices_left == 0) break;
     if (root == w) continue;
     if (!visited[root]) {
@@ -447,12 +440,11 @@ std::vector<SubGraph> SubGraph::WithoutVertex(int w) const {
 }
 
 std::vector<int> SubGraph::Bfs(int root) const {
-  int N = vertices.size();
-  assert(mask[vertices[root]->n]);
+  //assert(mask[vertices[root]->n]);
   std::vector<bool> visited(N, false);
 
   std::vector<int> result;
-  result.reserve(vertices.size());
+  result.reserve(N);
 
   static std::queue<int> queue;
   queue.push(root);
@@ -471,15 +463,15 @@ std::vector<int> SubGraph::Bfs(int root) const {
 }
 
 SubGraph SubGraph::BfsTree(int root) const {
-  assert(mask[vertices[root]->n]);
+  //assert(mask[vertices[root]->n]);
 
-  int N = vertices.size();
   std::vector<bool> visited(N, false);
 
   SubGraph result;
-  result.mask = mask;
-  result.vertices.reserve(vertices.size());
-  result.adj.resize(vertices.size());
+  result.N = N;
+  //result.mask = mask;
+  result.global.reserve(N);
+  result.adj.resize(N);
 
   static std::queue<int> queue;
   queue.push(root);
@@ -487,7 +479,7 @@ SubGraph SubGraph::BfsTree(int root) const {
   while (!queue.empty()) {
     int v = queue.front();
     queue.pop();
-    result.vertices.emplace_back(vertices[v]);
+    result.global.emplace_back(global[v]);
     for (int nghb : Adj(v))
       if (!visited[nghb]) {
         queue.push(nghb);
@@ -496,9 +488,9 @@ SubGraph SubGraph::BfsTree(int root) const {
         visited[nghb] = true;
       }
   }
-  result.M = vertices.size() - 1;
+  result.M = N - 1;
   int total_edges = 0;
-  for (int v = 0; v < result.vertices.size(); v++) {
+  for (int v = 0; v < result.N; v++) {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
     result.min_degree = std::min(result.min_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
@@ -509,14 +501,14 @@ SubGraph SubGraph::BfsTree(int root) const {
 }
 
 SubGraph SubGraph::DfsTree(int root) const {
-  assert(mask[vertices[root]->n]);
-  int N = vertices.size();
+  //assert(mask[vertices[root]->n]);
   std::vector<bool> visited(N, false);
 
   SubGraph result;
-  result.mask = mask;
-  result.vertices.reserve(vertices.size());
-  result.adj.resize(vertices.size());
+  result.N = N;
+  //result.mask = mask;
+  result.global.reserve(N);
+  result.adj.resize(N);
 
   static std::vector<int> stack;
   stack.push_back(root);
@@ -524,7 +516,7 @@ SubGraph SubGraph::DfsTree(int root) const {
   while (!stack.empty()) {
     int v = stack.back();
     stack.pop_back();
-    result.vertices.emplace_back(vertices[v]);
+    result.global.emplace_back(global[v]);
     for (int nghb : Adj(v))
       if (!visited[nghb]) {
         stack.push_back(nghb);
@@ -533,9 +525,9 @@ SubGraph SubGraph::DfsTree(int root) const {
         visited[nghb] = true;
       }
   }
-  result.M = vertices.size() - 1;
+  result.M = N - 1;
   int total_edges = 0;
-  for (int v = 0; v < result.vertices.size(); v++) {
+  for (int v = 0; v < result.N; v++) {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
     result.min_degree = std::min(result.min_degree, result.adj[v].size());
     total_edges += result.adj[v].size();
@@ -548,7 +540,6 @@ SubGraph SubGraph::DfsTree(int root) const {
 std::vector<SubGraph> SubGraph::kCore(int k) const {
   static std::vector<int> stack;
   assert(!IsTreeGraph());
-  int N = vertices.size();
   std::vector<bool> visited(N, false);
   int vertices_left = N;
 
@@ -610,7 +601,6 @@ std::vector<SubGraph> SubGraph::kCore(int k) const {
 
   for (int v = 0; v < N; v++) {
     assert(visited[v] == (degrees[v] > 0));
-    visited[v] = false;
   }
 
   return cc;
@@ -618,7 +608,6 @@ std::vector<SubGraph> SubGraph::kCore(int k) const {
 
 SubGraph SubGraph::TwoCore() const {
   assert(!IsTreeGraph());
-  int N = vertices.size();
   int vertices_left = N;
 
   // This will keep a list of all the (local) degrees.
@@ -662,11 +651,12 @@ void LoadGraph(std::istream &stream) {
 
   // Create the subgraph.
   full_graph_as_sub.M = full_graph.M;
-  full_graph_as_sub.mask = std::vector<bool>(full_graph.N, true);
-  for (int v = 0; v < full_graph.vertices.size(); ++v) {
+  full_graph_as_sub.N = full_graph.N;
+  //full_graph_as_sub.mask = std::vector<bool>(full_graph.N, true);
+  for (int v = 0; v < full_graph.N; ++v) {
     Vertex &vertex = full_graph.vertices[v];
     assert(vertex.n == v);
-    full_graph_as_sub.vertices.emplace_back(&full_graph.vertices[v]);
+    full_graph_as_sub.global.emplace_back(v);
     full_graph_as_sub.adj.emplace_back(full_graph.adj[v]);
     full_graph_as_sub.max_degree =
         std::max(full_graph_as_sub.max_degree, full_graph.adj[v].size());

@@ -46,6 +46,8 @@ bool isConnected(std::bitset<M> &edges) {
 }
 
 int main() {
+  return 0;
+  /*
   full_graph.N = N;
   for (int v = 0; v < N; v++) full_graph.vertices.emplace_back(v);
   std::vector<Vertex *> vertices;
@@ -103,5 +105,5 @@ int main() {
 
   std::cout << "Total connected graphs " << totalcc << " / " << total
             << std::endl;
-  return 0;
+  return 0;*/
 }

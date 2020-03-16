@@ -41,11 +41,12 @@ struct Separator {
 struct SubGraph {
   size_t max_degree = 0;        // Max degree of nodes inside this graph.
   size_t min_degree = INT_MAX;  // Min degree of nodes inside this graph.
-  int M = 0;                    // Number of edges in this subgraph.
+  int N = 0;                    // Number of vertices in this graph.
+  int M = 0;                    // Number of edges in this graph.
 
-  std::vector<Vertex *> vertices;  // List of vertices inside this subgraph.
-  std::vector<bool> mask;  // Bitset of the vertices inside this subgraph.
-  std::vector<std::vector<int>> adj;  // Adjacency list in local indexing.
+  std::vector<int> global;      // The global coordinates of the vertices in
+                                // this graph.
+  std::vector<std::vector<int>> adj;  // Adjacency list (local indexing).
 
   // Create an empty SubGraph.
   SubGraph();
@@ -65,7 +66,7 @@ struct SubGraph {
   const std::vector<int> &Adj(int v) const;
 
   // Get the local coordinate for a given vertex.
-  int LocalIndex(Vertex *v) const;
+  int LocalIndex(int global_index) const;
 
   // Get all minimal separators for the given graph (as lists of local
   // coordinates).
@@ -92,39 +93,32 @@ struct SubGraph {
 
   // Returns whether this is a complete graph.
   bool IsCompleteGraph() const {
-    int N = vertices.size();
     return N * (N - 1) == 2 * M;
   }
 
   // Returns whether this is a path graph.
   bool IsPathGraph() const {
-    int N = vertices.size();
     return (N - 1 == M) && (max_degree < 3);
   }
 
   // Returns whether this is a star graph.
   bool IsStarGraph() const {
-    int N = vertices.size();
     return (N - 1 == M) && (M == max_degree);
   }
 
   // Returns whether this is a cycle graph.
   bool IsCycleGraph() const {
-    int N = vertices.size();
     return (M == N) && (max_degree == 2);
   }
 
   // Returns whether this is a tree.
   bool IsTreeGraph() const {
-    int N = vertices.size();
     return N - 1 == M;
   }
 
   // Explicit conversion to vector of ints.
   operator std::vector<int>() const {
-    std::vector<int> result;
-    result.reserve(vertices.size());
-    for (Vertex *v : vertices) result.emplace_back(v->n);
+    std::vector<int> result = global;
     std::sort(result.begin(), result.end());
     return result;
   }

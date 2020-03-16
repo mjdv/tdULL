@@ -14,13 +14,13 @@ int main() {
   std::cout
       << "Removing one vertex at and check number of connected componenets"
       << std::endl;
-  for (int v = 0; v < full_graph_as_sub.vertices.size(); ++v) {
+  for (int v = 0; v < full_graph_as_sub.N; ++v) {
     auto cc = full_graph_as_sub.WithoutVertex(v);
 
-    std::cout << "\tG\\{" << full_graph_as_sub.vertices[v]->n << "} has "
+    std::cout << "\tG\\{" << full_graph_as_sub.global[v] << "} has "
               << cc.size() << " connnected components:" << std::endl;
     for (int c = 0; c < cc.size(); c++)
-      std::cout << "\t\tComponent " << c << " has " << cc[c].vertices.size()
+      std::cout << "\t\tComponent " << c << " has " << cc[c].N
                 << " vertices and " << cc[c].M << " edges with max_degree "
                 << cc[c].max_degree << std::endl;
   }
@@ -29,7 +29,7 @@ int main() {
       "p tdp 11 12 1 2 2 3 3 1 3 4 4 5 5 6 6 7 7 4 6 8 7 9 9 10 10 11");
   LoadGraph(stream_2core);
   auto core = full_graph_as_sub.TwoCore();
-  assert(core.vertices.size() == 7);
+  assert(core.N == 7);
   assert(core.M == 8);
 
   std::istringstream stream_3core(
@@ -38,8 +38,8 @@ int main() {
   auto cc_core3 = full_graph_as_sub.kCore(3);
   assert(cc_core3.size() == 1);
   auto core3 = cc_core3[0];
-  std::cout << core3.vertices.size() << " " << core3.M << std::endl;
-  assert(core3.vertices.size() == 4);
+  std::cout << core3.N << " " << core3.M << std::endl;
+  assert(core3.N == 4);
   assert(core3.M == 6);
 
   std::istringstream stream_allminsep("p tdp 6 5 1 2 1 3 1 4 1 5 1 6");
@@ -47,7 +47,6 @@ int main() {
   auto v_ams = full_graph_as_sub.AllMinimalSeparators();
   assert(v_ams.size() == 1);
   assert(v_ams[0].vertices.size() == 1);
-  assert(full_graph_as_sub.vertices[v_ams[0].vertices[0]]->n == 0);
 
   std::istringstream stream_allminsep2("p tdp 6 6 1 2 2 3 3 4 4 5 5 6 6 1");
   LoadGraph(stream_allminsep2);
@@ -57,7 +56,7 @@ int main() {
   std::cout << "The minimal separators of the 6-cycle are:" << std::endl;
   for (auto v : v_ams2) {
     assert(v.vertices.size() == 2);
-    for (int x : v.vertices) std::cout << full_graph_as_sub.vertices[x]->n << " ";
+    for (int x : v.vertices) std::cout << full_graph_as_sub.global[x] << " ";
     std::cout << std::endl;
   }
 
@@ -68,7 +67,7 @@ int main() {
                "attached to adjacent nodes are:"
             << std::endl;
   for (auto v : v_ams3) {
-    for (int x : v.vertices) std::cout << full_graph_as_sub.vertices[x]->n << " ";
+    for (int x : v.vertices) std::cout << full_graph_as_sub.global[x] << " ";
     std::cout << std::endl;
   }
 
