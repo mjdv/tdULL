@@ -45,11 +45,10 @@ bool isConnected(std::bitset<M> &edges) {
   return true;
 }
 
+// TODO Ray check of dit nog klopt
 int main() {
-  full_graph.N = N;
-  for (int v = 0; v < N; v++) full_graph.vertices.emplace_back(v);
-  std::vector<Vertex *> vertices;
-  for (int v = 0; v < N; v++) vertices.emplace_back(&full_graph.vertices[v]);
+  std::vector<int> vertices;
+  for (int v = 0; v < N; v++) vertices.emplace_back(v);
 
   for (int v = 0; v < N; ++v)
     for (int w = 0; w < N; ++w) mapping[v][w] = -1;
@@ -68,10 +67,9 @@ int main() {
     total++;
     if (isConnected(edges)) {
       totalcc++;
-      SubGraph sub;
-      sub.vertices = vertices;
+      Graph sub;
+      sub.global = vertices;
       sub.M = edges.count();
-      sub.mask = std::vector<bool>(N, true);
       sub.adj.resize(N);
       for (int v = 0; v < N; ++v) {
         for (int w = v + 1; w < N; ++w) {
@@ -84,13 +82,11 @@ int main() {
         sub.max_degree = std::max(sub.max_degree, sub.adj[v].size());
         sub.min_degree = std::min(sub.min_degree, sub.adj[v].size());
       }
-      auto [td, _] = treedepth(sub);
+      int td = treedepth(sub).first;
       int root = cache.Search(sub)->root;
       assert(root > -1 && td >= 1 && td <= N);
-      // std::cerr << ((td << 4) | root) << ",";
       output.put(uint8_t((td << 4) | root));
     } else {
-      // std::cerr << 0 << ",";
       output.put(0);
     }
     if (i % 10000 == 0) {
