@@ -161,14 +161,13 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   // Remove all leaves from the graph that have other leaves.
   {
     bool has_removed = false;
-    std::vector<bool> remove(G.N, false);
     for (int v = 0; v < G.N; v++) {
       if (G.Adj(v).size() == 1) continue;
       bool can_remove_leaves = false;
       for (int w : G.Adj(v)) {
         if (G.Adj(w).size() == 1) {
           if (can_remove_leaves) {
-            has_removed = remove[w] = true;
+            has_removed = full_graph_mask[w] = true;
           } else
             can_remove_leaves = true;
         }
@@ -178,7 +177,11 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
       std::vector<int> sub_vertices;
       sub_vertices.reserve(G.N);
       for (int v = 0; v < G.N; v++)
-        if (!remove[v]) sub_vertices.emplace_back(v);
+        if (full_graph_mask[v] == false)
+          sub_vertices.emplace_back(v);
+        else
+          full_graph_mask[w] = false;
+
       Graph H(G, sub_vertices);
       assert(H.N < G.N);
       return treedepth(H, search_lbnd, search_ubnd);
