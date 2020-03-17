@@ -43,8 +43,8 @@ int main(int argc, char **argv) {
       return 1;
     }
     time(&end);
-    std::cout << "Example took " << difftime(end, start) << " seconds."
-              << std::endl
+    std::cout << "Treedepth is " << true_depth << ". Example took "
+              << difftime(end, start) << " seconds." << std::endl
               << std::endl;
   }
   time(&end_total);

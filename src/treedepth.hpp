@@ -126,7 +126,7 @@ int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 // than d. Thus if we find a decomposition that can has depth at most d, i.e.
 // upper is at most search_lbnd, we are done.
 std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
-                                    int search_ubnd) {
+                                    int search_ubnd, bool bla = true) {
   int N = G.N;
   if (N == 1) return {1, 1, G.global[0]};
 
@@ -159,29 +159,32 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   }
   if (N == full_graph.N) std::cout << "full_graph::kCore" << std::endl;
 
-  // Below we calculate the smallest k-core that G can contain. If this is non-
-  // empty, we recursively calculate the treedepth on this core first. This
-  // should give a nice lower bound pretty rapidly.
-  auto cc_core = G.kCore(G.min_degree + 1);
+  if (bla) {
+    // Below we calculate the smallest k-core that G can contain. If this is
+    // non- empty, we recursively calculate the treedepth on this core first.
+    // This should give a nice lower bound pretty rapidly.
+    auto cc_core = G.kCore(G.min_degree + 1);
 
-  // If we do not have a kcore, simply remove a singly min degree vertex.
-  if (cc_core.empty())
-    for (int v = 0; v < N; ++v)
-      if (G.Adj(v).size() == G.min_degree) {
-        cc_core = G.WithoutVertex(v);
-        break;
+    // If we do not have a kcore, simply remove a singly min degree vertex.
+    if (cc_core.empty())
+      for (int v = 0; v < N; ++v)
+        if (G.Adj(v).size() == G.min_degree) {
+          cc_core = G.WithoutVertex(v);
+          break;
+        }
+
+    if (!cc_core.empty()) {
+      assert(cc_core[0].N < N);
+
+      // Sort the components on density.
+      std::sort(cc_core.begin(), cc_core.end(),
+                [](auto &c1, auto &c2) { return c1.M / c1.N > c2.M / c2.N; });
+      for (const auto &cc : cc_core) {
+        lower = std::max(lower,
+                         std::get<0>(treedepth(cc, std::max(search_lbnd, lower),
+                                               search_ubnd)));
+        if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
       }
-
-  if (!cc_core.empty()) {
-    assert(cc_core[0].N < N);
-
-    // Sort the components on density.
-    std::sort(cc_core.begin(), cc_core.end(),
-              [](auto &c1, auto &c2) { return c1.M / c1.N > c2.M / c2.N; });
-    for (const auto &cc : cc_core) {
-      lower =
-          std::max(lower, std::get<0>(treedepth(cc, search_lbnd, search_ubnd)));
-      if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
     }
   }
 
@@ -228,7 +231,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   SeparatorGenerator sep_generator(G);
   size_t total_separators = 0;
   while (sep_generator.HasNext()) {
-    auto separators = sep_generator.Next(100000);
+    auto separators = sep_generator.Next(1000);
     total_separators += separators.size();
     if (G.N == full_graph.N)
       std::cout << "full_graph generated total of " << total_separators
@@ -338,7 +341,70 @@ void reconstruct(const Graph &G, int root, std::vector<int> &tree, int td) {
 std::pair<int, std::vector<int>> treedepth(const Graph &G) {
   cache = SetTrie();
   time(&time_start_treedepth);
-  int td = std::get<1>(treedepth(G, 1, G.N));
+  std::vector<Graph> contractions{G};
+  while (contractions.back().N > 1) {
+    Graph H = contractions.back();
+    int x = H.min_degree;
+    std::vector<std::pair<int, int>> contract;
+    int best_v = -1;
+    int best_w = -1;
+    int best_v_common = 9999;
+    // std::cout << H.N << " ";
+    bool found = true;
+    while (found) {
+      found = false;
+      for (int v = 0; v < H.N; v++) {
+        if (H.Adj(v).size() == x) {
+          std::set<int> buren(H.Adj(v).begin(), H.Adj(v).end());
+          int best_nghb = -1;
+          int best_nghb_common = 99999;
+          for (int w : H.Adj(v)) {
+            int c = 0;
+            for (int x : H.Adj(w))
+              if (buren.count(x)) c++;
+            if (c < best_v_common) {
+              best_v = v;
+              best_w = w;
+              best_v_common = c;
+            }
+            if (c < best_nghb_common) {
+              best_nghb = w;
+              best_nghb_common = c;
+            }
+          }
+          contract.emplace_back(v, best_nghb);
+          H = H.Contract({v, best_nghb});
+          // found = true;
+          break;
+        }
+      }
+    }
+    // std::cout << " " << H.N << std::endl;
+    contractions.emplace_back(H);
+  }
+  // int lower = std::get<0>(treedepth(contractions[1], 1, G.N));
+  int lower = 1;
+  int lower_heuristics = 1;
+  std::cout << "N\tLower\tM/N+1\tmin_deg\tgamma_R\tTD_exact\tMMD" << std::endl;
+  for (int i = contractions.size() - 1; i > 0; --i) {
+    const auto &H = contractions[i];
+    auto [lower_H, upper_H, root_H] = treedepth(H, lower, H.N, false);
+    lower = std::max(lower, lower_H);
+    lower_heuristics = std::max(lower_heuristics, H.M / H.N + 1);
+    lower_heuristics = std::max(lower_heuristics, int(H.min_degree));
+    lower_heuristics = std::max(lower_heuristics, H.gamma_R());
+    lower_heuristics = std::max(lower_heuristics, H.MMD());
+    auto [td, root] = treedepth_exact(H);
+    if (td > -1 && root > -1) lower_heuristics = td;
+    std::cout << H.N << "\t" << lower << "\t" << H.M / H.N + 1 << "\t"
+              << H.min_degree << "\t" << H.gamma_R() << "\t" << td << "\t"
+              << H.MMD() << std::endl;
+    //    std::cout << i << " " << lower << " " << lower_heuristics << " "
+    //              << treedepth_exact(H).first << " " << H.N << " " << G.N
+    //              << std::endl;
+  }
+
+  int td = std::get<1>(treedepth(G, lower, G.N));
   std::vector<int> tree(G.N, -2);
   reconstruct(G, -1, tree, td);
   // The reconstruction is 0 based, the output is 1 based indexing, fix.

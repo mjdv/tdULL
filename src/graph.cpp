@@ -202,18 +202,18 @@ bool Graph::ConnectedSubset(const std::vector<int> vertices) const {
   std::stack<int> s;
   s.push(vertices[0]);
   visited[vertices[0]] = true;
-  while(s.size()) {
-    int cur = s.top(); s.pop();
-    for(int nb : Adj(cur)) {
-      if(!visited[nb]) {
+  while (s.size()) {
+    int cur = s.top();
+    s.pop();
+    for (int nb : Adj(cur)) {
+      if (!visited[nb]) {
         visited[nb] = true;
         s.push(nb);
       }
     }
   }
-  for(int v : vertices) {
-    if(!visited[v])
-      return false;
+  for (int v : vertices) {
+    if (!visited[v]) return false;
   }
   return true;
 }
@@ -228,8 +228,7 @@ Graph Graph::Contract(const std::vector<int> &contractors) const {
   std::cout << std::endl;*/
 
   std::vector<bool> in_contractors(N, false);
-  for(auto v : contractors)
-    in_contractors[v] = true;
+  for (auto v : contractors) in_contractors[v] = true;
 
   Graph contracted;
   contracted.N = N - ((int)contractors.size()) + 1;
@@ -239,10 +238,10 @@ Graph Graph::Contract(const std::vector<int> &contractors) const {
   std::vector<int> local_to_contracted_local(N, -1);
   std::vector<int> contracted_local_to_local(contracted.N, -1);
 
-  //std::cout << "Basic setup done.\n";
+  // std::cout << "Basic setup done.\n";
 
-  for(int i = 0; i < N; i++) {
-    if(!in_contractors[i]) {
+  for (int i = 0; i < N; i++) {
+    if (!in_contractors[i]) {
       local_to_contracted_local[i] = contracted.global.size();
       contracted_local_to_local[contracted.global.size()] = i;
 
@@ -250,33 +249,32 @@ Graph Graph::Contract(const std::vector<int> &contractors) const {
     }
   }
 
-  //std::cout << "Created all but one of global.\n";
+  // std::cout << "Created all but one of global.\n";
 
   std::vector<int> original_contractors;
-  for(int contractor : contractors)
-    for(int original_contractor : global_to_vertices[global[contractor]])
+  for (int contractor : contractors)
+    for (int original_contractor : global_to_vertices[global[contractor]])
       original_contractors.push_back(original_contractor);
 
   contracted.global.push_back(GetIndex(original_contractors));
 
-  //std::cout << "Created the global entry for the contracted vertex.\n";
+  // std::cout << "Created the global entry for the contracted vertex.\n";
 
-  //std::cout << "Going to fill contracted.adj.\n";
+  // std::cout << "Going to fill contracted.adj.\n";
   contracted.adj = std::vector<std::vector<int>>(contracted.N);
 
   // Adjacency list for non-contracted vertices.
-  for(int i = 0; i < contracted.N - 1; i++) {
+  for (int i = 0; i < contracted.N - 1; i++) {
     bool connected_to_contractors = false;
-    for(int nb : Adj(contracted_local_to_local[i])) {
-      if(in_contractors[nb]) {
-        if(!connected_to_contractors) {
+    for (int nb : Adj(contracted_local_to_local[i])) {
+      if (in_contractors[nb]) {
+        if (!connected_to_contractors) {
           connected_to_contractors = true;
           contracted.adj[i].push_back(contracted.N - 1);
           contracted.adj[contracted.N - 1].push_back(i);
           contracted.M += 2;
         }
-      }
-      else {
+      } else {
         contracted.adj[i].push_back(local_to_contracted_local[nb]);
         contracted.M++;
       }
@@ -286,11 +284,13 @@ Graph Graph::Contract(const std::vector<int> &contractors) const {
   assert(contracted.M % 2 == 0);
   contracted.M /= 2;
 
-  //std::cout << "Found " << contracted.M << " edges.\n";
+  // std::cout << "Found " << contracted.M << " edges.\n";
 
-  for(int i = 0; i < contracted.N; i++) {
-    contracted.min_degree = std::min(contracted.min_degree, contracted.adj[i].size());
-    contracted.max_degree = std::max(contracted.max_degree, contracted.adj[i].size());
+  for (int i = 0; i < contracted.N; i++) {
+    contracted.min_degree =
+        std::min(contracted.min_degree, contracted.adj[i].size());
+    contracted.max_degree =
+        std::max(contracted.max_degree, contracted.adj[i].size());
   }
 
   return contracted;
@@ -451,6 +451,41 @@ Graph Graph::DfsTree(int root) const {
   return result;
 }
 
+int Graph::gamma_R() const {
+  size_t gamma_R = N;
+  for (int v = 0; v < N; v++) {
+    for (int nghb_v : Adj(v)) full_graph_mask[nghb_v] = true;
+    for (int w = v + 1; w < N; w++)
+      if (!full_graph_mask[w])
+        gamma_R = std::min(gamma_R, std::max(Adj(v).size(), Adj(w).size()));
+    for (int nghb_v : Adj(v)) full_graph_mask[nghb_v] = false;
+  }
+  return int(gamma_R);
+}
+
+int Graph::MMD() const {
+  int maxmin = 0;
+  std::vector<std::vector<int>> adj_H = adj;
+  int vertices_left = N;
+  while (vertices_left > 2) {
+    int min_deg = N;
+    int min_v = -1;
+    for (int v = 0; v < N; v++)
+      if (adj_H[v].size() < min_deg) {
+        min_deg = adj_H[v].size();
+        min_v = v;
+      }
+    maxmin = std::max(maxmin, min_deg);
+    for (int w : adj_H[min_v]) {
+      adj_H[w].erase(std::remove(adj_H[w].begin(), adj_H[w].end(), min_v),
+                     adj_H[w].end());
+    }
+    adj_H[min_v].clear();
+    vertices_left--;
+  }
+  return maxmin;
+}
+
 std::vector<Graph> Graph::kCore(int k) const {
   static std::vector<int> stack;
   assert(!IsTreeGraph());
@@ -543,7 +578,7 @@ void LoadGraph(std::istream &stream) {
   global_to_vertices = std::vector<std::vector<int>>();
   vertices_to_global = std::map<std::vector<int>, int>();
 
-  for(int i = 0; i < full_graph.N; i++) {
+  for (int i = 0; i < full_graph.N; i++) {
     std::vector<int> i_vec = {i};
     global_to_vertices.push_back(i_vec);
     vertices_to_global[i_vec] = i;
@@ -556,7 +591,7 @@ void LoadGraph(std::istream &stream) {
 int GetIndex(std::vector<int> vertices) {
   sort(vertices.begin(), vertices.end());
   auto it = vertices_to_global.find(vertices);
-  if(it == vertices_to_global.end()) {
+  if (it == vertices_to_global.end()) {
     int new_index = vertices_to_global.size();
     vertices_to_global[vertices] = new_index;
     global_to_vertices.push_back(vertices);

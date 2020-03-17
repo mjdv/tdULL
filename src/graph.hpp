@@ -67,6 +67,12 @@ struct Graph {
   Graph BfsTree(int root) const;
   Graph DfsTree(int root) const;
 
+  // Compute the gamma_R for this graph.
+  int gamma_R() const;
+
+  // Compute the MMD for this graph.
+  int MMD() const;
+
   // Returns whether this is a complete graph.
   bool IsCompleteGraph() const { return N * (N - 1) == 2 * M; }
 
@@ -96,7 +102,6 @@ extern std::vector<bool> full_graph_mask;  // Global variable to be reused.
 // For going from global coordinates to sets of original vertices, and back.
 extern std::vector<std::vector<int>> global_to_vertices;
 extern std::map<std::vector<int>, int> vertices_to_global;
-
 
 // This initalizes the above global variables, important!
 void LoadGraph(std::istream &stream);
