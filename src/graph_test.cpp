@@ -78,20 +78,18 @@ int main() {
   std::cout << "Contracting one edge of the four-cycle...\n";
   Graph my_graph = full_graph.Contract({0, 1});
   std::cout << "This gives graph:\n";
-  for(int v = 0; v < my_graph.N; v++) {
+  for (int v = 0; v < my_graph.N; v++) {
     std::cout << my_graph.global[v] << "(" << v << "): ";
-    for(auto nb : my_graph.Adj(v))
-      std::cout << my_graph.global[nb] << " ";
+    for (auto nb : my_graph.Adj(v)) std::cout << my_graph.global[nb] << " ";
     std::cout << std::endl;
   }
 
   std::cout << "Contracting one more edge ...\n";
   my_graph = my_graph.Contract({0, 1});
   std::cout << "This gives graph:\n";
-  for(int v = 0; v < my_graph.N; v++) {
+  for (int v = 0; v < my_graph.N; v++) {
     std::cout << my_graph.global[v] << "(" << v << "): ";
-    for(auto nb : my_graph.Adj(v))
-      std::cout << my_graph.global[nb] << " ";
+    for (auto nb : my_graph.Adj(v)) std::cout << my_graph.global[nb] << " ";
     std::cout << std::endl;
   }
 

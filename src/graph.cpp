@@ -7,7 +7,7 @@ std::vector<bool> full_graph_mask;
 std::vector<std::vector<int>> global_to_vertices;
 std::map<std::vector<int>, int> vertices_to_global;
 
-int GetIndex(const std::vector<int> vertices);
+int GetIndex(std::vector<int> &vertices);
 
 Graph::Graph(std::istream &stream) {
   std::string str;
@@ -195,7 +195,7 @@ int Graph::LocalIndex(int global_index) const {
   assert(false);
 }
 
-bool Graph::ConnectedSubset(const std::vector<int> vertices) const {
+bool Graph::ConnectedSubset(const std::vector<int> &vertices) const {
   assert(vertices.size());
 
   std::vector<bool> visited(N, false);
@@ -588,7 +588,7 @@ void LoadGraph(std::istream &stream) {
             << full_graph.M << " edges. " << std::endl;
 }
 
-int GetIndex(std::vector<int> vertices) {
+int GetIndex(std::vector<int> &vertices) {
   sort(vertices.begin(), vertices.end());
   auto it = vertices_to_global.find(vertices);
   if (it == vertices_to_global.end()) {

@@ -44,7 +44,7 @@ struct Graph {
   int LocalIndex(int global_index) const;
 
   // Checks if the subset in vertices is a connected subset of the graph.
-  bool ConnectedSubset(const std::vector<int> vertices) const;
+  bool ConnectedSubset(const std::vector<int> &vertices) const;
 
   // Contract the vertices in `contractors` into a single vertex. Assumes that
   // `contractors` forms a connected subset of vertices.
