@@ -231,7 +231,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   SeparatorGenerator sep_generator(G);
   size_t total_separators = 0;
   while (sep_generator.HasNext()) {
-    auto separators = sep_generator.Next(1000);
+    auto separators = sep_generator.Next(10000);
     total_separators += separators.size();
     if (G.N == full_graph.N)
       std::cout << "full_graph generated total of " << total_separators
@@ -399,10 +399,16 @@ std::pair<int, std::vector<int>> treedepth(const Graph &G) {
         std::max(lower_heuristics, treedepth_exact(H.DfsTree(0)).first);
     auto [td, root] = treedepth_exact(H);
     if (td > -1 && root > -1) lower_heuristics = td;
+    size_t total_separators = 0;
+    if (!H.IsCompleteGraph()) {
+      SeparatorGenerator sep_generator(H);
+      auto separators = sep_generator.Next(200000);
+      total_separators = separators.size();
+    }
     std::cout << H.N << "\t" << lower << "\t" << H.M / H.N + 1 << "\t"
               << H.min_degree << "\t" << H.gamma_R() << "\t" << td << "\t"
-              << H.MMD() << "\t" << treedepth_tree(H.DfsTree(0)).first
-              << std::endl;
+              << H.MMD() << "\t" << treedepth_tree(H.DfsTree(0)).first << "\t"
+              << total_separators << std::endl;
     //    std::cout << i << " " << lower << " " << lower_heuristics << " "
     //              << treedepth_exact(H).first << " " << H.N << " " << G.N
     //              << std::endl;
