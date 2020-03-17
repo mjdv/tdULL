@@ -26,7 +26,8 @@
  */
 
 
-void root_rank(const SubGraph &G, int v, int v_prev, std::vector<std::set<int>> &L, int d) {
+void root_rank(const Graph &G, int v, int v_prev, std::vector<std::set<int>> &L, int d,
+    std::vector<int> &rank) {
   int a = 0;
   // a will contain the maximum over all elements of the L of neighbors of v
   for (auto vi : G.Adj(v)) {
@@ -38,7 +39,7 @@ void root_rank(const SubGraph &G, int v, int v_prev, std::vector<std::set<int>> 
   int avail = a + 1;
   L[v] = std::set<int>();
 
-  while (G.vertices[v]->rank == -1) {
+  while (rank[v] == -1) {
     c--;
 
     int i = -1;
@@ -58,7 +59,7 @@ void root_rank(const SubGraph &G, int v, int v_prev, std::vector<std::set<int>> 
 
     if (i == -2 or (c == 0 and d == 1)) {
       // if there are two subtrees with critical rank c, then v needs to get a higher rank
-      G.vertices[v]->rank = avail;
+      rank[v] = avail;
 
       auto it = L[v].lower_bound(avail);
       L[v].erase(L[v].begin(), it);
@@ -74,12 +75,12 @@ void root_rank(const SubGraph &G, int v, int v_prev, std::vector<std::set<int>> 
   }
 }
 
-void critical_rank_tree(const SubGraph &G, int v, int v_prev, 
-    std::vector<std::set<int>> &L) {
+void critical_rank_tree(const Graph &G, int v, int v_prev, 
+    std::vector<std::set<int>> &L, std::vector<int> &rank) {
 
   // if you are a leaf node and we're not the first node we're visiting
   if (G.Adj(v).size() == 1 and v != v_prev) {
-    G.vertices[v]->rank = 1;
+    rank[v] = 1;
     L[v] = {1};
   } else {
     int d = 0;
@@ -87,34 +88,32 @@ void critical_rank_tree(const SubGraph &G, int v, int v_prev,
       // for every subtree starting at a neighbor of v, compute the ranking + critical rank list
       if (vi != v_prev) {
         d++;
-        critical_rank_tree(G, vi, v, L);
+        critical_rank_tree(G, vi, v, L, rank);
       }
     }
-    root_rank(G, v, v_prev, L, d);
+    root_rank(G, v, v_prev, L, d, rank);
   }
 }
 
-std::pair<int, int> treedepth_tree(const SubGraph &G) {
-  // Reset all ranks
-  for (auto v : G.vertices) {
-    v->rank = -1;
-  }
+std::pair<int, int> treedepth_tree(const Graph &G) {
+  // Create vector of ranks, that we will pass around.
+  int N = G.N;
+  std::vector<int> rank(N, -1);
 
   // Create list for every vertex
-  auto L = std::vector<std::set<int>>(G.vertices.size(), std::set<int>());
+  auto L = std::vector<std::set<int>>(N, std::set<int>());
 
   // Start from vertex 0, can start from any vertex
-  critical_rank_tree(G, 0, 0, L);
+  critical_rank_tree(G, 0, 0, L, rank);
 
   // Find the root with the max rank
   int maxr = 0, root = -1;
-  for (auto &v : G.vertices) {
-    if (v->rank > maxr) {
-      maxr = v->rank;
-      root = v->n;
+  for (int v = 0; v < N; v++) {
+    if (rank[v] > maxr) {
+      maxr = rank[v];
+      root = G.global[v];
     }
   }
   assert(root > -1);
   return {maxr, root};
 }
-
