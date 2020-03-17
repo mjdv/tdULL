@@ -157,11 +157,39 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
   }
+
+  // Remove all leaves from the graph that have other leaves.
+  {
+    bool has_removed = false;
+    std::vector<bool> remove(G.N, false);
+    for (int v = 0; v < G.N; v++) {
+      if (G.Adj(v).size() == 1) continue;
+      bool can_remove_leaves = false;
+      for (int w : G.Adj(v)) {
+        if (G.Adj(w).size() == 1) {
+          if (can_remove_leaves) {
+            has_removed = remove[w] = true;
+          } else
+            can_remove_leaves = true;
+        }
+      }
+    }
+    if (has_removed) {
+      std::vector<int> sub_vertices;
+      sub_vertices.reserve(G.N);
+      for (int v = 0; v < G.N; v++)
+        if (!remove[v]) sub_vertices.emplace_back(v);
+      Graph H(G, sub_vertices);
+      assert(H.N < G.N);
+      return treedepth(H, search_lbnd, search_ubnd);
+    }
+  }
+
   if (N == full_graph.N) std::cout << "full_graph::kCore" << std::endl;
 
-  // Below we calculate the smallest k-core that G can contain. If this is non-
-  // empty, we recursively calculate the treedepth on this core first. This
-  // should give a nice lower bound pretty rapidly.
+  // Below we calculate the smallest k-core that G can contain. If this is
+  // non- empty, we recursively calculate the treedepth on this core first.
+  // This should give a nice lower bound pretty rapidly.
   auto cc_core = G.kCore(G.min_degree + 1);
 
   // If we do not have a kcore, simply remove a singly min degree vertex.
@@ -185,8 +213,8 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     }
   }
 
-  // If G doesn't exist in the cache, lets add it now, since we will start doing
-  // some real work.
+  // If G doesn't exist in the cache, lets add it now, since we will start
+  // doing some real work.
   if (node == nullptr) {
     node = cache.Insert(G).first;
     node->lower_bound = lower;
