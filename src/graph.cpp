@@ -197,6 +197,8 @@ int Graph::LocalIndex(int global_index) const {
 
 bool Graph::ConnectedSubset(const std::vector<int> vertices) const {
   assert(vertices.size());
+  std::vector<bool> in_vertices(N, false);
+  for(int v : vertices) in_vertices[v] = true;
 
   std::vector<bool> visited(N, false);
   std::stack<int> s;
@@ -205,7 +207,7 @@ bool Graph::ConnectedSubset(const std::vector<int> vertices) const {
   while(s.size()) {
     int cur = s.top(); s.pop();
     for(int nb : Adj(cur)) {
-      if(!visited[nb]) {
+      if(!visited[nb] && in_vertices[nb]) {
         visited[nb] = true;
         s.push(nb);
       }
