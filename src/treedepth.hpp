@@ -385,8 +385,9 @@ std::pair<int, std::vector<int>> treedepth(const Graph &G) {
   // int lower = std::get<0>(treedepth(contractions[1], 1, G.N));
   int lower = 1;
   int lower_heuristics = 1;
-  std::cout << "N\tLower\tM/N+1\tmin_deg\tgamma_R\tTD_exact\tMMD" << std::endl;
-  for (int i = contractions.size() - 1; i > 0; --i) {
+  std::cout << "N\tLower\tM/N+1\tmin_deg\tgamma_R\tTD_exact\tMMD\tDFS"
+            << std::endl;
+  for (int i = contractions.size() - 2; i > 0; --i) {
     const auto &H = contractions[i];
     auto [lower_H, upper_H, root_H] = treedepth(H, lower, H.N, false);
     lower = std::max(lower, lower_H);
@@ -394,11 +395,14 @@ std::pair<int, std::vector<int>> treedepth(const Graph &G) {
     lower_heuristics = std::max(lower_heuristics, int(H.min_degree));
     lower_heuristics = std::max(lower_heuristics, H.gamma_R());
     lower_heuristics = std::max(lower_heuristics, H.MMD());
+    lower_heuristics =
+        std::max(lower_heuristics, treedepth_exact(H.DfsTree(0)).first);
     auto [td, root] = treedepth_exact(H);
     if (td > -1 && root > -1) lower_heuristics = td;
     std::cout << H.N << "\t" << lower << "\t" << H.M / H.N + 1 << "\t"
               << H.min_degree << "\t" << H.gamma_R() << "\t" << td << "\t"
-              << H.MMD() << std::endl;
+              << H.MMD() << "\t" << treedepth_tree(H.DfsTree(0)).first
+              << std::endl;
     //    std::cout << i << " " << lower << " " << lower_heuristics << " "
     //              << treedepth_exact(H).first << " " << H.N << " " << G.N
     //              << std::endl;
