@@ -183,7 +183,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         if (full_graph_mask[v] == false)
           sub_vertices.emplace_back(v);
         else
-          full_graph_mask[w] = false;
+          full_graph_mask[v] = false;
 
       Graph H(G, sub_vertices);
       assert(H.N < G.N);
