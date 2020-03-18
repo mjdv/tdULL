@@ -8,7 +8,7 @@
 #include <utility>
 
 // Hash combine function from Boost.
-inline void BoostHashCombineAlternative(uint32_t& h1, uint32_t k1) {
+inline void BoostHashCombine(uint32_t& h1, uint32_t k1) {
   const uint32_t c1 = 0xcc9e2d51;
   const uint32_t c2 = 0x1b873593;
 
@@ -22,24 +22,34 @@ inline void BoostHashCombineAlternative(uint32_t& h1, uint32_t k1) {
 }
 
 // Another hash combine function from Boost.
-inline void BoostHashCombine(uint32_t& seed, uint32_t value) {
+inline void BoostHashCombineAlternative(uint32_t& seed, uint32_t value) {
   seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
 std::pair<uint32_t, std::vector<uint32_t>> GraphHash(
     const std::vector<std::vector<int>>& G) {
   std::vector<uint32_t> hashes, hashes_prev;
-  hashes.reserve(G.size());
-  for (int v = 0; v < G.size(); v++) hashes.push_back(G[v].size());
+  int N = G.size();
+  int M = 0;
+  int min_degree = N;
+  int max_degree = 0;
+  hashes.reserve(N);
+  for (int v = 0; v < N; v++) {
+    min_degree = std::min(min_degree, int(G[v].size()));
+    max_degree = std::max(max_degree, int(G[v].size()));
+    hashes.push_back(G[v].size());
+    M += G[v].size();
+  }
+  M = M / 2;
 
   // Variable that will hold sorted neighbours.
-  std::vector<int> sorted(G.size());
+  std::vector<int> sorted(N);
 
-  for (int i = 0; i < G.size() / 2 + 1; ++i) {
+  for (int i = 0; i < N / 2 + 1; ++i) {
     hashes_prev = hashes;
 
     // Calculate new hashes.
-    for (int v = 0; v < G.size(); ++v) {
+    for (int v = 0; v < N; ++v) {
       const std::vector<int>& nghbrs = G[v];
       // Sort neighbours on their current hash value.
       std::iota(sorted.begin(), sorted.begin() + G[v].size(), 0);
@@ -60,8 +70,12 @@ std::pair<uint32_t, std::vector<uint32_t>> GraphHash(
       hashes[v] = seed;
     }
   }
-  // Calculate the final hash.
-  uint32_t seed = G.size();
+  // Calculate the final hash, seed with some general characteristics of G.
+  uint32_t seed = N;
+  BoostHashCombine(seed, M);
+  BoostHashCombine(seed, min_degree);
+  BoostHashCombine(seed, max_degree);
+
   std::iota(sorted.begin(), sorted.end(), 0);
   std::sort(sorted.begin(), sorted.end(),
             [&hashes](int v1, int v2) { return hashes[v1] < hashes[v2]; });
