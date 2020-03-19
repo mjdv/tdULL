@@ -97,7 +97,6 @@ extern std::vector<bool> full_graph_mask;  // Global variable to be reused.
 extern std::vector<std::vector<int>> global_to_vertices;
 extern std::map<std::vector<int>, int> vertices_to_global;
 
-
 // This initalizes the above global variables, important!
 void LoadGraph(std::istream &stream);
 

@@ -12,9 +12,6 @@
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
 
-std::vector<int> lowest_waste(const Graph &G);
-std::vector<int> min_degree_lw(const Graph &G);
-
 // Trivial treedepth implementation, useful for simple sanity checks.
 int treedepth_trivial(const Graph &G) {
   if (G.N == 1) return 1;
@@ -102,7 +99,7 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
+int max_time_treedepth = 30 * 60;  // A time limit of thirty minutes.
 
 // The function treedepth computes Treedepth bounds on subgraphs of the global
 // graph.
@@ -229,9 +226,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     std::cout << "Initialize full_graph sep_generator." << std::endl;
   SeparatorGenerator sep_generator(G);
   size_t total_separators = 0;
-  int step_counter = 0;
   while (sep_generator.HasNext()) {
-    step_counter++;
     auto separators = sep_generator.Next(1000);
     total_separators += separators.size();
     if (G.N == full_graph.N)
@@ -312,77 +307,9 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         return {lower, upper, root};
       }
     }
-
-    if(step_counter == 1 && sep_generator.HasNext()) {
-      //std::cerr << "Doing the contraction for a graph with N = " << G.N << ".\n";
-      // We hope that our upper is quite good at this point.
-      Graph con = G;
-      while(con.N > std::min(upper + 10, (G.N + upper - 1)/2)) { 
-        // This 10 might be wrong. Testing required.
-        con = con.Contract(min_degree_lw(con));
-      }
-      int lower_from_con = std::get<0>(treedepth(con, lower, upper));
-      lower = std::max(lower, lower_from_con);
-    }
   }
   node->lower_bound = lower = std::max(lower, new_lower);
   return {lower, upper, root};
-}
-
-std::vector<int> min_degree_lw(const Graph &G) {
-  assert(G.N >= 2);
-  std::vector<std::vector<bool>> mat(G.N, std::vector<bool>(G.N, false));
-  for(int i = 0; i < G.N; i++)
-    for(auto j : G.Adj(i))
-      mat[i][j] = true;
-  int lowest_waste = G.N;
-  std::vector<int> result = {-1, -1};
-  for(int i = 0; i < G.N; i++) {
-    if(G.Adj(i).size() != G.min_degree)
-      continue;
-    for(int j : G.Adj(i)) {
-      int waste = 0;
-      for(int k = 0; k < G.N; k++) {
-        if(mat[i][k] && mat[j][k])
-          waste++;
-      }
-      if(waste < lowest_waste) {
-        lowest_waste = waste;
-        result[0] = i;
-        result[1] = j;
-      }
-    }
-  }
-  assert(result[0] >= 0 && result[0] < G.N && result[1] >= 0 && result[1] < G.N);
-  return result;
-}
-
-std::vector<int> lowest_waste(const Graph &G) {
-  assert(G.N >= 2);
-  std::vector<std::vector<bool>> mat(G.N, std::vector<bool>(G.N, false));
-  for(int i = 0; i < G.N; i++)
-    for(auto j : G.Adj(i))
-      mat[i][j] = true;
-  int lowest_waste = G.N;
-  std::vector<int> result = {-1, -1};
-  for(int i = 0; i < G.N; i++) {
-    for(int j : G.Adj(i)) {
-      if(j < i)
-        continue;
-      int waste = 0;
-      for(int k = 0; k < G.N; k++) {
-        if(mat[i][k] && mat[j][k])
-          waste++;
-      }
-      if(waste < lowest_waste) {
-        lowest_waste = waste;
-        result[0] = i;
-        result[1] = j;
-      }
-    }
-  }
-  assert(result[0] >= 0 && result[0] < G.N && result[1] >= 0 && result[1] < G.N);
-  return result;
 }
 
 // Recursive function to reconstruct the tree that atains the treedepth.
