@@ -181,9 +181,6 @@ std::vector<Graph> Graph::ConnectedGraphs(
 }
 
 const std::vector<int> &Graph::Adj(int v) const {
-  /*std::cout << "\n\n";
-  std::cout << v << " " << N << " " << adj.size() << std::endl;
-  std::cout << "\n\n";*/
   assert(v >= 0 && v < N && adj.size() == N);
   return adj[v];
 }
@@ -196,12 +193,14 @@ int Graph::LocalIndex(int global_index) const {
 }
 
 bool Graph::ConnectedSubset(const std::vector<int> vertices) const {
+  static std::stack<int> s;
+  assert(s.empty());
   assert(vertices.size());
+
   std::vector<bool> in_vertices(N, false);
   for (int v : vertices) in_vertices[v] = true;
 
   std::vector<bool> visited(N, false);
-  std::stack<int> s;
   s.push(vertices[0]);
   visited[vertices[0]] = true;
   while (s.size()) {
