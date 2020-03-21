@@ -75,6 +75,26 @@ int main() {
     std::cout << std::endl;
   }
 
+  std::cout << "Contracting one edge of the four-cycle...\n";
+  Graph my_graph = full_graph.Contract({0, 1});
+  std::cout << "This gives graph:\n";
+  for(int v = 0; v < my_graph.N; v++) {
+    std::cout << my_graph.global[v] << "(" << v << "): ";
+    for(auto nb : my_graph.Adj(v))
+      std::cout << my_graph.global[nb] << " ";
+    std::cout << std::endl;
+  }
+
+  std::cout << "Contracting one more edge ...\n";
+  my_graph = my_graph.Contract({0, 1});
+  std::cout << "This gives graph:\n";
+  for(int v = 0; v < my_graph.N; v++) {
+    std::cout << my_graph.global[v] << "(" << v << "): ";
+    for(auto nb : my_graph.Adj(v))
+      std::cout << my_graph.global[nb] << " ";
+    std::cout << std::endl;
+  }
+
   // Graph exact_043.gr.
   std::istringstream stream_043(
       "p tdp 40 129 9 26 9 21 9 14 9 19 9 8 9 25 9 29 9 11 9 10 9 7 26 11 26 "
