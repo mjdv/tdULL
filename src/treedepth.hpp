@@ -170,7 +170,6 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         cc_core = G.WithoutVertex(v);
         break;
       }
-
   if (!cc_core.empty()) {
     assert(cc_core[0].N < G.N);
 

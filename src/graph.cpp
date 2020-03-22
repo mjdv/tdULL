@@ -406,26 +406,27 @@ Graph Graph::DfsTree(int root) const {
 
   Graph result;
   result.N = N;
-  // result.mask = mask;
   result.global.reserve(N);
   result.adj.resize(N);
 
-  static std::vector<int> stack;
-  stack.push_back(root);
-  visited[root] = true;
+  static std::vector<std::pair<int, int>> stack;
+  stack.emplace_back(root, -1);
+
   while (!stack.empty()) {
-    int v = stack.back();
+    auto [v, prev] = stack.back();
     stack.pop_back();
+    if (visited[v]) continue;
+    if (prev != -1) {
+      result.adj[v].push_back(prev);
+      result.adj[prev].push_back(v);
+    }
+    visited[v] = true;
     result.global.emplace_back(global[v]);
     for (int nghb : Adj(v))
-      if (!visited[nghb]) {
-        stack.push_back(nghb);
-        result.adj[v].push_back(nghb);
-        result.adj[nghb].push_back(v);
-        visited[nghb] = true;
-      }
+      if (!visited[nghb]) stack.emplace_back(nghb, v);
   }
-  result.M = N - 1;
+
+  result.M = N- 1;
   int total_edges = 0;
   for (int v = 0; v < result.N; v++) {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
