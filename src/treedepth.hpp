@@ -127,10 +127,10 @@ int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 // upper is at most search_lbnd, we are done.
 std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
                                     int search_ubnd) {
-  if (G.N == 1) return {1, 1, G.global[0]};
+  if (G.IsCompleteGraph()) return {G.N, G.N, G.global[0]};
 
   // Try the trivial bounds.
-  int lower = G.M / G.N + 1;
+  int lower = std::max(G.M / G.N + 1, int(G.min_degree) + 1);
   int upper = G.N;
   int root = G.global[0];
 
