@@ -42,13 +42,13 @@ int main() {
   assert(core3.N == 4);
   assert(core3.M == 6);
 
-  std::istringstream stream_allminsep("p tdp 6 5 1 2 1 3 1 4 1 5 1 6");
+  /*std::istringstream stream_allminsep("p tdp 6 5 1 2 1 3 1 4 1 5 1 6");
   LoadGraph(stream_allminsep);
   auto gen = SeparatorGenerator(full_graph);
   auto v_ams = gen.Next(1'000'000);
 
   assert(v_ams.size() == 1);
-  assert(v_ams[0].vertices.size() == 1);
+  assert(v_ams[0].vertices.size() == 1);*/
 
   std::istringstream stream_allminsep2("p tdp 6 6 1 2 2 3 3 4 4 5 5 6 6 1");
   LoadGraph(stream_allminsep2);

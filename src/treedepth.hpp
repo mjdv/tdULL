@@ -227,6 +227,15 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   size_t total_separators = 0;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(100000);
+    std::cout << "separators: ";
+    for(auto v : separators) {
+      std::cout << "{";
+      for(int i : v.vertices) {
+        std::cout << i << " ";
+      }
+      std::cout << "} ";
+    }
+    std::cout << "\n";
     total_separators += separators.size();
     if (G.N == full_graph.N)
       std::cout << "full_graph generated total of " << total_separators
