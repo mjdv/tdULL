@@ -556,8 +556,45 @@ int GetIndex(std::vector<int> &vertices) {
 SeparatorGenerator::SeparatorGenerator(const Graph &G)
     : G(G), in_nbh(G.N, false) {
   // Complete graphs don't have separators. We want this to return a non-empty
-  // vector.
+  // vector. Tree graphs don't work well with two-cores, so we also assume we
+  // don't get one of those.
   assert(!G.IsCompleteGraph());
+  assert(!G.IsTreeGraph());
+
+  // Let's compute the two-core.
+
+  in_two_core = std::vector<bool>(G.N, true);
+  is_special_vertex = std::vector<bool>(G.N, false);
+
+  // Number of adjacent vertices.
+  std::vector<int> num_adj(G.N, 0);
+  for(int i = 0; i < G.N; i++)
+    num_adj[i] = G.Adj(i).size();
+
+  // Compute the two-core mask.
+  for(int i = 0; i < G.N; i++) {
+    if(num_adj[i] == 1) {
+      int cur = i;
+      while(num_adj[cur] == 1) {
+        in_two_core[cur] = false;
+        num_adj[cur] = 0;
+        for(int nb : G.Adj(cur)) {
+          if(num_adj[nb] != 1) {
+            num_adj[nb]--;
+            cur = nb;
+            break;
+          }
+        }
+      }
+    }
+  }
+  for(int i = 0; i < G.N; i++) {
+    if(num_adj[i] != G.Adj(i).size() && G.Adj(i).size() != 1) {
+      small_separators.push_back(i);
+      special_vertex_queue.push(i);
+      is_special_vertex[i] = true;
+    }
+  }
 
   // Datatypes that will be reused.
   std::stack<int> component;
@@ -572,6 +609,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
   // point).
   std::vector<int> neighborhood;
   for (int i = 0; i < G.N; i++) {
+    if(!in_two_core[i]) continue;
     if (G.Adj(i).size() == G.N - 1) continue;
     neighborhood.clear();
     neighborhood.push_back(i);
@@ -582,7 +620,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
     // Now we start off by enqueueing all neighborhoods of connected components
     // in the complement of this neighborhood.
     for (int j = 0; j < G.N; j++) {
-      if (in_nbh[j] || visited[j]) continue;
+      if (in_nbh[j] || visited[j] || !in_two_core[j]) continue;
 
       // Reset shared datastructures.
       assert(component.empty());
@@ -596,7 +634,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
         component.pop();
 
         for (int nb : G.Adj(cur)) {
-          if (!visited[nb]) {
+          if (!visited[nb] && in_two_core[nb]) {
             if (in_nbh[nb]) {
               separator.push_back(nb);
             } else {
@@ -631,6 +669,15 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
   std::vector<bool> visited(G.N, false);
 
   std::vector<Separator> result;
+  while(!special_vertex_queue.empty() && result.size() < k) {
+    int special_v = special_vertex_queue.front();
+    special_vertex_queue.pop();
+    Separator sep;
+    sep.vertices = {special_v};
+    // TODO: Set comp field of sep properly
+    result.push_back(sep);
+  }
+
   while (!queue.empty() && result.size() < k) {
     auto cur_separator = queue.front();
     queue.pop();
@@ -640,7 +687,7 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
       for (int j : cur_separator) in_nbh[j] = true;
 
       for (int j = 0; j < G.N; j++) {
-        if (in_nbh[j] || visited[j]) continue;
+        if (in_nbh[j] || visited[j] || !in_two_core[j]) continue;
         // Reset shared datastructures.
         assert(component.empty());
         separator.clear();
@@ -653,7 +700,7 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
           component.pop();
 
           for (int nb : G.Adj(cur)) {
-            if (!visited[nb]) {
+            if (!visited[nb] && in_two_core[nb]) {
               if (in_nbh[nb]) {
                 separator.push_back(nb);
               } else {
@@ -707,6 +754,11 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
 // and edges in the components that remain when removing this separator from
 // the graph.
 bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
+  for(auto v : separator.vertices) {
+    if(is_special_vertex[v])
+      return false;
+  }
+
   // Shared datastructure.
   static std::stack<int> component;
 

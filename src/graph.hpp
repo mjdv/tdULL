@@ -147,4 +147,11 @@ class SeparatorGenerator {
   std::unordered_set<std::vector<bool>> done;
 
   std::vector<bool> in_nbh;
+
+  // Keep track of which values are in the two_core, and which single vertices
+  // are small separators.
+  std::vector<bool> in_two_core;
+  std::vector<bool> small_separators;
+  std::queue<int> special_vertex_queue;
+  std::vector<bool> is_special_vertex;
 };
