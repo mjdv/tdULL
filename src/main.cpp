@@ -33,6 +33,43 @@ int main(int argc, char** argv) {
     //                start)
     //                << " seps / s.\n";
     //    }
+    auto ap = full_graph.ArticulationPoints();
+    assert(std::set<int>(ap.begin(), ap.end()).size() == ap.size());
+    for (int v : ap) assert(v >= 0 && v < full_graph.N);
+    // auto cc = full_graph.WithoutVertices(ap);
+    // std::sort(cc.begin(), cc.end(),
+    //          [](auto c1, auto c2) { return c1.N > c2.N; });
+    std::cerr << ExtractFileName(argv[1]) << " has " << full_graph.N
+              << " vertices, and " << ap.size() << " articulation points"
+              << std::endl;
+    auto core = full_graph.kCore(2);
+    assert(core.size() == 1);
+    auto core_ap = core[0].ArticulationPoints();
+    std::cerr << ExtractFileName(argv[1]) << " 2core has " << core[0].N
+              << " vertices, and " << core_ap.size() << " articulation points"
+              << std::endl;
+    if (core_ap.size()) {
+      std::cerr
+          << "Upon removing these articulation points from the 2core, the "
+             "component sizes are:"
+          << std::endl;
+      auto cc = core[0].WithoutVertices(core_ap);
+      std::sort(cc.begin(), cc.end(),
+                [](auto c1, auto c2) { return c1.N > c2.N; });
+      for (auto c : cc) std::cerr << c.N << ", ";
+      std::cerr << std::endl;
+
+      SeparatorGenerator sep_gen(cc[0]);
+      auto seps = sep_gen.Next(100000).size();
+      if (!sep_gen.HasNext())
+        std::cerr << "Largest component has " << seps << " separators"
+                  << std::endl;
+      else
+        std::cerr << "Largest component has more than " << seps
+                  << " separators " << std::endl;
+    }
+    std::cerr << std::endl;
+    return 0;
     auto [td, tree] = treedepth(full_graph);
     time(&end);
     std::cout << "Treedepth is: " << td << std::endl;
