@@ -99,7 +99,7 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now. 
+int max_time_treedepth = 30 * 60;  // A time limit of TEN minuts for now. 
 
 // The function treedepth computes Treedepth bounds on subgraphs of the global
 // graph.
@@ -227,7 +227,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   size_t total_separators = 0;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(100000);
-    std::cout << "separators: ";
+    /*std::cout << "separators: ";
     for(auto v : separators) {
       std::cout << "{";
       for(int i : v.vertices) {
@@ -235,7 +235,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
       }
       std::cout << "} ";
     }
-    std::cout << "\n";
+    std::cout << "\n";*/
     total_separators += separators.size();
     if (G.N == full_graph.N)
       std::cout << "full_graph generated total of " << total_separators

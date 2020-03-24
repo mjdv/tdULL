@@ -564,6 +564,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
   // Let's compute the two-core.
 
   in_two_core = std::vector<bool>(G.N, true);
+  int num_in_two_core = G.N;
   is_special_vertex = std::vector<bool>(G.N, false);
 
   // Number of adjacent vertices.
@@ -577,9 +578,10 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
       int cur = i;
       while(num_adj[cur] == 1) {
         in_two_core[cur] = false;
+        num_in_two_core--;
         num_adj[cur] = 0;
         for(int nb : G.Adj(cur)) {
-          if(num_adj[nb] != 1) {
+          if(num_adj[nb] > 1) {
             num_adj[nb]--;
             cur = nb;
             break;
@@ -588,6 +590,10 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
       }
     }
   }
+
+  //assert(num_in_two_core == G.kCore(2)[0].N);
+  //assert(!G.kCore(2)[0].IsCompleteGraph());
+
   for(int i = 0; i < G.N; i++) {
     if(num_adj[i] != G.Adj(i).size() && G.Adj(i).size() != 1) {
       small_separators.push_back(i);
@@ -613,7 +619,9 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
     if (G.Adj(i).size() == G.N - 1) continue;
     neighborhood.clear();
     neighborhood.push_back(i);
-    neighborhood.insert(neighborhood.end(), G.Adj(i).begin(), G.Adj(i).end());
+    for(int nb : G.Adj(i))
+      if(in_two_core[nb])
+        neighborhood.push_back(nb);
 
     for (int v : neighborhood) in_nbh[v] = true;
 
@@ -648,6 +656,8 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
       for (auto k : neighborhood) visited[k] = false;
 
       // std::sort(separator.begin(), separator.end());
+      if(separator.size() == 1 && is_special_vertex[separator[0]])
+        continue;
       for (int k : separator) sep_mask[k] = true;
       if (done.find(sep_mask) == done.end()) {
         queue.push(separator);
@@ -675,6 +685,7 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
     Separator sep;
     sep.vertices = {special_v};
     // TODO: Set comp field of sep properly
+    sep.comp.push_back(std::make_pair(G.N, G.M));
     result.push_back(sep);
   }
 
@@ -683,7 +694,7 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
     queue.pop();
 
     for (int x : cur_separator) {
-      for (int j : G.Adj(x)) in_nbh[j] = true;
+      for (int j : G.Adj(x)) in_nbh[j] = in_two_core[j];
       for (int j : cur_separator) in_nbh[j] = true;
 
       for (int j = 0; j < G.N; j++) {
@@ -715,6 +726,8 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
         for (auto k : G.Adj(x)) visited[k] = false;
 
         // std::sort(separator.begin(), separator.end());
+        if(separator.size() == 1 && is_special_vertex[separator[0]])
+          continue;
         for (int k : separator) sep_mask[k] = true;
         if (done.find(sep_mask) == done.end()) {
           queue.push(separator);
@@ -770,7 +783,7 @@ bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
   }
 
   for (int i = 0; i < G.N; i++) {
-    if (!visited[i] && !in_sep[i]) {
+    if (!visited[i] && !in_sep[i] && in_two_core[i]) {
       assert(component.empty());
 
       int comp_N = 1;
@@ -782,14 +795,16 @@ bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
         int cur = component.top();
         component.pop();
         for (int nb : G.Adj(cur)) {
-          if (!in_sep[nb]) {
-            comp_M++;
-            if (!visited[nb]) {
-              comp_N++;
-              component.push(nb);
+          if(in_two_core[nb]) {
+            if (!in_sep[nb]) {
+              comp_M++;
+              if (!visited[nb]) {
+                comp_N++;
+                component.push(nb);
+              }
             }
+            visited[nb] = true;
           }
-          visited[nb] = true;
         }
       }
       for (int s : separator.vertices) {

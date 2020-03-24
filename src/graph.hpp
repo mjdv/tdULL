@@ -124,7 +124,7 @@ class SeparatorGenerator {
  public:
   SeparatorGenerator(const Graph &G);
 
-  bool HasNext() const { return !queue.empty(); }
+  bool HasNext() const { return !queue.empty() || !special_vertex_queue.empty(); }
   std::vector<Separator> Next(int k = 10000);
 
   void clear() {
