@@ -154,4 +154,5 @@ class SeparatorGenerator {
   std::vector<bool> small_separators;
   std::queue<int> special_vertex_queue;
   std::vector<bool> is_special_vertex;
+  std::vector<int> tree_size;
 };

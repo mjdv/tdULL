@@ -566,6 +566,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
   in_two_core = std::vector<bool>(G.N, true);
   int num_in_two_core = G.N;
   is_special_vertex = std::vector<bool>(G.N, false);
+  tree_size = std::vector<int>(G.N, 0);
 
   // Number of adjacent vertices.
   std::vector<int> num_adj(G.N, 0);
@@ -575,6 +576,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
   // Compute the two-core mask.
   for(int i = 0; i < G.N; i++) {
     if(num_adj[i] == 1) {
+      tree_size[i] = 1;
       int cur = i;
       while(num_adj[cur] == 1) {
         in_two_core[cur] = false;
@@ -583,6 +585,9 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
         for(int nb : G.Adj(cur)) {
           if(num_adj[nb] > 1) {
             num_adj[nb]--;
+            if(tree_size[nb] == 0)
+              tree_size[nb] = 1;
+            tree_size[nb] += tree_size[cur];
             cur = nb;
             break;
           }
@@ -684,7 +689,15 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
     special_vertex_queue.pop();
     Separator sep;
     sep.vertices = {special_v};
-    // TODO: Set comp field of sep properly
+    int other_comps = 0;
+    for(int nb : G.Adj(special_v)) {
+      if(tree_size[nb] < tree_size[special_v] && tree_size[nb] > 0) {
+        sep.comp.push_back(std::make_pair(tree_size[nb], tree_size[nb] - 1));
+        other_comps += tree_size[nb];
+      }
+      sep.comp.push_back(std::make_pair(G.N - other_comps - 1, 
+            G.M - other_comps + sep.comp.size() - G.Adj(special_v).size()));
+    }
     sep.comp.push_back(std::make_pair(G.N, G.M));
     result.push_back(sep);
   }
