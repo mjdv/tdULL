@@ -426,7 +426,7 @@ Graph Graph::DfsTree(int root) const {
       if (!visited[nghb]) stack.emplace_back(nghb, v);
   }
 
-  result.M = N- 1;
+  result.M = N - 1;
   int total_edges = 0;
   for (int v = 0; v < result.N; v++) {
     result.max_degree = std::max(result.max_degree, result.adj[v].size());
@@ -829,7 +829,7 @@ bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
         }
         visited[s] = false;
       }
-      separator.comp.push_back({comp_N, comp_M});
+      separator.comp.push_back({comp_N, comp_M / 2});
     }
   }
 
