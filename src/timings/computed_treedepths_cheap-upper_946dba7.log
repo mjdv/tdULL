@@ -1092,3 +1092,18 @@ full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.00000
 Graph 193
 Initalized a graph having 449 vertices with 2213 edges. 
 Calculating treedepth for exact_193.gr
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 633.000000 seconds.".
+
+Graph 195
+Initalized a graph having 451 vertices with 587 edges. 
+Calculating treedepth for exact_195.gr
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+
+Graph 197
+Initalized a graph having 469 vertices with 614 edges. 
+Calculating treedepth for exact_197.gr
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 605.000000 seconds.".
+
+Graph 199
+Initalized a graph having 491 vertices with 645 edges. 
+Calculating treedepth for exact_199.gr
