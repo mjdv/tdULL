@@ -67,6 +67,9 @@ struct Graph {
   Graph BfsTree(int root) const;
   Graph DfsTree(int root) const;
 
+  // Computes a list of all articulation points.
+  std::vector<int> ArticulationPoints() const;
+
   // Returns whether this is a complete graph.
   bool IsCompleteGraph() const { return N * (N - 1) == 2 * M; }
 
@@ -139,10 +142,9 @@ class SeparatorGenerator {
   // Reference to the graph for which we are generating separators.
   const Graph &G;
 
-  // In done we keep the seperators we have already enqueued, to make sure they
-  // aren't processed again.
-  // In queue we keep all the ones we have generated, but which we have not yet
-  // used to generate new ones.
+  // In done we keep the seperators we have already enqueued, to make sure
+  // they aren't processed again. In queue we keep all the ones we have
+  // generated, but which we have not yet used to generate new ones.
   std::queue<std::vector<int>> queue;
   std::unordered_set<std::vector<bool>> done;
 

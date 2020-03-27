@@ -438,6 +438,52 @@ Graph Graph::DfsTree(int root) const {
   return result;
 }
 
+void ArticulationPointsHelper(const Graph &G, int u, int &d,
+                              std::vector<bool> &visited,
+                              std::vector<int> &depth, std::vector<int> &low,
+                              std::vector<int> &parent,
+                              std::vector<int> &result) {
+  int children = 0;
+  visited[u] = true;
+
+  depth[u] = d;
+  low[u] = d;
+  d++;
+
+  bool is_ap = false;
+
+  for (int v : G.Adj(u)) {
+    if (!visited[v]) {
+      children++;
+      parent[v] = u;
+      ArticulationPointsHelper(G, v, d, visited, depth, low, parent, result);
+      low[u] = std::min(low[u], low[v]);
+      if (low[v] >= depth[u]) is_ap = true;
+    } else if (v != parent[u]) {
+      low[u] = std::min(low[u], depth[v]);
+    }
+  }
+  if ((parent[u] == -1 && children > 1) || (parent[u] != -1 && is_ap))
+    result.push_back(u);
+}
+
+std::vector<int> Graph::ArticulationPoints() const {
+  std::vector<int> parent(N, -1);
+  std::vector<int> depth(N, INT_MAX);
+  std::vector<int> low(N, INT_MAX);
+  std::vector<bool> visited(N, false);
+  int d = 0;
+
+  std::vector<int> result;
+  for (int u = 0; u < N; u++) {
+    if (!visited[u])
+      ArticulationPointsHelper(*this, u, d, visited, depth, low, parent,
+                               result);
+  }
+
+  return result;
+}
+
 std::vector<Graph> Graph::kCore(int k) const {
   static std::vector<int> stack;
   assert(!IsTreeGraph());
@@ -555,8 +601,8 @@ int GetIndex(std::vector<int> &vertices) {
 
 SeparatorGenerator::SeparatorGenerator(const Graph &G)
     : G(G), in_nbh(G.N, false) {
-  // Complete graphs don't have separators. We want this to return a non-empty
-  // vector.
+  // Complete graphs don't have separators. We want this to return a
+  // non-empty vector.
   assert(!G.IsCompleteGraph());
 
   // Datatypes that will be reused.
@@ -565,11 +611,11 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
   std::vector<bool> sep_mask(G.N, false);
   std::vector<bool> visited(G.N, false);
 
-  // First we generate all the "seeds": we take the neighborhood of a point
-  // (including the point), take all the connected components in the
-  // complement, and then take the neighborhoods of those components. Each of
-  // those is a minimal separator (in fact, one that separates the original
-  // point).
+  // First we generate all the "seeds": we take the neighborhood of a
+  // point (including the point), take all the connected components in
+  // the complement, and then take the neighborhoods of those
+  // components. Each of those is a minimal separator (in fact, one that
+  // separates the original point).
   std::vector<int> neighborhood;
   for (int i = 0; i < G.N; i++) {
     if (G.Adj(i).size() == G.N - 1) continue;
@@ -579,8 +625,8 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
 
     for (int v : neighborhood) in_nbh[v] = true;
 
-    // Now we start off by enqueueing all neighborhoods of connected components
-    // in the complement of this neighborhood.
+    // Now we start off by enqueueing all neighborhoods of connected
+    // components in the complement of this neighborhood.
     for (int j = 0; j < G.N; j++) {
       if (in_nbh[j] || visited[j]) continue;
 
@@ -681,15 +727,15 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
       for (int j = 0; j < G.N; j++) visited[j] = false;
     }
 
-    // Finally, there is the following problem: this algorithm generates all
-    // _minimal a,b-separators_, for each pair of vertices a, b in G. These are
-    // a strict superset of what we are after: it may be that a set S is a
-    // minimal a,b-separator, yet it still has a strict subset which is a
-    // separator: it just may be that there is a c,d-separator which is a
-    // strict subset.
+    // Finally, there is the following problem: this algorithm generates
+    // all _minimal a,b-separators_, for each pair of vertices a, b in
+    // G. These are a strict superset of what we are after: it may be
+    // that a set S is a minimal a,b-separator, yet it still has a
+    // strict subset which is a separator: it just may be that there is
+    // a c,d-separator which is a strict subset.
     //
-    // Fortunately, checking whether or not this is the case is relatively
-    // fast.
+    // Fortunately, checking whether or not this is the case is
+    // relatively fast.
 
     Separator sep;
     sep.vertices = std::move(cur_separator);
@@ -700,12 +746,12 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
 }
 
 // Checks whether or not the separator of G given by separator is "truly
-// minimal": it contains no separator as a strict subset. (Name subject to
-// change.)
+// minimal": it contains no separator as a strict subset. (Name subject
+// to change.)
 //
-// It also writes some info to the Separator struct: the number of vertices
-// and edges in the components that remain when removing this separator from
-// the graph.
+// It also writes some info to the Separator struct: the number of
+// vertices and edges in the components that remain when removing this
+// separator from the graph.
 bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
   // Shared datastructure.
   static std::stack<int> component;
@@ -743,8 +789,8 @@ bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
       for (int s : separator.vertices) {
         if (!visited[s]) {
           // This connected component dit not hit this vertex, so we can
-          // remove this vertex and have a separator left; so this separator
-          // is not fully minimal.
+          // remove this vertex and have a separator left; so this
+          // separator is not fully minimal.
           return false;
         }
         visited[s] = false;

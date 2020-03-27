@@ -37,6 +37,22 @@ void TestSeparators(const Graph &G, const std::vector<Separator> &seps) {
   }
 }
 
+// Helper function to verify that the given articulationpoints function is
+// correct.
+void TestArticulationPoints(const Graph &G) {
+  std::vector<int> aps_real;
+  // Create a poors mans version of articulat point checker.
+  for (int v = 0; v < G.N; v++)
+    if (G.WithoutVertex(v).size() > 1) aps_real.push_back(v);
+
+  std::sort(aps_real.begin(), aps_real.end());
+
+  std::vector<int> aps = G.ArticulationPoints();
+  std::sort(aps.begin(), aps.end());
+
+  assert(aps == aps_real);
+}
+
 int main() {
   // Load the full graph, this is exact_015.gr.
   std::istringstream stream_015(
@@ -65,6 +81,7 @@ int main() {
   auto v_ams15 = gen15.Next(1'000'000);
   assert(v_ams15.size() == 8);
   TestSeparators(full_graph, v_ams15);
+  TestArticulationPoints(full_graph);
 
   std::istringstream stream_2core(
       "p tdp 11 12 1 2 2 3 3 1 3 4 4 5 5 6 6 7 7 4 6 8 7 9 9 10 10 11");
@@ -88,6 +105,8 @@ int main() {
   LoadGraph(stream_allminsep);
   auto gen = SeparatorGenerator(full_graph);
   auto v_ams = gen.Next(1'000'000);
+  TestSeparators(full_graph, v_ams);
+  TestArticulationPoints(full_graph);
 
   assert(v_ams.size() == 1);
   assert(v_ams[0].vertices.size() == 1);
@@ -98,6 +117,7 @@ int main() {
   auto v_ams2 = gen2.Next(1'000'000);
   assert(v_ams2.size() == 9);
   TestSeparators(full_graph, v_ams2);
+  TestArticulationPoints(full_graph);
 
   std::cout << "The minimal separators of the 6-cycle are:" << std::endl;
   for (auto v : v_ams2) {
@@ -111,6 +131,8 @@ int main() {
   auto gen3 = SeparatorGenerator(full_graph);
   auto v_ams3 = gen3.Next(1'000'000);
   TestSeparators(full_graph, v_ams3);
+  TestArticulationPoints(full_graph);
+
   std::cout << "The minimal separators of the 4-cycle with two extra leaves "
                "attached to adjacent nodes are:"
             << std::endl;
@@ -169,6 +191,7 @@ int main() {
   auto v_ams43 = gen43.Next(1'000'000);
   assert(v_ams43.size() == 664);
   TestSeparators(full_graph, v_ams43);
+  TestArticulationPoints(full_graph);
   std::cout << "There are " << v_ams43.size() << " of them." << std::endl;
 
   return 0;
