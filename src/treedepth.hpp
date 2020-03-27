@@ -89,11 +89,10 @@ std::pair<int, int> treedepth_exact(const Graph &G) {
 SetTrie cache;
 
 // Cheap treedepth upper bound, useful for simple sanity checks.
-std::pair<int, int> treedepth_upper(const Graph &G, int search_lbnd) {
+std::pair<int, int> treedepth_upper(const Graph &G) {
   // Run some checks to see if we can simply find the exact td already.
   auto [td_exact, root_exact] = treedepth_exact(G);
   if (td_exact > -1 && root_exact > -1) return {td_exact, root_exact};
-  if (search_lbnd >= G.N - 1) return {G.N - 1, -1};
   Node *node = cache.Search(G);
   if (node) {
     return {node->upper_bound, node->root};
@@ -104,8 +103,7 @@ std::pair<int, int> treedepth_upper(const Graph &G, int search_lbnd) {
     if (G.Adj(v).size() == G.max_degree) {
       auto cc = G.WithoutVertex(v);
       int result = 0;
-      for (auto &&H : cc)
-        result = std::max(result, treedepth_upper(H, result).first);
+      for (auto &&H : cc) result = std::max(result, treedepth_upper(H).first);
       return {result + 1, G.global[v]};
     }
   assert(false);
@@ -201,7 +199,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   // some real work.
   if (node == nullptr) {
     // Do a cheap upper bound search.
-    auto [upper_H, root_H] = treedepth_upper(G, 1);
+    auto [upper_H, root_H] = treedepth_upper(G);
     if (upper_H < upper) {
       assert(root_H > -1);
       upper = upper_H;
