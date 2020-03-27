@@ -17,9 +17,7 @@ int main(int argc, char** argv) {
   LoadGraph(input);
   input.close();
 
-  time_t start, end;
-  time(&start);
-
+  auto start = std::chrono::steady_clock::now();
   std::cout << "Calculating treedepth for " << ExtractFileName(argv[1])
             << std::endl;
   try {
@@ -34,9 +32,12 @@ int main(int argc, char** argv) {
     //                << " seps / s.\n";
     //    }
     auto [td, tree] = treedepth(full_graph);
-    time(&end);
+    double time_elapsed =
+        0.1 * std::round(10 * std::chrono::duration<double>(
+                                  std::chrono::steady_clock::now() - start)
+                                  .count());
     std::cout << "Treedepth is: " << td << std::endl;
-    std::cout << "Elapsed time is " << difftime(end, start) << " seconds.\n";
+    std::cout << "Elapsed time is " << time_elapsed << " seconds.\n";
 
     std::ofstream output;
     output.open(argv[2], std::ios::out);
@@ -44,15 +45,18 @@ int main(int argc, char** argv) {
     for (int parent : tree) output << parent << std::endl;
     output.close();
     std::cout << "Saved the tree to '" << argv[2] << "'" << std::endl;
-    std::cerr << ExtractFileName(argv[1]) << "," << td << ","
-              << difftime(end, start) << ", " << std::endl;
+    std::cerr << ExtractFileName(argv[1]) << "," << td << "," << time_elapsed
+              << ", " << std::endl;
     return 0;
   } catch (std::exception& e) {
-    time(&end);
+    double time_elapsed =
+        0.1 * std::round(10 * std::chrono::duration<double>(
+                                  std::chrono::steady_clock::now() - start)
+                                  .count());
     std::cout << "Failed! Encountered exception:\"" << e.what() << "\"."
               << std::endl;
-    std::cerr << ExtractFileName(argv[1]) << "," << -1 << ","
-              << difftime(end, start) << "," << e.what() << std::endl;
+    std::cerr << ExtractFileName(argv[1]) << "," << -1 << "," << time_elapsed
+              << "," << e.what() << std::endl;
     return 1;
   }
 }
