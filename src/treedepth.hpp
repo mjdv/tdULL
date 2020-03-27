@@ -88,18 +88,32 @@ std::pair<int, int> treedepth_exact(const Graph &G) {
 //   removed is also in the cache.
 SetTrie cache;
 
-// Little helper function to update information in the cache.
-std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
-                                int root) {
-  node->lower_bound = lower_bound;
-  node->upper_bound = upper_bound;
-  node->root = root;
-  return std::pair{lower_bound, upper_bound};
-};
+// Cheap treedepth upper bound, useful for simple sanity checks.
+std::pair<int, int> treedepth_upper(const Graph &G, int search_lbnd) {
+  // Run some checks to see if we can simply find the exact td already.
+  auto [td_exact, root_exact] = treedepth_exact(G);
+  if (td_exact > -1 && root_exact > -1) return {td_exact, root_exact};
+  if (search_lbnd >= G.N - 1) return {G.N - 1, -1};
+  Node *node = cache.Search(G);
+  if (node) {
+    return {node->upper_bound, node->root};
+  }
+
+  // Do a very simple recursion.
+  for (int v = 0; v < G.N; v++)
+    if (G.Adj(v).size() == G.max_degree) {
+      auto cc = G.WithoutVertex(v);
+      int result = 0;
+      for (auto &&H : cc)
+        result = std::max(result, treedepth_upper(H, result).first);
+      return {result + 1, G.global[v]};
+    }
+  assert(false);
+}
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now. 
+int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 
 // The function treedepth computes Treedepth bounds on subgraphs of the global
 // graph.
@@ -186,6 +200,14 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   // If G doesn't exist in the cache, lets add it now, since we will start doing
   // some real work.
   if (node == nullptr) {
+    // Do a cheap upper bound search.
+    auto [upper_H, root_H] = treedepth_upper(G, 1);
+    if (upper_H < upper) {
+      assert(root_H > -1);
+      upper = upper_H;
+      root = root_H;
+    }
+
     node = cache.Insert(G).first;
     node->lower_bound = lower;
     node->upper_bound = upper;
@@ -214,7 +236,8 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     // this tree.
     node->lower_bound = lower =
         std::max(lower, treedepth_tree(G.DfsTree(vertices[0])).first);
-    if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
+    if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
+      return {lower, upper, root};
   }
 
   // Main loop: try every separator as a set of roots.
