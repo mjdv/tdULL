@@ -43,6 +43,13 @@ struct Graph {
   // Get the local coordinate for a given vertex.
   int LocalIndex(int global_index) const;
 
+  // Checks if the subset in vertices is a connected subset of the graph.
+  bool ConnectedSubset(const std::vector<int> vertices) const;
+
+  // Contract the vertices in `contractors` into a single vertex. Assumes that
+  // `contractors` forms a connected subset of vertices.
+  Graph Contract(const std::vector<int> &contractors) const;
+
   // Create a connected components of the subgraph without the given vertices.
   std::vector<Graph> WithoutVertices(const std::vector<int> &S) const;
 
@@ -88,6 +95,10 @@ struct Graph {
 
 extern Graph full_graph;                   // The full graph.
 extern std::vector<bool> full_graph_mask;  // Global variable to be reused.
+
+// For going from global coordinates to sets of original vertices, and back.
+extern std::vector<std::vector<int>> global_to_vertices;
+extern std::map<std::vector<int>, int> vertices_to_global;
 
 // This initalizes the above global variables, important!
 void LoadGraph(std::istream &stream);
