@@ -26,7 +26,7 @@ for f in ${INPUTDIR}*; do
     fi
 
     if [ "$GO" == 1 ] ; then
-      echo "Graph ${graph}"
+      printf "\nGraph ${graph}\n"
       timeout 11m ./main ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree &&
       ./verify ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree;
     fi
