@@ -99,7 +99,7 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
+int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now. 
 
 // If we look for subsets, how much may those subsets differ from the set we
 // are considering?
@@ -138,12 +138,11 @@ const int minimal_subset_search_size = 0;
 // upper is at most search_lbnd, we are done.
 std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
                                     int search_ubnd) {
-  int N = G.N;
-  if (N == 1) return {1, 1, G.global[0]};
+  if (G.IsCompleteGraph()) return {G.N, G.N, G.global[0]};
 
   // Try the trivial bounds.
-  int lower = G.M / N + 1;
-  int upper = N;
+  int lower = std::max(G.M / G.N + 1, int(G.min_degree) + 1);
+  int upper = G.N;
   int root = G.global[0];
 
   // If the trivial bounds suffice, we are done.
@@ -168,7 +167,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
   }
-  if (N == full_graph.N) std::cout << "full_graph::kCore" << std::endl;
+  if (G.N == full_graph.N) std::cout << "full_graph::kCore" << std::endl;
 
   // Below we calculate the smallest k-core that G can contain. If this is non-
   // empty, we recursively calculate the treedepth on this core first. This
@@ -177,14 +176,13 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
   // If we do not have a kcore, simply remove a singly min degree vertex.
   if (cc_core.empty())
-    for (int v = 0; v < N; ++v)
+    for (int v = 0; v < G.N; ++v)
       if (G.Adj(v).size() == G.min_degree) {
         cc_core = G.WithoutVertex(v);
         break;
       }
-
   if (!cc_core.empty()) {
-    assert(cc_core[0].N < N);
+    assert(cc_core[0].N < G.N);
 
     // Sort the components on density.
     std::sort(cc_core.begin(), cc_core.end(),
@@ -214,7 +212,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     // node) as a root.
     assert(G.N > 2 && G.max_degree >= 2);
     std::vector<int> vertices;
-    vertices.reserve(N);
+    vertices.reserve(G.N);
     for (int v = 0; v < G.N; ++v) {
       // Only add vertices with deg > 1.
       if (G.Adj(v).size() > 1) vertices.emplace_back(v);
