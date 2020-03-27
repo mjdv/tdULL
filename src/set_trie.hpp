@@ -6,11 +6,18 @@
 #include <stack>
 #include <vector>
 
+#define DEBUG_CACHE
+
 struct Node {
   // This is the data that will be stored inside the Set Trie.
   int upper_bound = INT_MAX;
   int lower_bound = 0;
   int root = -1;
+
+#ifdef DEBUG_CACHE
+  int n = -1;
+  Node *parent = nullptr;
+#endif
 
   // TODO: Is std::map the best datastructure? Sorting does help.
   std::map<int, Node> children;
@@ -25,8 +32,27 @@ struct Node {
 
   // Find a child with the given letter, creates one if it doesn't yet exist.
   Node *FindOrCreateChild(int n) {
+#ifndef DEBUG_CACHE
     return &children.emplace(n, Node()).first->second;
+#else
+    Node child;
+    child.parent = this;
+    child.n = n;
+    return &children.emplace(n, child).first->second;
+#endif
   }
+
+#ifdef DEBUG_CACHE
+  std::vector<int> Word() const {
+    std::deque<int> result;
+    auto node = this;
+    while (node->parent) {
+      result.emplace_front(node->n);
+      node = node->parent;
+    }
+    return {result.begin(), result.end()};
+  }
+#endif
 };
 
 class SetTrie {
@@ -39,7 +65,8 @@ class SetTrie {
 
   std::vector<Node *> AllSubsets(const std::vector<int> &word);
   std::vector<Node *> AllSupersets(const std::vector<int> &word);
-  std::vector<Node *> BigSubsets(const std::vector<int> &word, int gap);
+  std::vector<std::pair<Node *, int>> BigSubsets(const std::vector<int> &word,
+                                                 int gap);
 
  protected:
   Node root_;

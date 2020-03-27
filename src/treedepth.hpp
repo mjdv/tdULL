@@ -99,7 +99,7 @@ std::pair<int, int> CacheUpdate(Node *node, int lower_bound, int upper_bound,
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now. 
+int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 
 // If we look for subsets, how much may those subsets differ from the set we
 // are considering?
@@ -156,7 +156,8 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   if (td_exact > -1 && root_exact > -1) return {td_exact, td_exact, root_exact};
 
   // Lets check if it already exists in the cache.
-  Node *node = cache.Search(G);
+  std::vector<int> G_word = G;
+  Node *node = cache.Search(G_word);
   if (node) {
     // This graph was in the cache, retrieve lower/upper bounds.
     lower = node->lower_bound;
@@ -197,16 +198,27 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   // If G doesn't exist in the cache, lets add it now, since we will start doing
   // some real work.
   if (node == nullptr) {
+    // First try to find a better lower bound from some of its big subsets.
+    if (G.N >= minimal_subset_search_size) {
+      for (auto [node_sub, node_gap] : cache.BigSubsets(G_word, subset_gap)) {
+        lower = std::max(lower, node_sub->lower_bound);
+        if (node_gap + node_sub->upper_bound < upper) {
+          auto sub_word = node_sub->Word();
+          std::vector<int> diff;
+          std::set_difference(G_word.begin(), G_word.end(), sub_word.begin(),
+                              sub_word.end(),
+                              std::inserter(diff, diff.begin()));
+          assert(diff.size() == node_gap);
+          upper = node_gap + node_sub->upper_bound;
+          root = root = diff[0];
+        }
+      }
+    }
+
     node = cache.Insert(G).first;
     node->lower_bound = lower;
     node->upper_bound = upper;
     node->root = root;
-
-    // First try to find a better lower bound from some of its big subsets.
-    if (N >= minimal_subset_search_size) {
-      for (auto node_sub : cache.BigSubsets(G, subset_gap))
-        node->lower_bound = lower = std::max(lower, node_sub->lower_bound);
-    }
 
     // If the graph has at least 3 vertices, we never want a leaf (degree 1
     // node) as a root.
