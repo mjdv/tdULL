@@ -113,6 +113,13 @@ std::pair<int, int> treedepth_upper(const Graph &G) {
 time_t time_start_treedepth;
 int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
 
+// If we look for subsets, how much may those subsets differ from the set we
+// are considering?
+//
+// subset_gap == 0 corresponds to not looking for subsets.
+// subset_gap == INT_MAX corresponds to finding all subsets.
+const int subset_gap = 2;
+
 // The function treedepth computes Treedepth bounds on subgraphs of the global
 // graph.
 //
@@ -157,7 +164,8 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   if (td_exact > -1 && root_exact > -1) return {td_exact, td_exact, root_exact};
 
   // Lets check if it already exists in the cache.
-  Node *node = cache.Search(G);
+  std::vector<int> G_word = G;
+  Node *node = cache.Search(G_word);
   if (node) {
     // This graph was in the cache, retrieve lower/upper bounds.
     lower = node->lower_bound;
@@ -210,34 +218,36 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
       root = root_H;
     }
 
+    // Try to find a better lower bound from some of its big subsets.
+    for (auto [node_sub, node_gap] : cache.BigSubsets(G_word, subset_gap)) {
+      lower = std::max(lower, node_sub->lower_bound);
+      if (node_gap + node_sub->upper_bound < upper) {
+        auto sub_word = node_sub->Word();
+        std::vector<int> diff;
+        std::set_difference(G_word.begin(), G_word.end(), sub_word.begin(),
+                            sub_word.end(),
+                            std::inserter(diff, diff.begin()));
+        assert(diff.size() == node_gap);
+        upper = node_gap + node_sub->upper_bound;
+        root = diff[0];
+      }
+    }
+
+    // Compute DfsTree-tree from the most promising node once, and then evaluate the treedepth_tree on this tree.
+    int v_max_degree = -1;
+    for (int v = 0; v < G.N; ++v)
+      if (G.Adj(v).size() == G.max_degree) {
+        v_max_degree = v;
+        break;
+      }
+    lower = std::max(lower, treedepth_tree(G.DfsTree(v_max_degree)).first);
+
+    // Insert into the cache.
     node = cache.Insert(G).first;
     node->lower_bound = lower;
     node->upper_bound = upper;
     node->root = root;
 
-    // If the graph has at least 3 vertices, we never want a leaf (degree 1
-    // node) as a root.
-    assert(G.N > 2 && G.max_degree >= 2);
-    std::vector<int> vertices;
-    vertices.reserve(G.N);
-    for (int v = 0; v < G.N; ++v) {
-      // Only add vertices with deg > 1.
-      if (G.Adj(v).size() > 1) vertices.emplace_back(v);
-    }
-
-    // Change DegreeCentrality to other centralities here, say
-    // BetweennessCentrality.
-    auto centrality = DegreeCentrality(G);
-
-    // Sort the vertices based on the degree.
-    std::sort(vertices.begin(), vertices.end(),
-              [&](int v1, int v2) { return centrality[v1] > centrality[v2]; });
-
-    // If G is a new graph in the cache, compute its DfsTree-tree from
-    // the most promising node once, and then evaluate the treedepth_tree on
-    // this tree.
-    node->lower_bound = lower =
-        std::max(lower, treedepth_tree(G.DfsTree(vertices[0])).first);
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
   }
@@ -335,7 +345,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         if (G.N == full_graph.N)
           std::cout << "full_graph: separator " << s << " / "
                     << separators.size()
-                    << " gives `upper == lower == " << lower << "`, early exit."
+                    << ", consists of " << separator.vertices.size() << " vertices, gives `upper == lower == " << lower << "`, early exit."
                     << std::endl;
         // Choosing seperator already gives us a treedepth decomposition which
         // is good enough (either a sister branch is at least this long, or it

@@ -1,4 +1,6 @@
 #include <exception>
+#include <chrono>
+#include <cmath>
 
 #include "treedepth.hpp"
 
