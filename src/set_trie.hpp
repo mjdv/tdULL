@@ -6,7 +6,6 @@
 #include <stack>
 #include <vector>
 
-#define DEBUG_CACHE
 
 struct Node {
   // This is the data that will be stored inside the Set Trie.
@@ -14,10 +13,8 @@ struct Node {
   int lower_bound = 0;
   int root = -1;
 
-#ifdef DEBUG_CACHE
   int n = -1;
   Node *parent = nullptr;
-#endif
 
   // TODO: Is std::map the best datastructure? Sorting does help.
   std::map<int, Node> children;
@@ -32,17 +29,12 @@ struct Node {
 
   // Find a child with the given letter, creates one if it doesn't yet exist.
   Node *FindOrCreateChild(int n) {
-#ifndef DEBUG_CACHE
-    return &children.emplace(n, Node()).first->second;
-#else
     Node child;
     child.parent = this;
     child.n = n;
-    return &children.emplace(n, child).first->second;
-#endif
+    return &children.emplace(n, std::move(child)).first->second;
   }
 
-#ifdef DEBUG_CACHE
   std::vector<int> Word() const {
     std::deque<int> result;
     auto node = this;
@@ -52,7 +44,6 @@ struct Node {
     }
     return {result.begin(), result.end()};
   }
-#endif
 };
 
 class SetTrie {
