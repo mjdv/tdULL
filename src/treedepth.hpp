@@ -345,7 +345,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         if (G.N == full_graph.N)
           std::cout << "full_graph: separator " << s << " / "
                     << separators.size()
-                    << " gives `upper == lower == " << lower << "`, early exit."
+                    << ", consists of " << separator.vertices.size() << " vertices, gives `upper == lower == " << lower << "`, early exit."
                     << std::endl;
         // Choosing seperator already gives us a treedepth decomposition which
         // is good enough (either a sister branch is at least this long, or it

@@ -15,7 +15,7 @@ for fn in fns_glob:
         if len(cols) == 4:
             example = cols[0]
             td = int(cols[1])
-            time = int(cols[2])
+            time = float(cols[2])
             if (td > -1):
                 total_time += time
                 total_solved += 1
