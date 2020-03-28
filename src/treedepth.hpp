@@ -208,7 +208,17 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   // If G doesn't exist in the cache, lets add it now, since we will start doing
   // some real work.
   if (node == nullptr) {
-    // First try to find a better lower bound from some of its big subsets.
+    // Do a cheap upper bound search.
+    auto [upper_H, root_H] = treedepth_upper(G);
+    if (G.N == full_graph.N)
+      std::cout << "full_graph: treedepth_upper(G) = " << upper_H << std::endl;
+    if (upper_H < upper) {
+      assert(root_H > -1);
+      upper = upper_H;
+      root = root_H;
+    }
+
+    // Try to find a better lower bound from some of its big subsets.
     for (auto [node_sub, node_gap] : cache.BigSubsets(G_word, subset_gap)) {
       lower = std::max(lower, node_sub->lower_bound);
       if (node_gap + node_sub->upper_bound < upper) {
@@ -221,16 +231,6 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         upper = node_gap + node_sub->upper_bound;
         root = diff[0];
       }
-    }
-    
-    // Do a cheap upper bound search.
-    auto [upper_H, root_H] = treedepth_upper(G);
-    if (G.N == full_graph.N)
-      std::cout << "full_graph: treedepth_upper(G) = " << upper_H << std::endl;
-    if (upper_H < upper) {
-      assert(root_H > -1);
-      upper = upper_H;
-      root = root_H;
     }
 
     // Compute DfsTree-tree from the most promising node once, and then evaluate the treedepth_tree on this tree.
