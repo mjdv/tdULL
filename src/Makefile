@@ -26,22 +26,22 @@ timing: main verify
 	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --abbrev-ref HEAD)_$(shell git rev-parse --short HEAD).csv > timings/computed_treedepths_$(shell git rev-parse --abbrev-ref HEAD)_$(shell git rev-parse --short HEAD).log
 
 
-main: main.o graph.o set_trie.o exact_cache.o centrality.o
+main: main.o graph.o separator.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^
 
 set_trie_test: set_trie_test.o set_trie.o
 	g++ -o $@ $^
 
-graph_test: graph_test.o graph.o
+graph_test: graph_test.o graph.o separator.o
 	g++ -o $@ $^
 
-treedepth_test: treedepth_test.o graph.o set_trie.o exact_cache.o centrality.o
+treedepth_test: treedepth_test.o graph.o separator.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^
 
 centrality_test: centrality_test.o graph.o centrality.o
 	g++ -o $@ $^
 
-generate_exact_cache: graph.o generate_exact_cache.o set_trie.o exact_cache.o centrality.o
+generate_exact_cache: graph.o separator.o generate_exact_cache.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^
 
 verify: verify.o

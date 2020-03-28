@@ -9,6 +9,7 @@
 #include "centrality.hpp"
 #include "exact_cache.hpp"
 #include "graph.hpp"
+#include "separator.hpp"
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
 
@@ -260,7 +261,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {
-                return s1.maxCompSize() < s2.maxCompSize();
+                return s1.largest_component < s2.largest_component;
               });
 
     for (int s = 0; s < separators.size(); s++) {
