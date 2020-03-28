@@ -336,8 +336,12 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         if (G.N == full_graph.N)
           std::cout << "full_graph: separator " << s << " / "
                     << separators.size()
-                    << " gives `upper == lower == " << lower << "`, early exit."
-                    << std::endl;
+                    << " gives `upper == lower == " << lower
+                    << "`, early exit. "
+                    << "Sepeartor has " << separator.vertices.size()
+                    << " vertices, and largest component is ("
+                    << separator.largest_component.first << ", "
+                    << separator.largest_component.second << ")." << std::endl;
         // Choosing seperator already gives us a treedepth decomposition which
         // is good enough (either a sister branch is at least this long, or it
         // matches a previously proved lower bound for this subgraph) so we
