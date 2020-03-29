@@ -75,7 +75,34 @@ bool SetTrie::HasSuperset(const std::vector<int> &word) {
   return ::HasSuperset(&root_, word, 0);
 }
 
-//
+void BigSubsets(Node *node, const std::vector<int> &word, int idx,
+                std::vector<std::pair<Node *, int>> &result, int gap) {
+  if (node->flag_last && word.size() - idx <= gap)
+    result.emplace_back(node, gap + idx - word.size());
+  if (idx >= word.size()) return;
+  for (auto &[num, child] : node->children) {
+    int missed_elements = 0;
+    for (int j = idx; j < word.size(); ++j) {
+      if (num < word[j]) break;
+      if (num == word[j]) {
+        BigSubsets(&child, word, j + 1, result, gap - missed_elements);
+        break;
+      }
+      missed_elements++;
+      if (missed_elements > gap) break;
+    }
+  }
+}
+
+std::vector<std::pair<Node *, int>> SetTrie::BigSubsets(
+    const std::vector<int> &word, int gap) {
+  assert(IsAscending(word));
+  std::vector<std::pair<Node *, int>> result;
+  ::BigSubsets(&root_, word, 0, result, gap);
+  for (auto &p : result) p.second = gap - p.second;
+  return result;
+}
+
 void AllSubsets(Node *node, const std::vector<int> &word, int idx,
                 std::vector<Node *> &result) {
   if (node->flag_last) result.push_back(node);

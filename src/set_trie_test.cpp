@@ -25,15 +25,30 @@ int main() {
   assert(cache.HasSuperset({5, 15}));
   assert(!cache.HasSuperset({5, 20}));
 
+  assert(cache.BigSubsets({1, 5, 8, 15, 20, 50}, 3).size() == 2);
+  assert(cache.BigSubsets({1, 5, 8, 15, 20, 50}, 4).size() == 2);
+  assert(cache.BigSubsets({1, 5, 8, 15, 20, 50}, 2).size() == 0);
+
   cache.Insert({5});
   cache.Insert({5, 8});
   cache.Insert({8, 15});
+  cache.Insert({5, 7, 8, 9, 15});
 
   std::cout << "Subsets{5, 7, 8, 9, 15}:" << std::endl;
   for (auto node : cache.AllSubsets({5, 7, 8, 9, 15})) {
     std::cout << "\t{";
-    // for (auto l : node->Word()) std::cout << l << " ";
+    for (auto l : node->Word()) std::cout << l << " ";
     std::cout << "}" << std::endl;
+  }
+
+  for (int gap = 2; gap < 4; gap++) {
+    std::cout << "Subsets{5, 7, 8, 9, 15} with max gap " << gap << ":"
+              << std::endl;
+    for (auto [node, missed] : cache.BigSubsets({5, 7, 8, 9, 15}, gap)) {
+      std::cout << "\tGap " << missed << "{";
+      for (auto l : node->Word()) std::cout << l << " ";
+      std::cout << "}" << std::endl;
+    }
   }
 
   assert(cache.HasSuperset({8}));
@@ -42,7 +57,7 @@ int main() {
   std::cout << "Supersets{8}:" << std::endl;
   for (auto node : cache.AllSupersets({8})) {
     std::cout << "\t{";
-    // for (auto l : node->Word()) std::cout << l << " ";
+    for (auto l : node->Word()) std::cout << l << " ";
     std::cout << "}" << std::endl;
   }
 
