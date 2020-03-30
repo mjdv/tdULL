@@ -112,7 +112,7 @@ std::pair<int, int> treedepth_upper(const Graph &G) {
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
+int max_time_treedepth = 30 * 60;  // A time limit of TEN minuts for now.
 
 // If we look for subsets, how much may those subsets differ from the set we
 // are considering?
