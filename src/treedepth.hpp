@@ -9,6 +9,7 @@
 #include "centrality.hpp"
 #include "exact_cache.hpp"
 #include "graph.hpp"
+#include "separator.hpp"
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
 
@@ -111,7 +112,7 @@ std::pair<int, int> treedepth_upper(const Graph &G) {
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 10 * 60;  // A time limit of TEN minuts for now.
+int max_time_treedepth = 30 * 60;  // A time limit of TEN minuts for now.
 
 // If we look for subsets, how much may those subsets differ from the set we
 // are considering?
@@ -225,15 +226,15 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         auto sub_word = node_sub->Word();
         std::vector<int> diff;
         std::set_difference(G_word.begin(), G_word.end(), sub_word.begin(),
-                            sub_word.end(),
-                            std::inserter(diff, diff.begin()));
+                            sub_word.end(), std::inserter(diff, diff.begin()));
         assert(diff.size() == node_gap);
         upper = node_gap + node_sub->upper_bound;
         root = diff[0];
       }
     }
 
-    // Compute DfsTree-tree from the most promising node once, and then evaluate the treedepth_tree on this tree.
+    // Compute DfsTree-tree from the most promising node once, and then evaluate
+    // the treedepth_tree on this tree.
     int v_max_degree = -1;
     for (int v = 0; v < G.N; ++v)
       if (G.Adj(v).size() == G.max_degree) {
@@ -271,7 +272,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {
-                return s1.maxCompSize() < s2.maxCompSize();
+                return s1.largest_component < s2.largest_component;
               });
 
     for (int s = 0; s < separators.size(); s++) {
@@ -346,8 +347,12 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         if (G.N == full_graph.N)
           std::cout << "full_graph: separator " << s << " / "
                     << separators.size()
-                    << ", consists of " << separator.vertices.size() << " vertices, gives `upper == lower == " << lower << "`, early exit."
-                    << std::endl;
+                    << " gives `upper == lower == " << lower
+                    << "`, early exit. "
+                    << "Sepeartor has " << separator.vertices.size()
+                    << " vertices, and largest component is ("
+                    << separator.largest_component.first << ", "
+                    << separator.largest_component.second << ")." << std::endl;
         // Choosing seperator already gives us a treedepth decomposition which
         // is good enough (either a sister branch is at least this long, or it
         // matches a previously proved lower bound for this subgraph) so we

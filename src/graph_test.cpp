@@ -3,6 +3,8 @@
 #include <cassert>
 #include <sstream>
 
+#include "separator.hpp"
+
 // Helper function to verify that the given seperators are indeed fully minimal,
 // and that the sizes of the components are correct :-).
 void TestSeparators(const Graph &G, const std::vector<Separator> &seps) {
@@ -25,15 +27,11 @@ void TestSeparators(const Graph &G, const std::vector<Separator> &seps) {
     std::vector<std::pair<int, int>> cc_sizes;
     for (auto H : cc) cc_sizes.emplace_back(H.N, H.M);
 
-    // Sort this vector.
-    std::sort(cc_sizes.begin(), cc_sizes.end());
+    // Find the largest component
+    auto cc_largest = *std::max_element(cc_sizes.begin(), cc_sizes.end());
 
-    // compare to the sep sizes
-    auto sep_cc_sizes = sep.comp;
-    std::sort(sep_cc_sizes.begin(), sep_cc_sizes.end());
-
-    assert(cc_sizes.size() == sep_cc_sizes.size());
-    assert(cc_sizes == sep_cc_sizes);
+    // compare to the separator sizes
+    assert(cc_largest == sep.largest_component);
   }
 }
 
