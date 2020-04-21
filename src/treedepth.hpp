@@ -13,6 +13,14 @@
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
 
+
+#include <random>
+#include <csignal>
+std::vector<int> best_global, current_global;
+int best_global_treedepth, current_global_treedepth;
+bool writing_to_global;
+std::mt19937 mersenne{static_cast<std::mt19937::result_type>(12345)};
+
 // Trivial treedepth implementation, useful for simple sanity checks.
 int treedepth_trivial(const Graph &G) {
   if (G.N == 1) return 1;
@@ -365,6 +373,93 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     std::cout << "full_graph: completed entire separator loop." << std::endl;
   node->lower_bound = lower = std::max(lower, new_lower);
   return {lower, upper, root};
+}
+
+void sigterm_handler(int signum){
+  // we will print the best treedepth we've found so far
+  // Just to be safe, if we're writing to best_global while being interupted this could give a wrong tree
+  // In that case, print the tree in current_global
+  if(writing_to_global){
+    std::cout << current_global_treedepth << std::endl;
+    for(auto parent: current_global){
+      std::cout << parent+1 << std::endl;
+    }
+  }
+  else{
+    std::cout << best_global_treedepth << std::endl;
+    for(auto parent: best_global){
+      std::cout << parent+1 << std::endl;
+    }
+  }
+
+  exit(0);
+}
+
+int _treedepth_heuristic(const Graph &G, int parent){
+  if(G.N == 1){
+    current_global[G.global[0]] = parent;
+    return 1;
+  }
+
+  std::vector<double> B = BetweennessCentrality(G);
+  std::discrete_distribution<double> dist(B.begin(), B.end());
+  //std::vector<int> D = DegreeCentrality(G);
+  //std::discrete_distribution<double> dist(D.begin(), D.end());
+  
+  int root = dist(mersenne);
+  
+  //std::uniform_real_distribution<> dist(0,1);
+  //int root = (int)std::round(G.N * dist(mersenne)) % G.N;
+
+  current_global[G.global[root]] = parent;
+
+  int td = -1;
+  auto cc = G.WithoutVertex(root);
+  for(auto c: cc){
+    td = std::max(td, 1 + _treedepth_heuristic(c, G.global[root]));
+  }
+
+  return td;
+}
+
+void treedepth_heuristic(const Graph &G){
+
+  std::signal(SIGTERM, sigterm_handler);
+  best_global = std::vector<int>(G.N, -2);
+  current_global = std::vector<int>(G.N, -2);
+
+  std::vector<double> B = BetweennessCentrality(G);
+  std::discrete_distribution<double> dist(B.begin(), B.end());
+
+  //std::vector<int> D = DegreeCentrality(G);
+  //std::discrete_distribution<double> dist(D.begin(), D.end());
+
+  //std::uniform_real_distribution<> dist(0,1);
+
+  best_global_treedepth = 1<<30;
+
+  std::cerr << "Initialized, starting while(true)" << std::endl;
+  while(true){
+    int root = dist(mersenne);
+    //int root = (int)std::round(G.N * dist(mersenne)) % G.N;
+
+    current_global[root] = -1;
+    current_global_treedepth = -1;
+
+    auto cc = G.WithoutVertex(root);
+    for(auto c: cc){
+      current_global_treedepth = std::max(current_global_treedepth, 1 + _treedepth_heuristic(c, root));
+    }
+    
+    if(current_global_treedepth < best_global_treedepth){
+      writing_to_global = true;
+      best_global_treedepth = current_global_treedepth;
+      best_global = std::vector<int>(current_global);
+      writing_to_global = false;
+      std::cerr << "Found a lower treedepth : " << best_global_treedepth << std::endl;
+    }
+  }
+
 }
 
 // Recursive function to reconstruct the tree that atains the treedepth.

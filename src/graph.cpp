@@ -582,7 +582,7 @@ void LoadGraph(std::istream &stream) {
     vertices_to_global[i_vec] = i;
   }
 
-  std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
+  std::cerr << "Initalized a graph having " << full_graph.N << " vertices with "
             << full_graph.M << " edges. " << std::endl;
 }
 

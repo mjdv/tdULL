@@ -8,7 +8,7 @@ T=199
 INPUT_DIR=../input/exact
 OUTPUT_DIR=../output/exact
 
-all: set_trie_test graph_test treedepth_test main verify generate_exact_cache centrality_test
+all: set_trie_test graph_test treedepth_test main verify generate_exact_cache centrality_test heuristic
 
 instance: main verify
 	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
@@ -27,6 +27,9 @@ timing: main verify
 
 
 main: main.o graph.o separator.o set_trie.o exact_cache.o centrality.o
+	g++ -o $@ $^
+
+heuristic: main_heuristic.o graph.o separator.o set_trie.o exact_cache.o centrality.o
 	g++ -o $@ $^
 
 set_trie_test: set_trie_test.o set_trie.o
