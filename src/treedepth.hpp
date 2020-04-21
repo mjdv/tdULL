@@ -376,6 +376,8 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 }
 
 void sigterm_handler(int signum){
+
+  std::cerr << "Terminating, writing best tree to stdoout" << std::endl;
   // we will print the best treedepth we've found so far
   // Just to be safe, if we're writing to best_global while being interupted this could give a wrong tree
   // In that case, print the tree in current_global
@@ -425,6 +427,7 @@ int _treedepth_heuristic(const Graph &G, int parent){
 void treedepth_heuristic(const Graph &G){
 
   std::signal(SIGTERM, sigterm_handler);
+  std::signal(SIGINT, sigterm_handler);
   best_global = std::vector<int>(G.N, -2);
   current_global = std::vector<int>(G.N, -2);
 
