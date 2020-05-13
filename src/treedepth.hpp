@@ -177,7 +177,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
   }
-  if (G.N == full_graph.N) std::cout << "full_graph: kCore";
+  if (G.N == full_graph.N) std::cerr << "full_graph: kCore";
 
   // Below we calculate the smallest k-core that G can contain. If this is non-
   // empty, we recursively calculate the treedepth on this core first. This
@@ -204,7 +204,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     }
   }
   if (G.N == full_graph.N)
-    std::cout << " gave a lower bound of " << lower << std::endl;
+    std::cerr << " gave a lower bound of " << lower << std::endl;
 
   // If G doesn't exist in the cache, lets add it now, since we will start doing
   // some real work.
@@ -212,7 +212,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     // Do a cheap upper bound search.
     auto [upper_H, root_H] = treedepth_upper(G);
     if (G.N == full_graph.N)
-      std::cout << "full_graph: treedepth_upper(G) = " << upper_H << std::endl;
+      std::cerr << "full_graph: treedepth_upper(G) = " << upper_H << std::endl;
     if (upper_H < upper) {
       assert(root_H > -1);
       upper = upper_H;
@@ -257,7 +257,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   // new_lower tries to find a new treedepth lower bound on this subgraph.
   int new_lower = G.N;
   if (G.N == full_graph.N)
-    std::cout << "full_graph: bounds before separator loop " << lower
+    std::cerr << "full_graph: bounds before separator loop " << lower
               << " <= td <= " << upper << "." << std::endl;
 
   SeparatorGenerator sep_generator(G);
@@ -267,7 +267,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
     total_separators += separators.size();
     if (G.N == full_graph.N)
-      std::cout << "full_graph: generated total of " << total_separators
+      std::cerr << "full_graph: generated total of " << total_separators
                 << " separators so far." << std::endl;
 
     std::sort(separators.begin(), separators.end(),
@@ -345,7 +345,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
       if (upper <= search_lbnd || lower == upper) {
         if (G.N == full_graph.N)
-          std::cout << "full_graph: separator " << s << " / "
+          std::cerr << "full_graph: separator " << s << " / "
                     << separators.size()
                     << " gives `upper == lower == " << lower
                     << "`, early exit. "
@@ -362,7 +362,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     }
   }
   if (G.N == full_graph.N)
-    std::cout << "full_graph: completed entire separator loop." << std::endl;
+    std::cerr << "full_graph: completed entire separator loop." << std::endl;
   node->lower_bound = lower = std::max(lower, new_lower);
   return {lower, upper, root};
 }
@@ -394,7 +394,7 @@ std::pair<int, std::vector<int>> treedepth(const Graph &G) {
   time(&time_start_treedepth);
   int td = std::get<1>(treedepth(G, 1, G.N));
   std::vector<int> tree(G.N, -2);
-  std::cout << "full_graph: treedepth is " << td << "." << std::endl;
+  std::cerr << "full_graph: treedepth is " << td << "." << std::endl;
   reconstruct(G, -1, tree, td);
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
   for (auto &v : tree) v++;
