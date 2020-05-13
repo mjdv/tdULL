@@ -48,6 +48,9 @@ generate_exact_cache: graph.o separator.o generate_exact_cache.o set_trie.o exac
 verify: verify.o
 	g++ -o $@ $^
 
+solution: main
+	tar -cvzf main.tgz main
+
 clean:
 	rm set_trie_test *.o graph_test main *.d treedepth_test generate_exact_cache verify || true
 
