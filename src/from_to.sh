@@ -27,7 +27,8 @@ for f in ${INPUTDIR}*; do
 
     if [ "$GO" == 1 ] ; then
       printf "\nGraph ${graph}\n"
-      timeout 31m ./main < ${INPUTDIR}exact_${graph}.gr > ${OUTPUTDIR}exact_${graph}.tree 2> /tmp/output &&
+	  echo "Calculating treedepth for ${INPUTDIR}exact_${graph}.tree" > /tmp/output
+      timeout 31m ./main < ${INPUTDIR}exact_${graph}.gr > ${OUTPUTDIR}exact_${graph}.tree 2>> /tmp/output &&
       ./verify ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree;
       sed -e '$d' /tmp/output
       tail -1  /tmp/output 1>&2
