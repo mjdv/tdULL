@@ -11,7 +11,7 @@ OUTPUT_DIR=../output/exact
 all: set_trie_test graph_test treedepth_test main verify generate_exact_cache centrality_test
 
 instance: main verify
-	./main $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
+	./main < $(INPUT_DIR)/exact_$(N).gr > $(OUTPUT_DIR)/exact_$(N).tree
 	./verify $(INPUT_DIR)/exact_$(N).gr $(OUTPUT_DIR)/exact_$(N).tree
 
 until: main verify
