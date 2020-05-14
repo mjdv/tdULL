@@ -1,4 +1,5 @@
 #include "separator.hpp"
+
 #include <cassert>
 
 // Initializes a separator of G. This checks whether or not the separator
@@ -58,75 +59,131 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
   }
 }
 
-SeparatorGenerator::SeparatorGenerator(const Graph &G)
-    : G(G), in_nbh(G.N, false), sep_mask(G.N, false) {
-  // Datatypes that will be reused.
-  static std::stack<int> component;
-  static std::vector<int> separator;
-  static std::vector<int> neighborhood;
-
+SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
+    : G_original(G_original),
+      in_nbh(G_original.N, false),
+      sep_mask(G_original.N, false) {
   // Complete graphs don't have separators. We want this to return a
   // non-empty vector.
-  assert(!G.IsCompleteGraph());
+  assert(!G_original.IsCompleteGraph());
 
-  // First we generate all the "seeds": we take the neighborhood of a
+  // First we contract the graph, the old indices are stored inside the
+  // vertices_original member variable.
+  {
+    // Find all pairs v, w with N(v) = N(w) or N(v)\{w} = N(w)\{v}.
+    std::vector<int> vertices_contract;
+    std::vector<bool> contracted(G_original.N, false);
+
+    vertices_contract.reserve(G_original.N);
+    vertices_original.reserve(G_original.N);
+    for (int v = 0; v < G_original.N; v++) {
+      if (contracted[v]) continue;
+      vertices_contract.emplace_back(v);
+      vertices_original.emplace_back(std::vector<int>{v});
+      for (int nb : G_original.adj[v]) in_nbh[nb] = true;
+      for (int w = v + 1; w < G_original.N; w++) {
+        if (G_original.adj[v].size() != G_original.adj[w].size() ||
+            contracted[w])
+          continue;
+
+        // Check if the neighbours of w coincide with that of v.
+        bool contract = true;
+        for (int nb : G_original.adj[w])
+          if (!in_nbh[nb] && nb != v) {
+            contract = false;
+            break;
+          }
+        if (contract) {
+          vertices_original.back().emplace_back(w);
+          contracted[w] = true;
+        }
+      }
+      for (int nb : G_original.adj[v]) in_nbh[nb] = false;
+    }
+
+    size_t c = 0;
+    for (auto tmp : vertices_original) c += tmp.size();
+    assert(c == G_original.N);
+
+    // Initialize the contracted graph.
+    if (vertices_contract.size() == G_original.N)
+      G = G_original;
+    else {
+      G = Graph(G_original, vertices_contract);
+      if (G.IsCompleteGraph()) G = G_original;
+    }
+  }
+
+  // Next we generate all the "seeds": we take the neighborhood of a
   // point (including the point), take all the connected components in
   // the complement, and then take the neighborhoods of those
   // components. Each of those is a minimal separator (in fact, one that
   // separates the original point).
-  std::vector<bool> visited(G.N, false);
-  for (int i = 0; i < G.N; i++) {
-    if (G.Adj(i).size() == G.N - 1) continue;
-    neighborhood.clear();
-    neighborhood.push_back(i);
-    neighborhood.insert(neighborhood.end(), G.Adj(i).begin(), G.Adj(i).end());
+  {
+    // Datatypes that will be reused.
+    static std::stack<int> component;
+    static std::vector<int> separator;
+    static std::vector<int> vertices_expanded;
+    static std::vector<int> neighborhood;
+    std::vector<bool> visited(G.N, false);
+    for (int i = 0; i < G.N; i++) {
+      if (G.Adj(i).size() == G.N - 1) continue;
+      neighborhood.clear();
+      neighborhood.push_back(i);
+      neighborhood.insert(neighborhood.end(), G.Adj(i).begin(), G.Adj(i).end());
 
-    for (int v : neighborhood) in_nbh[v] = true;
+      for (int v : neighborhood) in_nbh[v] = true;
 
-    // Now we start off by enqueueing all neighborhoods of connected
-    // components in the complement of this neighborhood.
-    for (int j = 0; j < G.N; j++) {
-      if (in_nbh[j] || visited[j]) continue;
+      // Now we start off by enqueueing all neighborhoods of connected
+      // components in the complement of this neighborhood.
+      for (int j = 0; j < G.N; j++) {
+        if (in_nbh[j] || visited[j]) continue;
 
-      // Reset shared datastructures.
-      assert(component.empty());
-      separator.clear();
+        // Reset shared datastructures.
+        assert(component.empty());
+        separator.clear();
 
-      component.push(j);
-      visited[j] = true;
+        component.push(j);
+        visited[j] = true;
 
-      while (!component.empty()) {
-        int cur = component.top();
-        component.pop();
+        while (!component.empty()) {
+          int cur = component.top();
+          component.pop();
 
-        for (int nb : G.Adj(cur)) {
-          if (!visited[nb]) {
-            if (in_nbh[nb]) {
-              separator.push_back(nb);
-            } else {
-              component.push(nb);
+          for (int nb : G.Adj(cur)) {
+            if (!visited[nb]) {
+              if (in_nbh[nb]) {
+                separator.push_back(nb);
+              } else {
+                component.push(nb);
+              }
+              visited[nb] = true;
             }
-            visited[nb] = true;
           }
         }
+
+        for (auto k : neighborhood) visited[k] = false;
+
+        // std::sort(separator.begin(), separator.end());
+        for (int k : separator) sep_mask[k] = true;
+        if (done.find(sep_mask) == done.end()) {
+          queue.push(separator);
+          done.insert(sep_mask);
+
+          vertices_expanded.clear();
+          for (int v : separator)
+            vertices_expanded.insert(vertices_expanded.end(),
+                                     vertices_original[v].begin(),
+                                     vertices_original[v].end());
+          Separator sep(G_original, vertices_expanded);
+          if (sep.fully_minimal) buffer.emplace_back(std::move(sep));
+        }
+        for (int k : separator) sep_mask[k] = false;
       }
 
-      for (auto k : neighborhood) visited[k] = false;
-
-      // std::sort(separator.begin(), separator.end());
-      for (int k : separator) sep_mask[k] = true;
-      if (done.find(sep_mask) == done.end()) {
-        queue.push(separator);
-        done.insert(sep_mask);
-
-        Separator sep(G, separator);
-        if (sep.fully_minimal) buffer.emplace_back(std::move(sep));
-      }
-      for (int k : separator) sep_mask[k] = false;
+      for (int j = 0; j < G.N; j++) visited[j] = false;
+      for (int v : neighborhood) in_nbh[v] = false;
     }
-
-    for (int j = 0; j < G.N; j++) visited[j] = false;
-    for (int v : neighborhood) in_nbh[v] = false;
   }
 }
 
@@ -134,6 +191,7 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
   // Datatypes that will be reused.
   static std::stack<int> component;
   static std::vector<int> separator;
+  static std::vector<int> vertices_expanded;
 
   std::vector<bool> visited(G.N, false);
 
@@ -179,7 +237,12 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
           queue.push(separator);
           done.insert(sep_mask);
 
-          Separator sep(G, separator);
+          vertices_expanded.clear();
+          for (int v : separator)
+            vertices_expanded.insert(vertices_expanded.end(),
+                                     vertices_original[v].begin(),
+                                     vertices_original[v].end());
+          Separator sep(G_original, vertices_expanded);
           if (sep.fully_minimal) buffer.emplace_back(std::move(sep));
         }
         for (int k : separator) sep_mask[k] = false;

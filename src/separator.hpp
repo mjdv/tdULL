@@ -22,8 +22,12 @@ class SeparatorGenerator {
   }
 
  protected:
-  // Reference to the graph for which we are generating separators.
-  const Graph &G;
+  // Reference to the original graph for which we are generating separators.
+  const Graph &G_original;
+
+  // Contracted graph that we will actually use for separator generation.
+  Graph G;
+  std::vector<std::vector<int>> vertices_original;
 
   // In done we keep the seperators we have already enqueued, to make sure
   // they aren't processed again. In queue we keep all the ones we have
