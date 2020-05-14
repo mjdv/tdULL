@@ -23,6 +23,11 @@ int main(int argc, char** argv) {
     //                start)
     //                << " seps / s.\n";
     //    }
+
+
+    // nauty test
+    full_graph.nauty_call();
+
     auto [td, tree] = treedepth(full_graph);
     double time_elapsed =
         0.1 * std::round(10 * std::chrono::duration<double>(
