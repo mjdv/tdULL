@@ -12,6 +12,7 @@
 extern "C" {
 #include "nauty.h"
 #include "nausparse.h"
+#include "naugroup.h"
 }
 
 struct Graph {

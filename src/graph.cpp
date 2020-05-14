@@ -512,6 +512,13 @@ sparsegraph Graph::sparsegraph_nauty() const {
   return g;
 }
 
+void writeautom(int *p, int n){
+  for(int i=0; i<n; i++){
+    fprintf(stderr, " %2d", p[i]); 
+  }
+  fprintf(stderr, "\n");
+}
+
 void Graph::nauty_call() const{
   std::cerr << "start nauty call" << std::endl;
   sparsegraph g = this->sparsegraph_nauty();
@@ -522,10 +529,14 @@ void Graph::nauty_call() const{
   int * ptn = (int *) calloc(this->N, sizeof(int));
   int * orbits = (int *) calloc(this->N, sizeof(int));
 
+  grouprec *group;
+
   DEFAULTOPTIONS_SPARSEGRAPH(options);
   options.writeautoms = true;
   options.writemarkers = true;
   options.outfile = stderr;
+  options.userautomproc = groupautomproc;
+  options.userlevelproc = grouplevelproc;
 
   statsblk stats;
   sparsenauty(&g, lab, ptn, orbits, &options, &stats, NULL);
@@ -546,8 +557,16 @@ void Graph::nauty_call() const{
     int cur_orbit = *(orbits + i);
     std::cerr << cur_orbit << std::endl;
   }
+  std::cerr << "END OF ORBITS" << std::endl;
+  std::cerr << "All group elements" << std::endl;
 
+  group = groupptr(false);
 
+  //makecosetreps(group);
+
+  allgroup(group, writeautom);
+
+  std::cerr << "end of nauty_call" << std::endl;
 
 }
 
