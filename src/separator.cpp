@@ -101,15 +101,12 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
       for (int nb : G_original.adj[v]) in_nbh[nb] = false;
     }
 
-    size_t c = 0;
-    for (auto tmp : vertices_original) c += tmp.size();
-    assert(c == G_original.N);
-
     // Initialize the contracted graph.
     if (vertices_contract.size() == G_original.N)
       G = G_original;
     else {
       G = Graph(G_original, vertices_contract);
+      // Minor edge case.
       if (G.IsCompleteGraph()) G = G_original;
     }
   }
