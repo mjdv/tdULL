@@ -9,23 +9,29 @@
 // It also writes some info to the Separator struct: the number of vertices
 // and edges in the components that remain when removing this separator from
 // the graph.
-Separator::Separator(const Graph &G, const std::vector<int> &vertices)
-    : vertices(vertices), fully_minimal(true) {
-  // Shared datastructure.
+Separator SeparatorGenerator::InitSeparator(const std::vector<int> &vertices) {
+  // Shared datastructures.
   static std::stack<int> component;
 
+  Separator result;
   std::vector<bool> visited(G.N, false);
   std::vector<bool> in_sep(G.N, false);
+
+  // We must expand the vertices.
+  result.vertices.reserve(vertices.size());
   for (int s : vertices) {
     assert(s < G.N);
     in_sep[s] = true;
+    result.vertices.insert(result.vertices.end(), vertices_original[s].begin(),
+                           vertices_original[s].end());
   }
 
+  assert(vertices_original.size() == G.N);
   for (int i = 0; i < G.N; i++) {
     if (!visited[i] && !in_sep[i]) {
       assert(component.empty());
 
-      int comp_N = 1;
+      int comp_N = vertices_original[i].size();
       int comp_M = 0;
 
       component.push(i);
@@ -35,9 +41,10 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
         component.pop();
         for (int nb : G.Adj(cur)) {
           if (!in_sep[nb]) {
-            comp_M++;
+            comp_M +=
+                vertices_original[cur].size() * vertices_original[nb].size();
             if (!visited[nb]) {
-              comp_N++;
+              comp_N += vertices_original[nb].size();
               component.push(nb);
             }
           }
@@ -49,14 +56,16 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
           // This connected component dit not hit this vertex, so we can
           // remove this vertex and have a separator left; so this separator
           // is not fully minimal.
-          fully_minimal = false;
+          result.fully_minimal = false;
         }
         visited[s] = false;
       }
       // components.emplace_back(comp_N, comp_M);
-      largest_component = std::max(largest_component, {comp_N, comp_M / 2});
+      result.largest_component =
+          std::max(result.largest_component, {comp_N, comp_M / 2});
     }
   }
+  return result;
 }
 
 SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
@@ -107,7 +116,11 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
     else {
       G = Graph(G_original, vertices_contract);
       // Minor edge case.
-      if (G.IsCompleteGraph()) G = G_original;
+      if (G.IsCompleteGraph()) {
+        G = G_original;
+        vertices_original.resize(G.N);
+        for (int v = 0; v < G.N; v++) vertices_original[v] = {v};
+      }
     }
   }
 
@@ -120,7 +133,6 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
     // Datatypes that will be reused.
     static std::stack<int> component;
     static std::vector<int> separator;
-    static std::vector<int> vertices_expanded;
     static std::vector<int> neighborhood;
     std::vector<bool> visited(G.N, false);
     for (int i = 0; i < G.N; i++) {
@@ -167,12 +179,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
           queue.push(separator);
           done.insert(sep_mask);
 
-          vertices_expanded.clear();
-          for (int v : separator)
-            vertices_expanded.insert(vertices_expanded.end(),
-                                     vertices_original[v].begin(),
-                                     vertices_original[v].end());
-          Separator sep(G_original, vertices_expanded);
+          auto sep = InitSeparator(separator);
           if (sep.fully_minimal) buffer.emplace_back(std::move(sep));
         }
         for (int k : separator) sep_mask[k] = false;
@@ -234,12 +241,7 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
           queue.push(separator);
           done.insert(sep_mask);
 
-          vertices_expanded.clear();
-          for (int v : separator)
-            vertices_expanded.insert(vertices_expanded.end(),
-                                     vertices_original[v].begin(),
-                                     vertices_original[v].end());
-          Separator sep(G_original, vertices_expanded);
+          auto sep = InitSeparator(separator);
           if (sep.fully_minimal) buffer.emplace_back(std::move(sep));
         }
         for (int k : separator) sep_mask[k] = false;

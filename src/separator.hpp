@@ -4,9 +4,7 @@
 struct Separator {
   std::vector<int> vertices;
   std::pair<int, int> largest_component;
-  bool fully_minimal = false;
-
-  Separator(const Graph &G, const std::vector<int> &vertices);
+  bool fully_minimal = true;
 };
 
 class SeparatorGenerator {
@@ -41,4 +39,7 @@ class SeparatorGenerator {
   // Shared datatypes.
   std::vector<bool> in_nbh;
   std::vector<bool> sep_mask;
+
+  // Helper function to create a separator.
+  Separator InitSeparator(const std::vector<int> &vertices);
 };
