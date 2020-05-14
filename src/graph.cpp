@@ -484,6 +484,73 @@ std::vector<int> Graph::ArticulationPoints() const {
   return result;
 }
 
+sparsegraph Graph::sparsegraph_nauty() const {
+  sparsegraph g;
+  g.nv = this->N;
+
+  g.vlen = this->N;
+  g.dlen = this->N;
+  g.elen = 2 * this->M;
+  g.wlen = 0;
+
+  g.nde = (this->M) * 2;
+
+  g.v = (size_t*) calloc(g.vlen, sizeof(size_t));
+  g.d = (int *) calloc(g.dlen, sizeof(int));
+  g.e = (int *) calloc(g.elen, sizeof(int));
+  int index_e = 0;
+  for(int v = 0; v<this->N; v++){
+    g.d[v] = this->Adj(v).size();
+
+    g.v[v] = index_e;
+    
+    for(int e: this->Adj(v)){
+      g.e[index_e++] = e;
+    }
+  }
+
+  return g;
+}
+
+void Graph::nauty_call() const{
+  std::cerr << "start nauty call" << std::endl;
+  sparsegraph g = this->sparsegraph_nauty();
+
+  std::cerr << "done with sparsegraph" << std::endl;
+
+  int * lab = (int *) calloc(this->N, sizeof(int));
+  int * ptn = (int *) calloc(this->N, sizeof(int));
+  int * orbits = (int *) calloc(this->N, sizeof(int));
+
+  DEFAULTOPTIONS_SPARSEGRAPH(options);
+  options.writeautoms = true;
+  options.writemarkers = true;
+  options.outfile = stderr;
+
+  statsblk stats;
+  sparsenauty(&g, lab, ptn, orbits, &options, &stats, NULL);
+
+  std::cerr << "done with nauty" << std::endl;
+
+  std::cerr << "\nResults" << std::endl;
+
+  std::cerr << "groupsize : ";
+  writegroupsize(stderr, stats.grpsize1, stats.grpsize2);
+  std::cerr << std::endl;
+
+  std::cerr << "nr of orbits : " << stats.numorbits << std::endl;
+  std::cerr << "Nr of generators : " << stats.numgenerators << std::endl;
+  
+  std::cerr << "ORBITS" << std::endl;
+  for(int i=0; i<this->N; i++){
+    int cur_orbit = *(orbits + i);
+    std::cerr << cur_orbit << std::endl;
+  }
+
+
+
+}
+
 std::vector<Graph> Graph::kCore(int k) const {
   static std::vector<int> stack;
   assert(!IsTreeGraph());

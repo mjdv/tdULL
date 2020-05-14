@@ -1,5 +1,5 @@
 
-CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native 
 
 N=001
 F=001
@@ -28,7 +28,7 @@ timing: main verify
 
 
 main: main.o graph.o separator.o set_trie.o exact_cache.o centrality.o
-	g++ -o $@ $^
+	g++ -o $@ $^ nauty.a
 
 set_trie_test: set_trie_test.o set_trie.o
 	g++ -o $@ $^
@@ -61,7 +61,7 @@ exact_caches/exact_cache_8.bin: exact_caches/exact_cache_8.bin.gz
 
 
 %.o : %.cpp
-	g++ $(CPPFLAGS) -c $< -o $@
+	g++ $(CPPFLAGS) -c $< -o $@ nauty.a
 	g++ -MM $(CPPFLAGS) $*.cpp > $*.d
 
 -include *.d

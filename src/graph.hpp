@@ -9,6 +9,10 @@
 #include <stack>
 #include <unordered_set>
 #include <vector>
+extern "C" {
+#include "nauty.h"
+#include "nausparse.h"
+}
 
 struct Graph {
   size_t max_degree = 0;        // Max degree of nodes inside this graph.
@@ -84,6 +88,10 @@ struct Graph {
 
   // Returns whether this is a tree.
   bool IsTreeGraph() const { return N - 1 == M; }
+
+  sparsegraph sparsegraph_nauty() const;
+
+  void nauty_call() const;
 
   // Explicit conversion to vector of ints.
   operator std::vector<int>() const {
