@@ -114,6 +114,11 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
     if (vertices_contract.size() == G_original.N)
       G = G_original;
     else {
+      if (G_original.N == full_graph.N)
+        std::cerr << "full_graph: contracted graph has "
+                  << vertices_contract.size() << " / " << G_original.N
+                  << " vertices." << std::endl;
+
       G = Graph(G_original, vertices_contract);
       // Minor edge case.
       if (G.IsCompleteGraph()) {
