@@ -81,23 +81,29 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
       vertices_contract.emplace_back(v);
       vertices_original.emplace_back(std::vector<int>{v});
       for (int nb : G_original.adj[v]) in_nbh[nb] = true;
-      for (int w = v + 1; w < G_original.N; w++) {
-        if (G_original.adj[v].size() != G_original.adj[w].size() ||
-            contracted[w])
-          continue;
 
-        // Check if the neighbours of w coincide with that of v.
-        bool contract = true;
-        for (int nb : G_original.adj[w])
-          if (!in_nbh[nb] && nb != v) {
-            contract = false;
-            break;
+      // Loop over N(N(v)).
+      std::vector<bool> checked(G_original.N, false);
+      for (int nb : G_original.adj[v])
+        for (int w : G_original.adj[nb]) {
+          if (v >= w || checked[w] ||
+              G_original.adj[v].size() != G_original.adj[w].size() ||
+              contracted[w])
+            continue;
+          checked[w] = true;
+
+          // Check if the neighbours of w coincide with that of v.
+          bool contract = true;
+          for (int nb : G_original.adj[w])
+            if (!in_nbh[nb] && nb != v) {
+              contract = false;
+              break;
+            }
+          if (contract) {
+            vertices_original.back().emplace_back(w);
+            contracted[w] = true;
           }
-        if (contract) {
-          vertices_original.back().emplace_back(w);
-          contracted[w] = true;
         }
-      }
       for (int nb : G_original.adj[v]) in_nbh[nb] = false;
     }
 
