@@ -306,17 +306,18 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   }*/
   
   if(G.min_degree == 1) {
-    int leaf = -1;
+    int source = -1;
     for(int i = 0; i < G.N; i++) {
       if(G.Adj(i).size() == 1) {
-        leaf = i;
+        source = i;
         break;
       }
     }
     if(G.N == full_graph.N)
       std::cerr << "Doing directed." << std::endl;
-    
-    DirectedSeparatorGenerator sep_generator(G, leaf);
+
+    DirectedSeparatorGenerator sep_generator(G, source);
+
     size_t total_separators = 0;
     while (sep_generator.HasNext()) {
       auto separators = sep_generator.Next(100000);
@@ -405,7 +406,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
                       << separators.size()
                       << " gives `upper == lower == " << lower
                       << "`, early exit. "
-                      << "Sepeartor has " << separator.vertices.size()
+                      << "Separator has " << separator.vertices.size()
                       << " vertices, and largest component is ("
                       << separator.largest_component.first << ", "
                       << separator.largest_component.second << ")." << std::endl;
@@ -508,7 +509,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
                       << separators.size()
                       << " gives `upper == lower == " << lower
                       << "`, early exit. "
-                      << "Sepeartor has " << separator.vertices.size()
+                      << "Separator has " << separator.vertices.size()
                       << " vertices, and largest component is ("
                       << separator.largest_component.first << ", "
                       << separator.largest_component.second << ")." << std::endl;

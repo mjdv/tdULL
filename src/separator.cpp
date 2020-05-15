@@ -67,7 +67,7 @@ DirectedSeparatorGenerator::DirectedSeparatorGenerator(const Graph &G, const int
   // Datatypes that will be reused.
   static std::stack<int> component;
   static std::vector<int> separator;
-  std::vector<int> neighborhood;
+  static std::vector<int> neighborhood;
 
   // First we generate all the "seeds": we take the neighborhood of the source,
   // take all the connected components in the complement, and then take the
@@ -75,10 +75,9 @@ DirectedSeparatorGenerator::DirectedSeparatorGenerator(const Graph &G, const int
   // (in fact, one that separates the source).
   std::vector<bool> visited(G.N, false);
 
+  neighborhood.clear();
   neighborhood.push_back(source);
-  assert(G.Adj(source).size() == 1);
   neighborhood.insert(neighborhood.end(), G.Adj(source).begin(), G.Adj(source).end());
-  assert(neighborhood.size() == 2);
 
   for (int v : neighborhood) in_nbh[v] = true;
 
@@ -142,16 +141,16 @@ DirectedSeparatorGenerator::DirectedSeparatorGenerator(const Graph &G, const int
 
       Separator sep(G, separator);
       if (sep.fully_minimal) {
-        if(G.N == 15 && G.M == 51) {
+        /*if(G.N == 15 && G.M == 51) {
           std::cerr << "Not skipping a sep of size " << sep.vertices.size() <<
             " with first vertex " << sep.vertices[0] << std::endl;
-        }
+        }*/
         buffer.emplace_back(std::move(sep));
       }
-      else if(G.N == 15) {
+      /*else if(G.N == 15) {
         std::cerr << "Skipping a separator of size " << sep.vertices.size() << std::endl;
         std::cerr << "First vertex: " << sep.vertices[0] << std::endl;
-      }
+      }*/
     }
     for (int k : separator) sep_mask[k] = false;
   }
