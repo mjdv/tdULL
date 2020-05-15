@@ -9,6 +9,37 @@ struct Separator {
   Separator(const Graph &G, const std::vector<int> &vertices);
 };
 
+class DirectedSeparatorGenerator {
+  public:
+    DirectedSeparatorGenerator(const Graph &G, const int source);
+
+  bool HasNext() const { return !queue.empty(); }
+  std::vector<Separator> Next(int k = 10000);
+
+  void clear() {
+    done.clear();
+    queue = {};
+  }
+
+ protected:
+  // Reference to the graph for which we are generating separators.
+  const Graph &G;
+  int source;
+
+  // In done we keep the seperators we have already enqueued, to make sure
+  // they aren't processed again. In queue we keep all the ones we have
+  // generated, but which we have not yet used to generate new ones.
+  std::queue<std::pair<std::vector<int>, std::vector<bool>>> queue;
+  std::unordered_set<std::vector<bool>> done;
+
+  // In buffer we will keep all the (fully minimal) generated separators.
+  std::vector<Separator> buffer;
+
+  // Shared datatypes.
+  std::vector<bool> in_nbh;
+  std::vector<bool> sep_mask;
+};
+
 class SeparatorGenerator {
  public:
   SeparatorGenerator(const Graph &G);

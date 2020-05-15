@@ -58,6 +58,218 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
   }
 }
 
+DirectedSeparatorGenerator::DirectedSeparatorGenerator(const Graph &G, const int source)
+  : G(G), source(source), in_nbh(G.N, false), sep_mask(G.N, false) {
+  // If the chosen source is adjacent to everything, we necessarily want it as root,
+  // as there won't be separators without it.
+  if (G.Adj(source).size() == G.N - 1) return;
+
+  // Datatypes that will be reused.
+  static std::stack<int> component;
+  static std::vector<int> separator;
+  std::vector<int> neighborhood;
+
+  // First we generate all the "seeds": we take the neighborhood of the source,
+  // take all the connected components in the complement, and then take the
+  // neighborhoods of those components. Each of those is a minimal separator
+  // (in fact, one that separates the source).
+  std::vector<bool> visited(G.N, false);
+
+  neighborhood.push_back(source);
+  assert(G.Adj(source).size() == 1);
+  neighborhood.insert(neighborhood.end(), G.Adj(source).begin(), G.Adj(source).end());
+  assert(neighborhood.size() == 2);
+
+  for (int v : neighborhood) in_nbh[v] = true;
+
+  // Now we start off by enqueueing all neighborhoods of connected
+  // components in the complement of this neighborhood.
+  for (int j = 0; j < G.N; j++) {
+
+    // First we find the component of in_nbh that we want.
+    if (in_nbh[j] || visited[j]) continue;
+
+    // Reset shared datastructures.
+    assert(component.empty());
+    separator.clear();
+
+    component.push(j);
+    visited[j] = true;
+
+    std::vector<bool> in_separator(G.N, false);
+
+    while (!component.empty()) {
+      int cur = component.top();
+      component.pop();
+
+      for (int nb : G.Adj(cur)) {
+        if (!visited[nb]) {
+          if (in_nbh[nb]) {
+            in_separator[nb] = true;
+            separator.push_back(nb);
+          } else {
+            component.push(nb);
+          }
+          visited[nb] = true;
+        }
+      }
+    }
+
+    // Then we check what the component of the source in the complement is.
+    std::vector<bool> source_comp(G.N, false);
+    source_comp[source] = true;
+    component.push(source);
+
+    while(!component.empty()) {
+      int cur = component.top();
+      component.pop();
+
+      for(int nb : G.Adj(cur)) {
+        if(!source_comp[nb] && !in_separator[nb]) {
+          source_comp[nb] = true;
+          component.push(nb);
+        }
+      }
+    }
+
+    for (auto k : neighborhood) visited[k] = false;
+
+    // std::sort(separator.begin(), separator.end());
+    for (int k : separator) sep_mask[k] = true;
+    if (done.find(sep_mask) == done.end()) {
+      queue.push(make_pair(separator, source_comp));
+      done.insert(sep_mask);
+
+      Separator sep(G, separator);
+      if (sep.fully_minimal) {
+        if(G.N == 15 && G.M == 51) {
+          std::cerr << "Not skipping a sep of size " << sep.vertices.size() <<
+            " with first vertex " << sep.vertices[0] << std::endl;
+        }
+        buffer.emplace_back(std::move(sep));
+      }
+      else if(G.N == 15) {
+        std::cerr << "Skipping a separator of size " << sep.vertices.size() << std::endl;
+        std::cerr << "First vertex: " << sep.vertices[0] << std::endl;
+      }
+    }
+    for (int k : separator) sep_mask[k] = false;
+  }
+}
+
+std::vector<Separator> DirectedSeparatorGenerator::Next(int k) {
+  // Datatypes that will be reused.
+  static std::stack<int> component;
+  static std::vector<int> separator;
+
+  std::vector<bool> visited(G.N, false);
+
+  while (!queue.empty() && buffer.size() < k) {
+    auto [cur_separator, cur_source_comp] = queue.front();
+    queue.pop();
+
+    for (int x : cur_separator) {
+      for (int j : cur_separator) in_nbh[j] = true;
+
+      // If we can only reach source_comp vertices from here, skip.
+      bool any_change = false;
+      for (int j : G.Adj(x)) {
+        if(!in_nbh[j] && !cur_source_comp[j]) {
+          in_nbh[j] = true;
+          any_change = true;
+        }
+      }
+      if(!any_change) {
+        for (int j : cur_separator) in_nbh[j] = false;
+        continue;
+      }
+
+      // We are only going to start a dfs from a node if it is not in
+      // cur_source_comp. (Might be able to push this just a tiny bit faster by
+      // restricting j to neighbors of the nodes added to nbh.)
+      for (int j = 0; j < G.N; j++) {
+        if (in_nbh[j] || visited[j] || cur_source_comp[j]) continue;
+        // Reset shared datastructures.
+        assert(component.empty());
+        separator.clear();
+
+        component.push(j);
+        visited[j] = true;
+
+        while (!component.empty()) {
+          int cur = component.top();
+          component.pop();
+
+          for (int nb : G.Adj(cur)) {
+            if (!visited[nb]) {
+              if (in_nbh[nb]) {
+                separator.push_back(nb);
+              } else {
+                component.push(nb);
+              }
+              visited[nb] = true;
+            }
+          }
+        }
+
+        for (auto k : cur_separator) visited[k] = false;
+        for (auto k : G.Adj(x)) visited[k] = false;
+
+
+        for (int k : separator) sep_mask[k] = true;
+        if (done.find(sep_mask) == done.end()) {
+          std::vector<bool> new_source_comp(cur_source_comp);
+          for(int removed : cur_separator) {
+            if(sep_mask[removed]) continue;
+            for(int nb : G.Adj(removed)) {
+              if(cur_source_comp[nb]) {
+                component.push(removed);
+                new_source_comp[removed] = true;
+                break;
+              }
+            }
+          }
+
+          while(!component.empty()) {
+            int cur = component.top();
+            component.pop();
+            for(int nb : G.Adj(cur)) {
+              if(!new_source_comp[nb] && !sep_mask[nb]) {
+                new_source_comp[nb] = true;
+                component.push(nb);
+              }
+            }
+          }
+          
+          queue.push(make_pair(separator, new_source_comp));
+          done.insert(sep_mask);
+
+          Separator sep(G, separator);
+          if (sep.fully_minimal) buffer.emplace_back(std::move(sep));
+        }
+        for (int k : separator) sep_mask[k] = false;
+      }
+
+      for (int j : cur_separator) in_nbh[j] = false;
+      for (int j : G.Adj(x)) in_nbh[j] = false;
+      for (int j = 0; j < G.N; j++) visited[j] = false;
+    }
+  }
+
+  if(G.N == 15 && G.M == 51) {
+    std::cerr << "After a run of Next our done has the following elements:" << std::endl;
+    for(auto v : done) {
+      for(auto x : v)
+        std::cerr << x;
+      std::cerr << std::endl;
+    }
+    std::cerr << std::endl;
+  }
+
+  return std::move(buffer);
+}
+
+
 SeparatorGenerator::SeparatorGenerator(const Graph &G)
     : G(G), in_nbh(G.N, false), sep_mask(G.N, false) {
   // Datatypes that will be reused.
