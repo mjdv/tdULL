@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
 
 
     // nauty test
-    full_graph.nauty_call();
+    //full_graph.nauty_call();
 
     auto [td, tree] = treedepth(full_graph);
     double time_elapsed =
