@@ -1,5 +1,5 @@
 
-CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native 
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native
 
 N=001
 F=001
@@ -27,22 +27,25 @@ timing: main verify
 	bash from_to.sh 001 199 2>> timings/computed_treedepths_$(shell git rev-parse --abbrev-ref HEAD)_$(shell git rev-parse --short HEAD).csv > timings/computed_treedepths_$(shell git rev-parse --abbrev-ref HEAD)_$(shell git rev-parse --short HEAD).log
 
 
-main: main.o graph.o separator.o set_trie.o exact_cache.o centrality.o nauty.a
+main: main.o graph.o separator.o set_trie.o exact_cache.o centrality.o nauty.o nauty.a
 	g++ -o $@ $^
 
 set_trie_test: set_trie_test.o set_trie.o
 	g++ -o $@ $^
 
-graph_test: graph_test.o graph.o separator.o nauty.a
+graph_test: graph_test.o graph.o separator.o nauty.o nauty.a
 	g++ -o $@ $^
 
-treedepth_test: treedepth_test.o graph.o separator.o set_trie.o exact_cache.o centrality.o nauty.a
+nauty_test: nauty_test.o graph.o nauty.o nauty.a
 	g++ -o $@ $^
 
-centrality_test: centrality_test.o graph.o centrality.o nauty.a
+treedepth_test: treedepth_test.o graph.o separator.o set_trie.o exact_cache.o centrality.o nauty.o nauty.a
 	g++ -o $@ $^
 
-generate_exact_cache: graph.o separator.o generate_exact_cache.o set_trie.o exact_cache.o centrality.o nauty.a
+centrality_test: centrality_test.o graph.o centrality.o nauty.o nauty.a
+	g++ -o $@ $^
+
+generate_exact_cache: graph.o separator.o generate_exact_cache.o set_trie.o exact_cache.o centrality.o nauty.o nauty.a
 	g++ -o $@ $^
 
 verify: verify.o
@@ -58,7 +61,10 @@ exact_cache.o : exact_caches/exact_cache_8.bin
 exact_caches/exact_cache_8.bin: exact_caches/exact_cache_8.bin.gz
 	gunzip < $^ > $@
 
-
+nauty.a:
+	cd ../third_party/nauty && ./configure
+	make -C ../third_party/nauty -j4 nauty
+	cp ../third_party/nauty/nauty.a  .
 
 %.o : %.cpp
 	g++ $(CPPFLAGS) -c $< -o $@
