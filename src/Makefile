@@ -8,7 +8,7 @@ T=199
 INPUT_DIR=../input/exact
 OUTPUT_DIR=../output/exact
 
-all: set_trie_test graph_test treedepth_test main verify generate_exact_cache centrality_test
+all: set_trie_test graph_test treedepth_test main verify generate_exact_cache centrality_test nauty_test
 
 instance: main verify
 	echo "Calculating treedepth for $(INPUT_DIR)/exact_$(N).gr"

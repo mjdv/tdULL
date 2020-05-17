@@ -484,12 +484,12 @@ std::vector<int> Graph::ArticulationPoints() const {
   return result;
 }
 
-void writeautom(int *p, int n) {
-  for (int i = 0; i < n; i++) {
-    fprintf(stderr, " %2d", p[i]);
-  }
-  fprintf(stderr, "\n");
-}
+// void writeautom(int *p, int n) {
+//  for (int i = 0; i < n; i++) {
+//    fprintf(stderr, " %2d", p[i]);
+//  }
+//  fprintf(stderr, "\n");
+//}
 
 // std::vector<int> Graph::nauty_call() const {
 //  // std::cerr << "start nauty call" << std::endl;

@@ -9,6 +9,7 @@
 #include "centrality.hpp"
 #include "exact_cache.hpp"
 #include "graph.hpp"
+#include "nauty.hpp"
 #include "separator.hpp"
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
@@ -260,22 +261,23 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     std::cerr << "full_graph: bounds before separator loop " << lower
               << " <= td <= " << upper << "." << std::endl;
 
-  if(G.N >= full_graph.N - 10){
-    std::vector<int> orbit_representatives = G.nauty_call();
-    if(G.N == full_graph.N)
-      std::cerr << "The full graph has " << orbit_representatives.size() << " orbits" << std::endl;
-    if(orbit_representatives.size() <= 10){
+  if (G.N >= full_graph.N - 10) {
+    std::vector<int> orbit_representatives = Nauty(G).orbit_representatives;
+    if (G.N == full_graph.N)
+      std::cerr << "The full graph has " << orbit_representatives.size()
+                << " orbits" << std::endl;
+    if (orbit_representatives.size() <= 10) {
       // orbits
-      for(auto v : orbit_representatives){
-        int search_ubnd_v = std::min(search_ubnd-1, upper - 1);
-        int search_lbnd_v = std::max(search_lbnd-1, 1);
+      for (auto v : orbit_representatives) {
+        int search_ubnd_v = std::min(search_ubnd - 1, upper - 1);
+        int search_lbnd_v = std::max(search_lbnd - 1, 1);
 
         int upper_v = 0;
         int lower_v = lower - 1;
 
         bool early_break = false;
 
-        for(auto H: G.WithoutVertex(v)){
+        for (auto H : G.WithoutVertex(v)) {
           auto tuple = treedepth(H, search_lbnd_v, search_ubnd_v);
 
           int lower_H = std::get<0>(tuple);
@@ -286,23 +288,22 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
           search_lbnd_v = std::max(search_lbnd_v, lower_H);
 
-          if(lower_H >= search_ubnd_v){
+          if (lower_H >= search_ubnd_v) {
             early_break = true;
             break;
           }
-
         }
 
         new_lower = std::min(new_lower, lower_v + 1);
 
-        if(!early_break && upper_v + 1 < upper){
+        if (!early_break && upper_v + 1 < upper) {
           upper = upper_v + 1;
           node->upper_bound = upper;
           node->lower_bound = std::max(new_lower, node->lower_bound);
           node->root = G.global[v];
         }
 
-        if(upper <= search_lbnd || lower == upper){
+        if (upper <= search_lbnd || lower == upper) {
           return {lower, upper, G.global[v]};
         }
       }
