@@ -8,6 +8,25 @@ std::string ExtractFileName(const std::string& str) {
   return str.substr(str.find_last_of("/") + 1);
 }
 
+std::vector<int> vertex_domination(const Graph& G, std::vector<int> vertices) {
+  std::vector<int> result;
+  result.reserve(vertices);
+  std::vector<bool> in_nbh(G.N, false);
+  std::vector<bool> contracted(G.N, false);
+  for (int v : vertices) {
+    for (int nb : adj[v]) in_nbh[nb] = true;
+    for (int w : vertices) {
+      if (v < w) continue;
+      for (int nb : adj[w])
+        if (!in_nbh[nb] && nb != v) {
+          contract = false;
+          break;
+        }
+    }
+    for (int nb : adj[v]) in_nbh[nb] = false;
+  }
+}
+
 int main(int argc, char** argv) {
   LoadGraph(std::cin);
   Nauty nauty_full(full_graph);
