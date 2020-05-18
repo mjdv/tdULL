@@ -339,6 +339,45 @@ std::vector<Graph> Graph::WithoutVertex(int w) const {
   return cc;
 }
 
+std::pair<Graph, std::vector<std::vector<int>>>
+Graph::WithoutSymmetricNeighboorhoods() const {
+  // Find all pairs v, w with N(v) = N(w) or N(v)\{w} = N(w)\{v}.
+  std::vector<int> vertices_contract;
+  std::vector<std::vector<int>> vertices_original;
+  std::vector<bool> contracted(N, false);
+  std::vector<bool> in_nbh(N, false);
+
+  vertices_contract.reserve(N);
+  vertices_original.reserve(N);
+  for (int v = 0; v < N; v++) {
+    if (contracted[v]) continue;
+    vertices_contract.emplace_back(v);
+    vertices_original.emplace_back(std::vector<int>{v});
+    for (int nb : adj[v]) in_nbh[nb] = true;
+    for (int w = v + 1; w < N; w++) {
+      if (adj[v].size() != adj[w].size() || contracted[w]) continue;
+
+      // Check if the neighbours of w coincide with that of v.
+      bool contract = true;
+      for (int nb : adj[w])
+        if (!in_nbh[nb] && nb != v) {
+          contract = false;
+          break;
+        }
+      if (contract) {
+        vertices_original.back().emplace_back(w);
+        contracted[w] = true;
+      }
+    }
+    for (int nb : adj[v]) in_nbh[nb] = false;
+  }
+
+  if (vertices_contract.size() < N)
+    return {Graph(*this, vertices_contract), std::move(vertices_original)};
+  else
+    return {*this, std::move(vertices_original)};
+}
+
 std::vector<int> Graph::Bfs(int root) const {
   // assert(mask[vertices[root]->n]);
   std::vector<bool> visited(N, false);

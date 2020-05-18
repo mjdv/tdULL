@@ -56,6 +56,12 @@ struct Graph {
   // Create a connected components of the subgraph without the given vertex.
   std::vector<Graph> WithoutVertex(int v) const;
 
+  // Removes all vertices w > v for which  N(w) = N(v) or N(w)\v = N(v)\w.
+  // It returns the smaller, and for each vertex in the new graph
+  // a list of vertices in the old graph that share the same neighboorhood.
+  std::pair<Graph, std::vector<std::vector<int>>>
+  WithoutSymmetricNeighboorhoods() const;
+
   // Recursively removes all vertices with deg < 2.
   Graph TwoCore() const;
   std::vector<Graph> kCore(int k) const;
