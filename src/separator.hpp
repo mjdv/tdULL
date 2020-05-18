@@ -1,6 +1,7 @@
 #pragma once
-#include "graph.hpp"
 #include <cassert>
+
+#include "graph.hpp"
 
 struct Separator {
   std::vector<int> vertices;
@@ -11,16 +12,15 @@ struct Separator {
 };
 
 class SeparatorGenerator {
-  public:
-    virtual bool HasNext() const { assert(false); return false; } ;
-    virtual std::vector<Separator> Next(int k = 10000) {
-      assert(false); return {}; };
-    virtual ~SeparatorGenerator() = default;
+ public:
+  virtual bool HasNext() const = 0;
+  virtual std::vector<Separator> Next(int k = 10000) = 0;
+  virtual ~SeparatorGenerator() = default;
 };
 
 class SeparatorGeneratorDirected : public SeparatorGenerator {
-  public:
-    SeparatorGeneratorDirected(const Graph &G, const int source);
+ public:
+  SeparatorGeneratorDirected(const Graph &G, const int source);
 
   bool HasNext() const override { return !queue.empty(); }
   std::vector<Separator> Next(int k = 10000) override;
