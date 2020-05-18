@@ -51,6 +51,32 @@ void TestArticulationPoints(const Graph &G) {
   assert(aps == aps_real);
 }
 
+void TestSymmetricNeighboorhoods(const Graph &G_original) {
+  auto [G_new, vertices_original] = G_original.WithoutSymmetricNeighboorhoods();
+  G_new.AssertValidGraph();
+  assert(vertices_original.size() == G_new.N);
+  // Nothing happened..
+  if (vertices_original.size() == G_original.N)
+    for (int v = 0; v < G_original.N; v++) {
+      assert(vertices_original[v].size() == 1);
+      assert(vertices_original[v][0] == v);
+    }
+
+  // Complete graphs are an exception.
+  if (G_new.IsCompleteGraph()) return;
+
+  // Check that there are no double neighboorhoods in G_new.
+  for (int v = 0; v < G_new.N; v++) {
+    for (int w = v + 1; w < G_new.N; w++) {
+      std::set<int> adj_w(G_new.Adj(w).begin(), G_new.Adj(w).end());
+      std::set<int> adj_v(G_new.Adj(v).begin(), G_new.Adj(v).end());
+      adj_w.erase(v);
+      adj_v.erase(w);
+      assert(adj_v != adj_w);
+    }
+  }
+}
+
 int main() {
   // Load the full graph, this is exact_015.gr.
   std::istringstream stream_015(
@@ -80,6 +106,7 @@ int main() {
   assert(v_ams15.size() == 8);
   TestSeparators(full_graph, v_ams15);
   TestArticulationPoints(full_graph);
+  TestSymmetricNeighboorhoods(full_graph);
 
   std::istringstream stream_2core(
       "p tdp 11 12 1 2 2 3 3 1 3 4 4 5 5 6 6 7 7 4 6 8 7 9 9 10 10 11");
@@ -87,6 +114,8 @@ int main() {
   auto core = full_graph.TwoCore();
   assert(core.N == 7);
   assert(core.M == 8);
+  TestArticulationPoints(full_graph);
+  TestSymmetricNeighboorhoods(full_graph);
 
   std::istringstream stream_3core(
       "p tdp 11 14 1 2 2 3 3 1 3 4 4 5 5 6 6 7 7 4 6 8 7 9 9 10 10 11 4 6 5 "
@@ -98,6 +127,8 @@ int main() {
   std::cout << core3.N << " " << core3.M << std::endl;
   assert(core3.N == 4);
   assert(core3.M == 6);
+  TestArticulationPoints(full_graph);
+  TestSymmetricNeighboorhoods(full_graph);
 
   std::istringstream stream_allminsep("p tdp 6 5 1 2 1 3 1 4 1 5 1 6");
   LoadGraph(stream_allminsep);
@@ -105,6 +136,7 @@ int main() {
   auto v_ams = gen.Next(1'000'000);
   TestSeparators(full_graph, v_ams);
   TestArticulationPoints(full_graph);
+  TestSymmetricNeighboorhoods(full_graph);
 
   assert(v_ams.size() == 1);
   assert(v_ams[0].vertices.size() == 1);
@@ -116,6 +148,7 @@ int main() {
   assert(v_ams2.size() == 9);
   TestSeparators(full_graph, v_ams2);
   TestArticulationPoints(full_graph);
+  TestSymmetricNeighboorhoods(full_graph);
 
   std::cout << "The minimal separators of the 6-cycle are:" << std::endl;
   for (auto v : v_ams2) {
@@ -130,6 +163,7 @@ int main() {
   auto v_ams3 = gen3.Next(1'000'000);
   TestSeparators(full_graph, v_ams3);
   TestArticulationPoints(full_graph);
+  TestSymmetricNeighboorhoods(full_graph);
 
   std::cout << "The minimal separators of the 4-cycle with two extra leaves "
                "attached to adjacent nodes are:"
@@ -190,6 +224,7 @@ int main() {
   assert(v_ams43.size() == 664);
   TestSeparators(full_graph, v_ams43);
   TestArticulationPoints(full_graph);
+  TestSymmetricNeighboorhoods(full_graph);
   std::cout << "There are " << v_ams43.size() << " of them." << std::endl;
 
   return 0;
