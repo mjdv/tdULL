@@ -16,6 +16,21 @@ class SeparatorGenerator {
   virtual bool HasNext() const = 0;
   virtual std::vector<Separator> Next(int k = 10000) = 0;
   virtual ~SeparatorGenerator() = default;
+  SeparatorGenerator(const Graph &G);
+
+ protected:
+  // Reference to the graph for which we are generating separators.
+  const Graph &G;
+
+  // Stores the separators that we have already visited.
+  std::unordered_set<std::vector<bool>> done;
+
+  // In buffer we will keep all the (fully minimal) generated separators.
+  std::vector<Separator> buffer;
+
+  // Shared datatypes.
+  std::vector<bool> in_nbh;
+  std::vector<bool> sep_mask;
 };
 
 class SeparatorGeneratorDirected : public SeparatorGenerator {
@@ -31,9 +46,7 @@ class SeparatorGeneratorDirected : public SeparatorGenerator {
   }
 
  protected:
-  // Reference to the graph for which we are generating separators, and the
-  // source from which we generate them.
-  const Graph &G;
+  // The source from which we generate separators them.
   int source;
 
   // In done we keep the seperators we have already enqueued, to make sure
@@ -42,14 +55,6 @@ class SeparatorGeneratorDirected : public SeparatorGenerator {
   // Additionally the queue contains a bitmask encoding the component in the
   // complement of source: this saves us doing a DFS every time.
   std::queue<std::pair<std::vector<int>, std::vector<bool>>> queue;
-  std::unordered_set<std::vector<bool>> done;
-
-  // In buffer we will keep all the (fully minimal) generated separators.
-  std::vector<Separator> buffer;
-
-  // Shared datatypes.
-  std::vector<bool> in_nbh;
-  std::vector<bool> sep_mask;
 };
 
 class SeparatorGeneratorUndirected : public SeparatorGenerator {
@@ -65,19 +70,8 @@ class SeparatorGeneratorUndirected : public SeparatorGenerator {
   }
 
  protected:
-  // Reference to the graph for which we are generating separators.
-  const Graph &G;
-
   // In done we keep the seperators we have already enqueued, to make sure
   // they aren't processed again. In queue we keep all the ones we have
   // generated, but which we have not yet used to generate new ones.
   std::queue<std::vector<int>> queue;
-  std::unordered_set<std::vector<bool>> done;
-
-  // In buffer we will keep all the (fully minimal) generated separators.
-  std::vector<Separator> buffer;
-
-  // Shared datatypes.
-  std::vector<bool> in_nbh;
-  std::vector<bool> sep_mask;
 };

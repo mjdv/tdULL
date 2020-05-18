@@ -1,4 +1,5 @@
 #include "separator.hpp"
+
 #include <cassert>
 
 // Initializes a separator of G. This checks whether or not the separator
@@ -58,34 +59,37 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
   }
 }
 
+SeparatorGenerator::SeparatorGenerator(const Graph &G)
+    : G(G), in_nbh(G.N, false), sep_mask(G.N, false) {}
 
-SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G, const int source)
-  : G(G), source(source), in_nbh(G.N, false), sep_mask(G.N, false) {
-  // If the chosen source is adjacent to everything, we necessarily want it as root,
-  // as there won't be separators without it.
-  if (G.Adj(source).size() == G.N - 1) return;
-
+SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G,
+                                                       const int source)
+    : SeparatorGenerator(G), source(source) {
   // Datatypes that will be reused.
   static std::stack<int> component;
   static std::vector<int> separator;
   static std::vector<int> neighborhood;
 
-  // First we generate all the "seeds": we take the neighborhood of the source,
-  // take all the connected components in the complement, and then take the
-  // neighborhoods of those components. Each of those is a minimal separator
-  // (in fact, one that separates the source).
+  // If the chosen source is adjacent to everything, we necessarily want it as
+  // root, as there won't be separators without it.
+  if (G.Adj(source).size() == G.N - 1) return;
+
+  // First we generate all the "seeds": we take the neighborhood of the
+  // source, take all the connected components in the complement, and then
+  // take the neighborhoods of those components. Each of those is a minimal
+  // separator (in fact, one that separates the source).
   std::vector<bool> visited(G.N, false);
 
   neighborhood.clear();
   neighborhood.push_back(source);
-  neighborhood.insert(neighborhood.end(), G.Adj(source).begin(), G.Adj(source).end());
+  neighborhood.insert(neighborhood.end(), G.Adj(source).begin(),
+                      G.Adj(source).end());
 
   for (int v : neighborhood) in_nbh[v] = true;
 
   // Now we start off by enqueueing all neighborhoods of connected
   // components in the complement of this neighborhood.
   for (int j = 0; j < G.N; j++) {
-
     // First we find the component of in_nbh that we want.
     if (in_nbh[j] || visited[j]) continue;
 
@@ -120,12 +124,12 @@ SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G, const int
     source_comp[source] = true;
     component.push(source);
 
-    while(!component.empty()) {
+    while (!component.empty()) {
       int cur = component.top();
       component.pop();
 
-      for(int nb : G.Adj(cur)) {
-        if(!source_comp[nb] && !in_separator[nb]) {
+      for (int nb : G.Adj(cur)) {
+        if (!source_comp[nb] && !in_separator[nb]) {
           source_comp[nb] = true;
           component.push(nb);
         }
@@ -166,19 +170,19 @@ std::vector<Separator> SeparatorGeneratorDirected::Next(int k) {
       // If we can only reach source_comp vertices from here, skip.
       bool any_change = false;
       for (int j : G.Adj(x)) {
-        if(!in_nbh[j] && !cur_source_comp[j]) {
+        if (!in_nbh[j] && !cur_source_comp[j]) {
           in_nbh[j] = true;
           any_change = true;
         }
       }
-      if(!any_change) {
+      if (!any_change) {
         for (int j : cur_separator) in_nbh[j] = false;
         continue;
       }
 
       // We are only going to start a dfs from a node if it is not in
-      // cur_source_comp. (Might be able to push this just a tiny bit faster by
-      // restricting j to neighbors of the nodes added to nbh.)
+      // cur_source_comp. (Might be able to push this just a tiny bit faster
+      // by restricting j to neighbors of the nodes added to nbh.)
       for (int j = 0; j < G.N; j++) {
         if (in_nbh[j] || visited[j] || cur_source_comp[j]) continue;
         // Reset shared datastructures.
@@ -207,32 +211,30 @@ std::vector<Separator> SeparatorGeneratorDirected::Next(int k) {
         for (auto k : cur_separator) visited[k] = false;
         for (auto k : G.Adj(x)) visited[k] = false;
 
-
         for (int k : separator) sep_mask[k] = true;
         if (done.find(sep_mask) == done.end()) {
           std::vector<bool> new_source_comp(cur_source_comp);
-          for(int removed : cur_separator) {
-            if(sep_mask[removed]) continue;
-            for(int nb : G.Adj(removed)) {
-              if(cur_source_comp[nb]) {
+          for (int removed : cur_separator) {
+            if (sep_mask[removed]) continue;
+            for (int nb : G.Adj(removed)) {
+              if (cur_source_comp[nb]) {
                 component.push(removed);
                 new_source_comp[removed] = true;
                 break;
               }
             }
           }
-
-          while(!component.empty()) {
+          while (!component.empty()) {
             int cur = component.top();
             component.pop();
-            for(int nb : G.Adj(cur)) {
-              if(!new_source_comp[nb] && !sep_mask[nb]) {
+            for (int nb : G.Adj(cur)) {
+              if (!new_source_comp[nb] && !sep_mask[nb]) {
                 new_source_comp[nb] = true;
                 component.push(nb);
               }
             }
           }
-          
+
           queue.push(make_pair(separator, new_source_comp));
           done.insert(sep_mask);
 
@@ -248,22 +250,11 @@ std::vector<Separator> SeparatorGeneratorDirected::Next(int k) {
     }
   }
 
-  if(G.N == 15 && G.M == 51) {
-    std::cerr << "After a run of Next our done has the following elements:" << std::endl;
-    for(auto v : done) {
-      for(auto x : v)
-        std::cerr << x;
-      std::cerr << std::endl;
-    }
-    std::cerr << std::endl;
-  }
-
   return std::move(buffer);
 }
 
-
 SeparatorGeneratorUndirected::SeparatorGeneratorUndirected(const Graph &G)
-    : G(G), in_nbh(G.N, false), sep_mask(G.N, false) {
+    : SeparatorGenerator(G) {
   // Datatypes that will be reused.
   static std::stack<int> component;
   static std::vector<int> separator;
