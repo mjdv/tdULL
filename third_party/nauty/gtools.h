@@ -21,7 +21,7 @@ used, it is necessary to check they are correct.
 #define POPEN_DEC  1         /* popen() is declared */
 #define FTELL_DEC  1         /* ftell() is declared */
 #define FDOPEN_DEC  1        /* fdopen() is declared */
-#define SORTPROG  "gsort"         /* name of sort program */
+#define SORTPROG  "sort"         /* name of sort program */
 #define SORT_NEWKEY 1  /* if -k is supported */
 #define HAVE_PID_T 1    /* pid_t is defined */
 #define PUTENV_DEC 1   /* putenv() is declared */
@@ -29,7 +29,7 @@ used, it is necessary to check they are correct.
 #define HAVE_PUTENV 1   /* putenv() exists */
 #define HAVE_SETENV 1   /* setenv() exists */
 #define HAVE_FORK 1   /* fork() exists */
-#define HAVE_PTHREADS 1   /* Posix threads exist */
+#define HAVE_PTHREADS 0   /* Posix threads exist */
 #define HAVE_PTHREAD_H  1      /* <pthread.h> exists */
 #define HAVE_SIGNAL_H  1      /* <signal.h> exists */
 #define HAVE_FSEEKO 1  /* fseeko() and ftello() exist */

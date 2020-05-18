@@ -1,4 +1,5 @@
 #include "nauty.hpp"
+#include <cmath>
 
 extern "C" {
 #include "../third_party/nauty/naugroup.h"
