@@ -112,7 +112,7 @@ std::pair<int, int> treedepth_upper(const Graph &G) {
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 30 * 60;  // A time limit of TEN minuts for now.
+int max_time_treedepth = 31 * 60;  // A time limit of TEN minuts for now.
 
 // If we look for subsets, how much may those subsets differ from the set we
 // are considering?
@@ -262,10 +262,12 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
   SeparatorGenerator sep_generator(G);
   size_t total_separators = 0;
-  int batch_size = 64;
+  int batch_size = 100;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
-    batch_size = std::min(1<<17, 2*batch_size);
+    batch_size = std::min(1<<17, 10*batch_size);
+    //batch_size = 1<<17;
+    
 
     total_separators += separators.size();
     if (G.N == full_graph.N)
