@@ -10,9 +10,11 @@ std::string ExtractFileName(const std::string& str) {
 
 int main(int argc, char** argv) {
   LoadGraph(std::cin);
-  Nauty nauty(full_graph);
-  std::cerr << nauty.num_orbits << "," << nauty.num_automorphisms << ","
-            << nauty.num_generators << std::endl;
+  Nauty nauty_full(full_graph);
+  Nauty nauty_full_contract(full_graph.WithoutSymmetricNeighboorhoods().first);
+  std::cerr << nauty_full.num_orbits << "," << nauty_full.num_automorphisms
+            << "," << nauty_full_contract.num_orbits << ","
+            << nauty_full_contract.num_automorphisms << std::endl;
   return 0;
 
   auto start = std::chrono::steady_clock::now();
