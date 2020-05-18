@@ -13,6 +13,7 @@ struct Nauty {
 
   // Calculated values.
   std::vector<int> orbit_representatives;
+  std::vector<int> orbits;
   std::vector<std::vector<int>> automorphisms;
 
  protected:

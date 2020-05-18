@@ -12,27 +12,30 @@ std::vector<int> vertex_domination(const Graph& G, std::vector<int> vertices) {
   std::vector<int> result;
   result.reserve(vertices.size());
   std::vector<bool> in_nbh(G.N, false);
-  for (int v : vertices) {
+  std::vector<bool> contracted(G.N, false);
+  for (int v_prime : vertices) {
     bool contract = false;
-    for (int nb : G.adj[v]) in_nbh[nb] = true;
-    for (int w : vertices) {
-      // We must have that w < v.
-      if (w >= v) continue;
+    for (int nb : G.adj[v_prime]) in_nbh[nb] = true;
+    for (int v : vertices) {
+      if (G.adj[v].size() > G.adj[v_prime].size()) continue;
+      // We want v' < v.
+      if (G.adj[v].size() == G.adj[v_prime].size() && v_prime >= v) continue;
+      if (contracted[v]) continue;
       bool subset = true;
-      for (int nb : G.adj[w])
-        if (!in_nbh[nb] && nb != v) {
+      for (int nb : G.adj[v])
+        if (!in_nbh[nb] && nb != v_prime) {
           subset = false;
           break;
         }
       if (subset) {
-        // N(w) \ v \subset N(v) \ w
-        contract = true;
-        break;
+        // N(v) \ v' \subset N(v') \ v
+        contracted[v] = true;
       }
     }
-    for (int nb : G.adj[v]) in_nbh[nb] = false;
-    if (!contract) result.emplace_back(v);
+    for (int nb : G.adj[v_prime]) in_nbh[nb] = false;
   }
+  for (int v : vertices)
+    if (!contracted[v]) result.emplace_back(v);
   return result;
 }
 

@@ -71,7 +71,9 @@ Nauty::Nauty(const Graph &G) : G(G) {
   // Find a representative with lowest global index for each orbit.
   std::vector<int> orbit_representatives_global(stats.numorbits, full_graph.N);
   orbit_representatives.resize(stats.numorbits, 0);
+  this->orbits.resize(G.N, 0);
   for (int i = 0; i < G.N; i++) {
+    this->orbits[i] = orbits[i];
     int orbit_index = orbit_to_index[orbits[i]];
     if (G.global[i] < orbit_representatives_global[orbit_index]) {
       orbit_representatives[orbit_index] = i;
