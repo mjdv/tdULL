@@ -3,10 +3,10 @@
 
 SHELL=/bin/sh
 CC=gcc
-CFLAGS= -O3  -mpopcnt -march=native
-SAFECFLAGS= -O3
+CFLAGS= -O4  -mpopcnt -march=native
+SAFECFLAGS= -O4
 LDFLAGS= 
-THREADLIB=-lpthread
+THREADLIB=
 LOK=1         # 0 if no 64-bit integers
 TESTPROGS=dreadtest dreadtestS dreadtestS1 dreadtest4K dreadtest1 dreadtestW dreadtestW1 dreadtestL1 dreadtestL
 EXEEXT=

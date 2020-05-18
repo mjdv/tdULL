@@ -1,4 +1,5 @@
 #include "nauty.hpp"
+#include <cassert>
 
 #include <sstream>
 
