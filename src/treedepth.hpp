@@ -201,6 +201,7 @@ class Treedepth {
           cc_core = G.WithoutVertex(v);
           break;
         }
+
     if (!cc_core.empty()) {
       assert(cc_core[0].N < G.N);
 
@@ -208,12 +209,12 @@ class Treedepth {
       std::sort(cc_core.begin(), cc_core.end(),
                 [](auto &c1, auto &c2) { return c1.M / c1.N > c2.M / c2.N; });
       for (const auto &cc : cc_core) {
-        lower = std::max(
-            lower,
-            std::get<0>(Treedepth(cc, search_lbnd, search_ubnd).Calculate()));
+        auto tup = Treedepth(cc, search_lbnd, search_ubnd).Calculate();
+        lower = std::max(lower, std::get<0>(tup));
         if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
       }
     }
+
     if (G.N == full_graph.N)
       std::cerr << " gave a lower bound of " << lower << std::endl;
 
@@ -266,24 +267,101 @@ class Treedepth {
         return {lower, upper, root};
     }
 
-    // if (full_graph.N - G.N > 10) {
-    //  auto orbits = Nauty(G).orbit_representatives;
-    //  if (orbits.size() < 5) return VertexLoop(std::move(orbits));
-    //}
-    return SeparatorLoop();
+    int source = -1;
+    for(int i = 0; i < G.N; i++) {
+      if(G.Adj(i).size() == G.max_degree) {
+        source = i;
+        break;
+      }
+    }
+    assert(source >= 0);
+    return DirectedSeparatorLoop(source);
   }
 
  protected:
+  std::tuple<int, int, int> DirectedSeparatorLoop(int source) {
+    int new_lower = G.N;
+    VertexIteration(source, new_lower);
+
+    SeparatorGeneratorDirected sep_generator(G, source);
+
+    size_t total_separators = 0;
+    while (sep_generator.HasNext()) {
+      auto separators = sep_generator.Next(100000);
+
+      total_separators += separators.size();
+      if (G.N == full_graph.N)
+        std::cerr << "full_graph: generated total of " << total_separators
+                  << " separators with source = " << source 
+                  << "so far." << std::endl;
+
+      std::sort(separators.begin(), separators.end(),
+                [](const Separator &s1, const Separator &s2) {
+                  return s1.largest_component < s2.largest_component;
+                });
+
+      for (int s = 0; s < separators.size(); s++) {
+        const Separator &separator = separators[s];
+        SeparatorIteration(separator, new_lower);
+
+        if (upper <= search_lbnd || lower == upper) {
+          if (G.N == full_graph.N)
+            std::cerr << "full_graph: separator " << s << " / "
+                      << separators.size()
+                      << " gives `upper == lower == " << lower
+                      << "`, early exit. "
+                      << "Sepeartor has " << separator.vertices.size()
+                      << " vertices, and largest component is ("
+                      << separator.largest_component.first << ", "
+                      << separator.largest_component.second << ")."
+                      << std::endl;
+          // Choosing Separator already gives us a treedepth decomposition
+          // which is good enough (either a sister branch is at least this
+          // long, or it matches a previously proved lower bound for this
+          // subgraph) so we can use v as our root.
+          return {lower, upper, root};
+        }
+      }
+    }
+    if (G.N == full_graph.N)
+      std::cerr << "full_graph: completed entire separator loop." << std::endl;
+    node->lower_bound = lower = std::max(lower, new_lower);
+    return {lower, upper, root};
+  }
+
   std::tuple<int, int, int> SeparatorLoop() {
     int new_lower = G.N;
     if (G.N == full_graph.N)
       std::cerr << "full_graph: bounds before separator loop " << lower
                 << " <= td <= " << upper << "." << std::endl;
 
-    SeparatorGenerator sep_generator(G);
+    // If G has a leaf, we can do directed separator generation from that leaf:
+    // that gives the same separators as the ordinary separator generation.
+    // (Though possibly in a different order.) If the graph does not have a leaf,
+    // then we do ordinary separator generation.
+    
+    std::unique_ptr<SeparatorGenerator> sep_generator;
+
+    if (G.min_degree == 1) {
+      int source = -1;
+      for (int i = 0; i < G.N; i++) {
+        if (G.Adj(i).size() == 1) {
+          source = i;
+          break;
+        }
+      }
+      if (G.N == full_graph.N)
+        std::cerr << "Doing full graph directed." << std::endl;
+
+      sep_generator = std::unique_ptr<SeparatorGenerator>(
+          new SeparatorGeneratorDirected(G, source));
+    } else {
+      sep_generator = std::unique_ptr<SeparatorGenerator>(
+          new SeparatorGeneratorUndirected(G));
+    }
     size_t total_separators = 0;
-    while (sep_generator.HasNext()) {
-      auto separators = sep_generator.Next(100000);
+    while (sep_generator->HasNext()) {
+      auto separators = sep_generator->Next(100000);
 
       total_separators += separators.size();
       if (G.N == full_graph.N)
@@ -423,10 +501,6 @@ class Treedepth {
           std::cerr << "full_graph: vertex " << i << " / " << vertices.size()
                     << " gives `upper == lower == " << lower
                     << "`, early exit. " << std::endl;
-        // Choosing Separator already gives us a treedepth decomposition
-        // which is good enough (either a sister branch is at least this
-        // long, or it matches a previously proved lower bound for this
-        // subgraph) so we can use v as our root.
         return {lower, upper, root};
       }
     }

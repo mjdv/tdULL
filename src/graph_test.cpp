@@ -101,7 +101,7 @@ int main() {
                 << " vertices and " << cc[c].M << " edges with max_degree "
                 << cc[c].max_degree << std::endl;
   }
-  auto gen15 = SeparatorGenerator(full_graph);
+  auto gen15 = SeparatorGeneratorUndirected(full_graph);
   auto v_ams15 = gen15.Next(1'000'000);
   assert(v_ams15.size() == 8);
   TestSeparators(full_graph, v_ams15);
@@ -132,7 +132,7 @@ int main() {
 
   std::istringstream stream_allminsep("p tdp 6 5 1 2 1 3 1 4 1 5 1 6");
   LoadGraph(stream_allminsep);
-  auto gen = SeparatorGenerator(full_graph);
+  auto gen = SeparatorGeneratorUndirected(full_graph);
   auto v_ams = gen.Next(1'000'000);
   TestSeparators(full_graph, v_ams);
   TestArticulationPoints(full_graph);
@@ -143,7 +143,7 @@ int main() {
 
   std::istringstream stream_allminsep2("p tdp 6 6 1 2 2 3 3 4 4 5 5 6 6 1");
   LoadGraph(stream_allminsep2);
-  auto gen2 = SeparatorGenerator(full_graph);
+  auto gen2 = SeparatorGeneratorUndirected(full_graph);
   auto v_ams2 = gen2.Next(1'000'000);
   assert(v_ams2.size() == 9);
   TestSeparators(full_graph, v_ams2);
@@ -157,9 +157,18 @@ int main() {
     std::cout << std::endl;
   }
 
+  std::cout << "If we do the same with SeparatorGeneratorDirected with node 0"
+    << " we get:" << std::endl;
+  auto dir_gen2 = SeparatorGeneratorDirected(full_graph, 0);
+  auto dir_v_ams2 = dir_gen2.Next(1'000'000);
+  for (auto v : dir_v_ams2) {
+    for (int x : v.vertices) std::cout << full_graph.global[x] << " ";
+    std::cout << std::endl;
+  }
+
   std::istringstream stream_ams3("p tdp 6 6 1 2 2 3 3 4 4 1 3 5 4 6");
   LoadGraph(stream_ams3);
-  auto gen3 = SeparatorGenerator(full_graph);
+  auto gen3 = SeparatorGeneratorUndirected(full_graph);
   auto v_ams3 = gen3.Next(1'000'000);
   TestSeparators(full_graph, v_ams3);
   TestArticulationPoints(full_graph);
@@ -169,6 +178,15 @@ int main() {
                "attached to adjacent nodes are:"
             << std::endl;
   for (auto v : v_ams3) {
+    for (int x : v.vertices) std::cout << full_graph.global[x] << " ";
+    std::cout << std::endl;
+  }
+
+  std::cout << "If we do the same with SeparatorGeneratorDirected with a leaf "
+    << "(5), we get:" << std::endl;
+  auto dir_gen3 = SeparatorGeneratorDirected(full_graph, 5);
+  auto dir_v_ams3 = dir_gen3.Next(1'000'000);
+  for (auto v : dir_v_ams3) {
     for (int x : v.vertices) std::cout << full_graph.global[x] << " ";
     std::cout << std::endl;
   }
@@ -219,7 +237,7 @@ int main() {
       "20 38 20 40 38 23 38 27 11 27 11 8 27 8 27 10 23 40 8 10");
   LoadGraph(stream_043);
   std::cout << "Computing all minimal separators for exact_043.gr...\n";
-  auto gen43 = SeparatorGenerator(full_graph);
+  auto gen43 = SeparatorGeneratorUndirected(full_graph);
   auto v_ams43 = gen43.Next(1'000'000);
   assert(v_ams43.size() == 664);
   TestSeparators(full_graph, v_ams43);
