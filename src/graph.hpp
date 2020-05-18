@@ -16,9 +16,6 @@ struct Graph {
   int N = 0;                    // Number of vertices in this graph.
   int M = 0;                    // Number of edges in this graph.
 
-  int num_orbits = 0;
-  std::vector<int> orbit_representatives;
-
   std::vector<int> global;  // The global coordinates of the vertices in
                             // this graph.
   std::vector<std::vector<int>> adj;  // Adjacency list (local indexing).

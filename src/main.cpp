@@ -10,6 +10,10 @@ std::string ExtractFileName(const std::string& str) {
 
 int main(int argc, char** argv) {
   LoadGraph(std::cin);
+  Nauty nauty(full_graph);
+  std::cerr << nauty.num_orbits << "," << nauty.num_automorphisms << ","
+            << nauty.num_generators << std::endl;
+  return 0;
 
   auto start = std::chrono::steady_clock::now();
   try {
@@ -23,10 +27,6 @@ int main(int argc, char** argv) {
     //                start)
     //                << " seps / s.\n";
     //    }
-
-
-    // nauty test
-    //full_graph.nauty_call();
 
     auto [td, tree] = treedepth(full_graph);
     double time_elapsed =

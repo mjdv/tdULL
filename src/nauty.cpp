@@ -60,10 +60,23 @@ Nauty::Nauty(const Graph &G) : G(G) {
   num_generators = stats.numgenerators;
   num_automorphisms = stats.groupsize1 * std::pow(10, stats.groupsize2);
 
-  orbit_representatives.resize(stats.numorbits, 0);
+  // Map orbit vertices to orbit indices.
+  std::vector<int> orbit_to_index(G.N, G.N);
   int index = 0;
   for (int i = 0; i < G.N; i++) {
-    if (orbits[i] == i) orbit_representatives[index++] = i;
+    int orbit = orbits[i];
+    if (orbit_to_index[orbit] == G.N) orbit_to_index[orbit] = index++;
+  }
+
+  // Find a representative with lowest global index for each orbit.
+  std::vector<int> orbit_representatives_global(stats.numorbits, full_graph.N);
+  orbit_representatives.resize(stats.numorbits, 0);
+  for (int i = 0; i < G.N; i++) {
+    int orbit_index = orbit_to_index[orbits[i]];
+    if (G.global[i] < orbit_representatives_global[orbit_index]) {
+      orbit_representatives[orbit_index] = i;
+      orbit_representatives_global[orbit_index] = G.global[i];
+    }
   }
 }
 

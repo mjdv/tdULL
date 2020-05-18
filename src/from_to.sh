@@ -30,7 +30,7 @@ for f in ${INPUTDIR}*; do
 	  echo "Calculating treedepth for ${INPUTDIR}exact_${graph}.tree" > /tmp/output
       timeout 31m ./main < ${INPUTDIR}exact_${graph}.gr > ${OUTPUTDIR}exact_${graph}.tree 2>> /tmp/output &&
       printf "exact_${graph}.gr," 1>&2 && tail -1  /tmp/output 1>&2 &&
-      ./verify ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree;
+      #./verify ${INPUTDIR}exact_${graph}.gr ${OUTPUTDIR}exact_${graph}.tree;
       sed -e '$d' /tmp/output
     fi
 
