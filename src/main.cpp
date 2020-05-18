@@ -10,32 +10,45 @@ std::string ExtractFileName(const std::string& str) {
 
 std::vector<int> vertex_domination(const Graph& G, std::vector<int> vertices) {
   std::vector<int> result;
-  result.reserve(vertices);
+  result.reserve(vertices.size());
   std::vector<bool> in_nbh(G.N, false);
-  std::vector<bool> contracted(G.N, false);
   for (int v : vertices) {
-    for (int nb : adj[v]) in_nbh[nb] = true;
+    bool contract = false;
+    for (int nb : G.adj[v]) in_nbh[nb] = true;
     for (int w : vertices) {
-      if (v < w) continue;
-      for (int nb : adj[w])
+      // We must have that w < v.
+      if (w >= v) continue;
+      bool subset = true;
+      for (int nb : G.adj[w])
         if (!in_nbh[nb] && nb != v) {
-          contract = false;
+          subset = false;
           break;
         }
+      if (subset) {
+        // N(w) \ v \subset N(v) \ w
+        contract = true;
+        break;
+      }
     }
-    for (int nb : adj[v]) in_nbh[nb] = false;
+    for (int nb : G.adj[v]) in_nbh[nb] = false;
+    if (!contract) result.emplace_back(v);
   }
+  return result;
 }
 
 int main(int argc, char** argv) {
   LoadGraph(std::cin);
   Nauty nauty_full(full_graph);
   Nauty nauty_full_contract(full_graph.WithoutSymmetricNeighboorhoods().first);
+  auto orbit_minus_vertex_domination =
+      vertex_domination(full_graph, nauty_full.orbit_representatives);
   size_t leaves = 0;
-  for (int v : nauty_full.orbit_representatives)
+  for (int v : orbit_minus_vertex_domination)
     if (full_graph.Adj(v).size() == 1) leaves++;
-  std::cerr << nauty_full.num_orbits << "," << nauty_full.num_orbits - leaves
-            << "," << nauty_full.num_orbits << ","
+  std::cerr << nauty_full.num_orbits << ","
+            << orbit_minus_vertex_domination.size() << ","
+            << orbit_minus_vertex_domination.size() - leaves << ","
+            << nauty_full.num_orbits << ","
             << nauty_full_contract.num_automorphisms << std::endl;
   return 0;
 
