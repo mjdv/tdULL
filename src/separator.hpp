@@ -1,5 +1,6 @@
 #pragma once
 #include "graph.hpp"
+#include <cassert>
 
 struct Separator {
   std::vector<int> vertices;
@@ -9,12 +10,20 @@ struct Separator {
   Separator(const Graph &G, const std::vector<int> &vertices);
 };
 
-class DirectedSeparatorGenerator {
+class SeparatorGenerator {
   public:
-    DirectedSeparatorGenerator(const Graph &G, const int source);
+    virtual bool HasNext() const { assert(false); return false; } ;
+    virtual std::vector<Separator> Next(int k = 10000) {
+      assert(false); return {}; };
+    virtual ~SeparatorGenerator() = default;
+};
 
-  bool HasNext() const { return !queue.empty(); }
-  std::vector<Separator> Next(int k = 10000);
+class SeparatorGeneratorDirected : public SeparatorGenerator {
+  public:
+    SeparatorGeneratorDirected(const Graph &G, const int source);
+
+  bool HasNext() const override { return !queue.empty(); }
+  std::vector<Separator> Next(int k = 10000) override;
 
   void clear() {
     done.clear();
@@ -40,12 +49,12 @@ class DirectedSeparatorGenerator {
   std::vector<bool> sep_mask;
 };
 
-class SeparatorGenerator {
+class SeparatorGeneratorUndirected : public SeparatorGenerator {
  public:
-  SeparatorGenerator(const Graph &G);
+  SeparatorGeneratorUndirected(const Graph &G);
 
-  bool HasNext() const { return !queue.empty(); }
-  std::vector<Separator> Next(int k = 10000);
+  bool HasNext() const override { return !queue.empty(); }
+  std::vector<Separator> Next(int k = 10000) override;
 
   void clear() {
     done.clear();

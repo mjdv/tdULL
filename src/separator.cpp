@@ -58,7 +58,7 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
   }
 }
 
-DirectedSeparatorGenerator::DirectedSeparatorGenerator(const Graph &G, const int source)
+SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G, const int source)
   : G(G), source(source), in_nbh(G.N, false), sep_mask(G.N, false) {
   // If the chosen source is adjacent to everything, we necessarily want it as root,
   // as there won't be separators without it.
@@ -156,7 +156,7 @@ DirectedSeparatorGenerator::DirectedSeparatorGenerator(const Graph &G, const int
   }
 }
 
-std::vector<Separator> DirectedSeparatorGenerator::Next(int k) {
+std::vector<Separator> SeparatorGeneratorDirected::Next(int k) {
   // Datatypes that will be reused.
   static std::stack<int> component;
   static std::vector<int> separator;
@@ -269,7 +269,7 @@ std::vector<Separator> DirectedSeparatorGenerator::Next(int k) {
 }
 
 
-SeparatorGenerator::SeparatorGenerator(const Graph &G)
+SeparatorGeneratorUndirected::SeparatorGeneratorUndirected(const Graph &G)
     : G(G), in_nbh(G.N, false), sep_mask(G.N, false) {
   // Datatypes that will be reused.
   static std::stack<int> component;
@@ -341,7 +341,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
   }
 }
 
-std::vector<Separator> SeparatorGenerator::Next(int k) {
+std::vector<Separator> SeparatorGeneratorUndirected::Next(int k) {
   // Datatypes that will be reused.
   static std::stack<int> component;
   static std::vector<int> separator;
