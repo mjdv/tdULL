@@ -58,6 +58,7 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
   }
 }
 
+
 SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G, const int source)
   : G(G), source(source), in_nbh(G.N, false), sep_mask(G.N, false) {
   // If the chosen source is adjacent to everything, we necessarily want it as root,
@@ -141,16 +142,8 @@ SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G, const int
 
       Separator sep(G, separator);
       if (sep.fully_minimal) {
-        /*if(G.N == 15 && G.M == 51) {
-          std::cerr << "Not skipping a sep of size " << sep.vertices.size() <<
-            " with first vertex " << sep.vertices[0] << std::endl;
-        }*/
         buffer.emplace_back(std::move(sep));
       }
-      /*else if(G.N == 15) {
-        std::cerr << "Skipping a separator of size " << sep.vertices.size() << std::endl;
-        std::cerr << "First vertex: " << sep.vertices[0] << std::endl;
-      }*/
     }
     for (int k : separator) sep_mask[k] = false;
   }

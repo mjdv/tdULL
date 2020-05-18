@@ -260,51 +260,11 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     std::cerr << "full_graph: bounds before separator loop " << lower
               << " <= td <= " << upper << "." << std::endl;
 
-  /*if(G.N < 30 && G.min_degree == 1) {
-    int leaf = -1;
-    for(int i = 0; i < G.N; i++) {
-      if(G.Adj(i).size() == 1) {
-        leaf = i;
-        break;
-      }
-    }
-
-    SeparatorGenerator sep_generator(G);
-    SeparatorGeneratorDirected dir_sep_generator(G, leaf);
-    auto seps = sep_generator.Next(100000);
-    auto dir_seps = dir_sep_generator.Next(100000);
-    if(seps.size() != dir_seps.size()) {
-      std::cerr << G.N << " " << G.M << std::endl;
-      for(int i = 0; i < G.N; i++) {
-        std::cerr << i << ": ";
-        for(int j : G.Adj(i)) {
-          std::cerr << j << " ";
-        }
-        std::cerr << std::endl;
-      }
-      std::cerr << std::endl;
-      std::cerr << "My leaf was: " << leaf << std::endl;
-      std::cerr << std::endl;
-
-      std::cerr << seps.size() << " " << dir_seps.size() << std::endl;
-      std::cerr << "Seps:" << std::endl;
-      for(auto sep : seps) {
-        for(int k : sep.vertices)
-          std::cerr << k << " ";
-        std::cerr << std::endl;
-      }
-      std::cerr << std::endl;
-
-      std::cerr << "Dir_seps:" << std::endl;
-      for(auto sep : dir_seps) {
-        for(int k : sep.vertices)
-          std::cerr << k << " ";
-        std::cerr << std::endl;
-      }
-      assert(false);
-    }
-  }*/
-
+  // If G has a leaf, we can do directed separator generation from that leaf:
+  // that gives the same separators as the ordinary separator generation.
+  // (Though possibly in a different order.) If the graph does not have a leaf,
+  // then we do ordinary separator generation.
+  
   std::unique_ptr<SeparatorGenerator> sep_generator;
 
   if (G.min_degree == 1) {
@@ -332,7 +292,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     total_separators += separators.size();
     if (G.N == full_graph.N)
       std::cerr << "full_graph: generated total of " << total_separators
-                << " directed separators so far." << std::endl;
+                << " separators so far." << std::endl;
 
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {

@@ -31,13 +31,16 @@ class SeparatorGeneratorDirected : public SeparatorGenerator {
   }
 
  protected:
-  // Reference to the graph for which we are generating separators.
+  // Reference to the graph for which we are generating separators, and the
+  // source from which we generate them.
   const Graph &G;
   int source;
 
   // In done we keep the seperators we have already enqueued, to make sure
   // they aren't processed again. In queue we keep all the ones we have
   // generated, but which we have not yet used to generate new ones.
+  // Additionally the queue contains a bitmask encoding the component in the
+  // complement of source: this saves us doing a DFS every time.
   std::queue<std::pair<std::vector<int>, std::vector<bool>>> queue;
   std::unordered_set<std::vector<bool>> done;
 
