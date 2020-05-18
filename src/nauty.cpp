@@ -7,12 +7,6 @@ extern "C" {
 #include "../third_party/nauty/traces.h"
 }
 
-// void automproc(int count, int *perm, int *orbits, int numorbits, int
-// stabvertex,
-//               int n) {
-//  std::cout << count << " " << n << std::endl;
-//}
-
 Nauty::Nauty(const Graph &G) : G(G) {
   SG_DECL(sg);
   DYNALLSTAT(size_t, sg_v, sg_v_sz);

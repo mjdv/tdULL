@@ -555,68 +555,6 @@ std::vector<int> Graph::ArticulationPoints() const {
   return result;
 }
 
-// void writeautom(int *p, int n) {
-//  for (int i = 0; i < n; i++) {
-//    fprintf(stderr, " %2d", p[i]);
-//  }
-//  fprintf(stderr, "\n");
-//}
-
-// std::vector<int> Graph::nauty_call() const {
-//  // std::cerr << "start nauty call" << std::endl;
-//  sparsegraph g = this->sparsegraph_nauty();
-//
-//  // std::cerr << "done with sparsegraph" << std::endl;
-//
-//  int *lab = (int *)calloc(this->N, sizeof(int));
-//  int *ptn = (int *)calloc(this->N, sizeof(int));
-//  int *orbits = (int *)calloc(this->N, sizeof(int));
-//
-//  // grouprec *group;
-//
-//  DEFAULTOPTIONS_SPARSEGRAPH(options);
-//  options.writeautoms = false;
-//  options.writemarkers = false;
-//  options.outfile = stderr;
-//  options.userautomproc = groupautomproc;
-//  options.userlevelproc = grouplevelproc;
-//
-//  statsblk stats;
-//  sparsenauty(&g, lab, ptn, orbits, &options, &stats, NULL);
-//
-//  /*
-//  std::cerr << "done with nauty" << std::endl;
-//  std::cerr << "\nResults" << std::endl;
-//  std::cerr << "groupsize : ";
-//  writegroupsize(stderr, stats.grpsize1, stats.grpsize2);
-//  std::cerr << std::endl;
-//
-//  std::cerr << "nr of orbits : " << stats.numorbits << std::endl;
-//  std::cerr << "Nr of generators : " << stats.numgenerators << std::endl;
-//
-//  std::cerr << "ORBITS" << std::endl;
-//  for(int i=0; i<this->N; i++){
-//    int cur_orbit = *(orbits + i);
-//    std::cerr << cur_orbit << std::endl;
-//  }
-//  std::cerr << "END OF ORBITS" << std::endl;
-//  std::cerr << "All group elements" << std::endl;
-//  */
-//
-//  std::vector<int> orbit_representatives = std::vector<int>(stats.numorbits,
-//  0); int index = 0; for (int i = 0; i < this->N; i++) {
-//    if (orbits[i] == i) orbit_representatives[index++] = i;
-//  }
-//
-//  // group = groupptr(false);
-//  // makecosetreps(group);
-//  // allgroup(group, writeautom);
-//
-//  // std::cerr << "end of nauty_call" << std::endl;
-//
-//  return orbit_representatives;
-//}
-
 std::vector<Graph> Graph::kCore(int k) const {
   static std::vector<int> stack;
   assert(!IsTreeGraph());

@@ -9,7 +9,6 @@
 #include "centrality.hpp"
 #include "exact_cache.hpp"
 #include "graph.hpp"
-#include "nauty.hpp"
 #include "separator.hpp"
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
@@ -261,7 +260,6 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     std::cerr << "full_graph: bounds before separator loop " << lower
               << " <= td <= " << upper << "." << std::endl;
 
-  // If we have too many orbits go into separator loop
   SeparatorGenerator sep_generator(G);
   size_t total_separators = 0;
   while (sep_generator.HasNext()) {
