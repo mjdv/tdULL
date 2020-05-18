@@ -47,9 +47,9 @@ int main(int argc, char** argv) {
     if (full_graph.Adj(v).size() == 1) leaves++;
   std::cerr << nauty_full.num_orbits << ","
             << orbit_minus_vertex_domination.size() << ","
-            << orbit_minus_vertex_domination.size() - leaves << ","
-            << nauty_full.num_orbits << ","
-            << nauty_full_contract.num_automorphisms << std::endl;
+            << orbit_minus_vertex_domination.size() - leaves << std::endl;
+  //            << nauty_full.num_orbits << ","
+  //            << nauty_full_contract.num_automorphisms << std::endl;
   return 0;
 
   auto start = std::chrono::steady_clock::now();
