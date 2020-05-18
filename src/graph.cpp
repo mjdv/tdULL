@@ -378,6 +378,38 @@ Graph::WithoutSymmetricNeighboorhoods() const {
     return {*this, std::move(vertices_original)};
 }
 
+std::vector<int> Graph::NonDominatedVertices(
+    const std::vector<int> &vertices) const {
+  std::vector<int> result;
+  result.reserve(vertices.size());
+  std::vector<bool> in_nbh(N, false);
+  std::vector<bool> dominated(N, false);
+  for (int v_prime : vertices) {
+    bool contract = false;
+    for (int nb : adj[v_prime]) in_nbh[nb] = true;
+    for (int v : vertices) {
+      if (adj[v].size() > adj[v_prime].size()) continue;
+      // We want v' < v.
+      if (adj[v].size() == adj[v_prime].size() && v_prime >= v) continue;
+      if (dominated[v]) continue;
+      bool subset = true;
+      for (int nb : adj[v])
+        if (!in_nbh[nb] && nb != v_prime) {
+          subset = false;
+          break;
+        }
+      if (subset) {
+        // N(v) \ v' \subset N(v') \ v
+        dominated[v] = true;
+      }
+    }
+    for (int nb : adj[v_prime]) in_nbh[nb] = false;
+  }
+  for (int v : vertices)
+    if (!dominated[v]) result.emplace_back(v);
+  return result;
+}
+
 std::vector<int> Graph::Bfs(int root) const {
   // assert(mask[vertices[root]->n]);
   std::vector<bool> visited(N, false);

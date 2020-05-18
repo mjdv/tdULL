@@ -62,6 +62,10 @@ struct Graph {
   std::pair<Graph, std::vector<std::vector<int>>>
   WithoutSymmetricNeighboorhoods() const;
 
+  // Returns a sublist of the vertices that are not dominated by a vertex
+  // in the list.
+  std::vector<int> NonDominatedVertices(const std::vector<int> &vertices) const;
+
   // Recursively removes all vertices with deg < 2.
   Graph TwoCore() const;
   std::vector<Graph> kCore(int k) const;

@@ -8,51 +8,8 @@ std::string ExtractFileName(const std::string& str) {
   return str.substr(str.find_last_of("/") + 1);
 }
 
-std::vector<int> NonDominatedOrbits(const Graph& G, const Nauty& nauty) {
-  std::vector<int> result;
-  result.reserve(nauty.num_orbits);
-  std::vector<bool> in_nbh(G.N, false);
-  std::vector<bool> dominated(G.N, false);
-  for (int v_prime = 0; v_prime < G.N; v_prime++) {
-    bool contract = false;
-    for (int nb : G.adj[v_prime]) in_nbh[nb] = true;
-    for (int v : nauty.orbit_representatives) {
-      if (G.adj[v].size() > G.adj[v_prime].size()) continue;
-      // We want v' < v.
-      if (G.adj[v].size() == G.adj[v_prime].size() && v_prime >= v) continue;
-      if (nauty.orbits[v] == nauty.orbits[v_prime]) continue;
-      if (dominated[v]) continue;
-      bool subset = true;
-      for (int nb : G.adj[v])
-        if (!in_nbh[nb] && nb != v_prime) {
-          subset = false;
-          break;
-        }
-      if (subset) {
-        // N(v) \ v' \subset N(v') \ v
-        dominated[v] = true;
-      }
-    }
-    for (int nb : G.adj[v_prime]) in_nbh[nb] = false;
-  }
-  for (int v : nauty.orbit_representatives)
-    if (!dominated[v]) result.emplace_back(v);
-  return result;
-}
-
 int main(int argc, char** argv) {
   LoadGraph(std::cin);
-  Nauty nauty_full(full_graph);
-  Nauty nauty_full_contract(full_graph.WithoutSymmetricNeighboorhoods().first);
-  auto non_dominated_orbits = NonDominatedOrbits(full_graph, nauty_full);
-  size_t leaves = 0;
-  for (int v : non_dominated_orbits)
-    if (full_graph.Adj(v).size() == 1) leaves++;
-  std::cerr << nauty_full.num_orbits << "," << non_dominated_orbits.size()
-            << "," << non_dominated_orbits.size() - leaves << std::endl;
-  //            << nauty_full.num_orbits << ","
-  //            << nauty_full_contract.num_automorphisms << std::endl;
-  return 0;
 
   auto start = std::chrono::steady_clock::now();
   try {
