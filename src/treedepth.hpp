@@ -294,10 +294,52 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
       std::cerr << "full_graph: generated total of " << total_separators
                 << " separators so far." << std::endl;
 
+#ifdef SORT1
+    // The separator whose largest remaining component is smallest, (first by
+    // vertices then by edges) first.
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {
                 return s1.largest_component < s2.largest_component;
               });
+#elif SORT2
+    // The separator with the most vertices first.
+    std::sort(separators.begin(), separators.end(),
+              [](const Separator &s1, const Separator &s2) {
+                return s1.vertices.size() > s2.vertices.size();
+              });
+#elif SORT3
+    // The separator with the least vertices first.
+    std::sort(separators.begin(), separators.end(),
+              [](const Separator &s1, const Separator &s2) {
+                return s1.vertices.size() < s2.vertices.size();
+              });
+#elif SORT4
+    // The separator where the largest component + vertices in separator is
+    // smallest, first.
+    std::sort(separators.begin(), separators.end(),
+              [](const Separator &s1, const Separator &s2) {
+                return s1.largest_component.first + s1.vertices.size() < 
+                s2.largest_component.first + s2.vertices.size();
+              });
+#elif SORT5
+    // The separator where the number of edges in the separator is largest,
+    // first.
+    std::sort(separators.begin(), separators.end(),
+              [&](const Separator &s1, const Separator &s2) {
+                int ct1 = 0, ct2 = 0;
+                for(int v : s1.vertices)
+                  ct1 += G.Adj(v).size();
+                for(int v : s2.vertices)
+                  ct2 += G.Adj(v).size();
+                return ct2 > ct1;
+              });
+#else
+    // Default (also equal to SORT1)
+    std::sort(separators.begin(), separators.end(),
+              [](const Separator &s1, const Separator &s2) {
+                return s1.largest_component < s2.largest_component;
+              });
+#endif
 
     for (int s = 0; s < separators.size(); s++) {
       const Separator &separator = separators[s];
