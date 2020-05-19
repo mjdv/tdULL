@@ -270,6 +270,23 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
       std::cerr << "full_graph: generated total of " << total_separators
                 << " separators so far." << std::endl;
 
+    // Loop over separators to calculate some cheap upper bounds.
+    for (const auto &separator : separators) {
+      int sep_size = separator.vertices.size();
+      // Upper bound for largest component (if not complete graph lower by 1).
+      int upper_sep = separator.largest_component.first;
+      if (separator.largest_component.first *
+              (separator.largest_component.first - 1) <
+          2 * separator.largest_component.second)
+        upper_sep--;
+
+      if (upper_sep + sep_size < upper) {
+        node->upper_bound = upper = upper_sep + sep_size;
+        node->root = root = G.global[separator.vertices[0]];
+        if (upper <= search_lbnd || lower == upper) return {lower, upper, root};
+      }
+    }
+
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {
                 return s1.largest_component < s2.largest_component;
