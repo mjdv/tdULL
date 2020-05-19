@@ -6,7 +6,6 @@
 #include <stack>
 #include <vector>
 
-
 struct Node {
   // This is the data that will be stored inside the Set Trie.
   int upper_bound = INT_MAX;
@@ -59,6 +58,9 @@ class SetTrie {
   std::vector<std::pair<Node *, int>> BigSubsets(const std::vector<int> &word,
                                                  int gap);
 
+  size_t size() const { return size_; }
+
  protected:
   Node root_;
+  size_t size_ = 0;
 };

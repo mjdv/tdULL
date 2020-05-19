@@ -221,7 +221,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     }
 
     // Try to find a better lower bound from some of its big subsets.
-    for (auto [node_sub, node_gap] : cache.AllSubsets(G_word)) {
+    for (auto [node_sub, node_gap] : cache.BigSubsets(G_word, subset_gap)) {
       lower = std::max(lower, node_sub->lower_bound);
       if (node_gap + node_sub->upper_bound < upper) {
         auto sub_word = node_sub->Word();
@@ -397,8 +397,8 @@ std::pair<int, std::vector<int>> treedepth(const Graph &G) {
   std::vector<int> tree(G.N, -2);
   std::cerr << "full_graph: treedepth is " << td << "." << std::endl;
   reconstruct(G, -1, tree, td);
-  std::cerr << "There are " << cache.AllSubsets(full_graph).size()
-            << " subsets in the full cache." << std::endl;
+  std::cerr << "There are " << cache.size() << " subsets in the full cache."
+            << std::endl;
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
   for (auto &v : tree) v++;
   return {td, std::move(tree)};
