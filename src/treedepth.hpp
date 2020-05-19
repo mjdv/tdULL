@@ -260,7 +260,15 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     std::cerr << "full_graph: bounds before separator loop " << lower
               << " <= td <= " << upper << "." << std::endl;
 
-  SeparatorGenerator sep_generator(G);
+  // Contract the graph.
+  auto [G_contract, vertices_original] = G.WithoutSymmetricNeighboorhoods();
+  if (G_contract.IsCompleteGraph()) G_contract = G;
+  if (vertices_original.size() == G.N) vertices_original.clear();
+  if (G.N == full_graph.N)
+    std::cerr << "full_graph: separator contracted graph has " << G_contract.N
+              << " /  " << G.N << " vertices." << std::endl;
+
+  SeparatorGenerator sep_generator(G_contract);
   size_t total_separators = 0;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(100000);
@@ -276,7 +284,17 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
               });
 
     for (int s = 0; s < separators.size(); s++) {
-      const Separator &separator = separators[s];
+      Separator &separator = separators[s];
+
+      // If we contracted the graph, find the original vertices.
+      if (vertices_original.size()) {
+        std::vector<int> sep_vertices_original;
+        sep_vertices_original.reserve(separator.vertices.size());
+        for (int v : separator.vertices)
+          for (int v_ori : vertices_original[v])
+            sep_vertices_original.emplace_back(v_ori);
+        separator.vertices = std::move(sep_vertices_original);
+      }
 
       // Check whether we are still in the time limits.
       time_t now;
