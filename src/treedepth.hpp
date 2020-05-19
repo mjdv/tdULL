@@ -331,8 +331,105 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
                   ct1 += G.Adj(v).size();
                 for(int v : s2.vertices)
                   ct2 += G.Adj(v).size();
-                return ct2 > ct1;
+                return ct1 > ct2;
               });
+#elif SORT6
+    // The separator with largest average degree, first.
+    std::sort(separators.begin(), separators.end(),
+              [&](const Separator &s1, const Separator &s2) {
+                int ct1 = 0, ct2 = 0;
+                for(int v : s1.vertices)
+                  ct1 += G.Adj(v).size();
+                for(int v : s2.vertices)
+                  ct2 += G.Adj(v).size();
+                return ct1*s2.vertices.size() > ct2*s1.vertices.size();
+              });
+#elif SORT7
+    // The separator with highest total betweenness, first.
+    auto betweenness = BetweennessCentrality(G);
+    std::sort(separators.begin(), separators.end(),
+              [&](const Separator &s1, const Separator &s2) {
+                double ct1 = 0.0, ct2 = 0.0;
+                for(int v : s1.vertices)
+                  ct1 += betweenness[v];
+                for(int v : s2.vertices)
+                  ct2 += betweenness[v];
+                return ct1 > ct2;
+              });
+#elif SORT8
+    // The separator with highest average betweenness, first.
+    auto betweenness = BetweennessCentrality(G);
+    std::sort(separators.begin(), separators.end(),
+              [&](const Separator &s1, const Separator &s2) {
+                double ct1 = 0.0, ct2 = 0.0;
+                for(int v : s1.vertices)
+                  ct1 += betweenness[v];
+                for(int v : s2.vertices)
+                  ct2 += betweenness[v];
+                return ct1*s2.vertices.size() > ct2*s1.vertices.size();
+              });
+#elif SORT9
+    // The separator with highest total eigenvector centrality, first.
+    auto betweenness = EigenvectorCentrality(G);
+    std::sort(separators.begin(), separators.end(),
+              [&](const Separator &s1, const Separator &s2) {
+                double ct1 = 0.0, ct2 = 0.0;
+                for(int v : s1.vertices)
+                  ct1 += betweenness[v];
+                for(int v : s2.vertices)
+                  ct2 += betweenness[v];
+                return ct1 > ct2;
+              });
+#elif SORT10
+    // The separator with highest average eigenvector centrality, first.
+    auto betweenness = EigenvectorCentrality(G);
+    std::sort(separators.begin(), separators.end(),
+              [&](const Separator &s1, const Separator &s2) {
+                double ct1 = 0.0, ct2 = 0.0;
+                for(int v : s1.vertices)
+                  ct1 += betweenness[v];
+                for(int v : s2.vertices)
+                  ct2 += betweenness[v];
+                return ct1*s2.vertices.size() > ct2*s1.vertices.size();
+              });
+#elif SORT11
+    // The separator with highest total PageRank centrality, first.
+    auto betweenness = PageRankCentrality(G);
+    std::sort(separators.begin(), separators.end(),
+              [&](const Separator &s1, const Separator &s2) {
+                double ct1 = 0.0, ct2 = 0.0;
+                for(int v : s1.vertices)
+                  ct1 += betweenness[v];
+                for(int v : s2.vertices)
+                  ct2 += betweenness[v];
+                return ct1 > ct2;
+              });
+#elif SORT12
+    // The separator with highest average PageRank centrality, first.
+    auto betweenness = PageRankCentrality(G);
+    std::sort(separators.begin(), separators.end(),
+              [&](const Separator &s1, const Separator &s2) {
+                double ct1 = 0.0, ct2 = 0.0;
+                for(int v : s1.vertices)
+                  ct1 += betweenness[v];
+                for(int v : s2.vertices)
+                  ct2 += betweenness[v];
+                return ct1*s2.vertices.size() > ct2*s1.vertices.size();
+              });
+#elif SORT13
+    // The separator whose largest remaining component the least dense, first.
+    std::sort(separators.begin(), separators.end(),
+              [](const Separator &s1, const Separator &s2) {
+                return s1.largest_component.second*s2.largest_component.first < 
+                  s2.largest_component.second*s1.largest_component.first;
+              });
+#elif SORT14
+    // Let's try unsorted too, because why not, who knows. At least it'll
+    // be a baseline.
+    assert(true);
+#elif SORT15
+    // Reversed from default order.
+    std::reverse(separators.begin(), separators.end());
 #else
     // Default (also equal to SORT1)
     std::sort(separators.begin(), separators.end(),
