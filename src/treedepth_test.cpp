@@ -1,6 +1,10 @@
 #include "treedepth.hpp"
 
+#include <chrono>
+#include <cmath>
+
 #include "centrality.hpp"
+#include "treedepth.hpp"
 
 int main(int argc, char **argv) {
   std::string root = "../input/exact/";
@@ -27,14 +31,12 @@ int main(int argc, char **argv) {
       {"exact_161.gr", 13}, {"exact_165.gr", 9},  {"exact_177.gr", 9},
       {"exact_181.gr", 10}, {"exact_189.gr", 8}};
 
-  time_t start_total, end_total;
-  time(&start_total);
+  auto start_total = std::chrono::steady_clock::now();
   for (auto [fn, true_depth] : truth_values) {
-    time_t start, end;
     std::cout << "Loading example " << fn << "." << std::endl;
-    time(&start);
     std::ifstream input(root + fn, std::ios::in);
     LoadGraph(input);
+    auto start = std::chrono::steady_clock::now();
     int depth = treedepth(full_graph).first;
     if (depth != true_depth) {
       std::cout << "TEST FAILED!" << std::endl
@@ -42,12 +44,17 @@ int main(int argc, char **argv) {
                 << " != " << true_depth << std::endl;
       return 1;
     }
-    time(&end);
-    std::cout << "Example took " << difftime(end, start) << " seconds."
-              << std::endl
+    double time_elapsed =
+        0.1 * std::round(10 * std::chrono::duration<double>(
+                                  std::chrono::steady_clock::now() - start)
+                                  .count());
+    std::cout << "Example took " << time_elapsed << " seconds." << std::endl
               << std::endl;
   }
-  time(&end_total);
-  std::cout << "All examples took " << difftime(end_total, start_total)
-            << " seconds." << std::endl;
+  double time_elapsed =
+      0.1 * std::round(10 * std::chrono::duration<double>(
+                                std::chrono::steady_clock::now() - start_total)
+                                .count());
+  std::cout << "All examples took " << time_elapsed << " seconds." << std::endl;
+  return 0;
 }
