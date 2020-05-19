@@ -339,6 +339,77 @@ std::vector<Graph> Graph::WithoutVertex(int w) const {
   return cc;
 }
 
+std::pair<Graph, std::vector<std::vector<int>>>
+Graph::WithoutSymmetricNeighboorhoods() const {
+  // Find all pairs v, w with N(v) = N(w) or N(v)\{w} = N(w)\{v}.
+  std::vector<int> vertices_contract;
+  std::vector<std::vector<int>> vertices_original;
+  std::vector<bool> contracted(N, false);
+  std::vector<bool> in_nbh(N, false);
+
+  vertices_contract.reserve(N);
+  vertices_original.reserve(N);
+  for (int v = 0; v < N; v++) {
+    if (contracted[v]) continue;
+    vertices_contract.emplace_back(v);
+    vertices_original.emplace_back(std::vector<int>{v});
+    for (int nb : adj[v]) in_nbh[nb] = true;
+    for (int w = v + 1; w < N; w++) {
+      if (adj[v].size() != adj[w].size() || contracted[w]) continue;
+
+      // Check if the neighbours of w coincide with that of v.
+      bool contract = true;
+      for (int nb : adj[w])
+        if (!in_nbh[nb] && nb != v) {
+          contract = false;
+          break;
+        }
+      if (contract) {
+        vertices_original.back().emplace_back(w);
+        contracted[w] = true;
+      }
+    }
+    for (int nb : adj[v]) in_nbh[nb] = false;
+  }
+
+  if (vertices_contract.size() < N)
+    return {Graph(*this, vertices_contract), std::move(vertices_original)};
+  else
+    return {*this, std::move(vertices_original)};
+}
+
+std::vector<int> Graph::NonDominatedVertices(
+    const std::vector<int> &vertices) const {
+  std::vector<int> result;
+  result.reserve(vertices.size());
+  std::vector<bool> in_nbh(N, false);
+  std::vector<bool> dominated(N, false);
+  for (int v_prime : vertices) {
+    bool contract = false;
+    for (int nb : adj[v_prime]) in_nbh[nb] = true;
+    for (int v : vertices) {
+      if (adj[v].size() > adj[v_prime].size()) continue;
+      // We want v' < v.
+      if (adj[v].size() == adj[v_prime].size() && v_prime >= v) continue;
+      if (dominated[v]) continue;
+      bool subset = true;
+      for (int nb : adj[v])
+        if (!in_nbh[nb] && nb != v_prime) {
+          subset = false;
+          break;
+        }
+      if (subset) {
+        // N(v) \ v' \subset N(v') \ v
+        dominated[v] = true;
+      }
+    }
+    for (int nb : adj[v_prime]) in_nbh[nb] = false;
+  }
+  for (int v : vertices)
+    if (!dominated[v]) result.emplace_back(v);
+  return result;
+}
+
 std::vector<int> Graph::Bfs(int root) const {
   // assert(mask[vertices[root]->n]);
   std::vector<bool> visited(N, false);

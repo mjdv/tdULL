@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
     //                start)
     //                << " seps / s.\n";
     //    }
+
     auto [td, tree] = treedepth(full_graph);
     double time_elapsed =
         0.1 * std::round(10 * std::chrono::duration<double>(
