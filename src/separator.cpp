@@ -1,4 +1,5 @@
 #include "separator.hpp"
+
 #include <cassert>
 
 // Initializes a separator of G. This checks whether or not the separator
