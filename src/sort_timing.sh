@@ -1,5 +1,5 @@
 #!/bin/bash
-for N in $(seq 1 5);
+for N in $(seq 1 15);
 do
     rm treedepth_test.o
     make SORTMETHOD=SORT$N > /dev/null
