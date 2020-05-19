@@ -1,5 +1,6 @@
 
-CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native
+BATCHMETHOD=B1
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native -D$(BATCHMETHOD)
 
 N=001
 F=001
