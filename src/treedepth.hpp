@@ -88,10 +88,6 @@ std::pair<int, int> treedepth_exact(const Graph &G) {
 //   and furthermore each connected component of the subgraph with the root
 //   removed is also in the cache.
 SetTrie cache;
-SetTrie heavy_subsets;
-bool heavy_subsets_condition(const Graph &G, int lower) {
-  return false;
-}
 
 // Cheap treedepth upper bound, useful for simple sanity checks.
 std::pair<int, int> treedepth_upper(const Graph &G) {
@@ -181,16 +177,6 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
   }
-  
-  // Let's try some heavy lower bounds, if we have any.
-  for(Node* subset_ptr : heavy_subsets.AllSubsets(G)) {
-    lower = std::max(lower, subset_ptr->lower_bound);
-  }
-  if (search_ubnd <= lower || lower == upper) {
-    return {lower, upper, root};
-  }
-
-
 
   if (G.N == full_graph.N) std::cerr << "full_graph: kCore";
 
@@ -215,15 +201,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     for (const auto &cc : cc_core) {
       lower =
           std::max(lower, std::get<0>(treedepth(cc, search_lbnd, search_ubnd)));
-      if (search_ubnd <= lower || lower == upper) {
-        if(heavy_subsets_condition(G, lower)) {
-          Node* hs_node = heavy_subsets.Insert(G).first;
-          hs_node->lower_bound = lower;
-          hs_node->upper_bound = upper;
-          hs_node->root = root;
-        }
-        return {lower, upper, root}; 
-      }
+      if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
     }
   }
   if (G.N == full_graph.N)
@@ -243,7 +221,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     }
 
     // Try to find a better lower bound from some of its big subsets.
-    for (auto [node_sub, node_gap] : cache.BigSubsets(G_word, subset_gap)) {
+    for (auto [node_sub, node_gap] : cache.AllSubsets(G_word)) {
       lower = std::max(lower, node_sub->lower_bound);
       if (node_gap + node_sub->upper_bound < upper) {
         auto sub_word = node_sub->Word();
@@ -272,16 +250,8 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     node->upper_bound = upper;
     node->root = root;
 
-    if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
-
-      if(heavy_subsets_condition(G, lower)) {
-        Node* hs_node = heavy_subsets.Insert(G).first;
-        hs_node->lower_bound = lower;
-        hs_node->upper_bound = upper;
-        hs_node->root = root;
-      }
+    if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
-    }
   }
 
   // Main loop: try every separator as a set of roots.
@@ -354,10 +324,10 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         node->upper_bound = upper = upper_sep + sep_size;
         node->root = root = G.global[separator.vertices[0]];
 
-        // Iteratively remove the seperator from G and update bounds.
+        // Iteratively remove the separator from G and update bounds.
         Graph H = G;
         for (int i = 1; i < separator.vertices.size(); i++) {
-          // Get the subgraph after removing seperator[i-1].
+          // Get the subgraph after removing separator[i-1].
           auto cc = H.WithoutVertex(
               H.LocalIndex(G.global[separator.vertices[i - 1]]));
           assert(cc.size() == 1);
@@ -380,20 +350,14 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
                     << separators.size()
                     << " gives `upper == lower == " << lower
                     << "`, early exit. "
-                    << "Sepeartor has " << separator.vertices.size()
+                    << "Separator has " << separator.vertices.size()
                     << " vertices, and largest component is ("
                     << separator.largest_component.first << ", "
                     << separator.largest_component.second << ")." << std::endl;
-        // Choosing seperator already gives us a treedepth decomposition which
+        // Choosing separator already gives us a treedepth decomposition which
         // is good enough (either a sister branch is at least this long, or it
         // matches a previously proved lower bound for this subgraph) so we
         // can use v as our root.
-        if(heavy_subsets_condition(G, lower)) {
-          Node* hs_node = heavy_subsets.Insert(G).first;
-          hs_node->lower_bound = lower;
-          hs_node->upper_bound = upper;
-          hs_node->root = root;
-        }
         return {lower, upper, root};
       }
     }
@@ -401,13 +365,6 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   if (G.N == full_graph.N)
     std::cerr << "full_graph: completed entire separator loop." << std::endl;
   node->lower_bound = lower = std::max(lower, new_lower);
-
-  if(heavy_subsets_condition(G, lower)) {
-    Node* hs_node = heavy_subsets.Insert(G).first;
-    hs_node->lower_bound = lower;
-    hs_node->upper_bound = upper;
-    hs_node->root = root;
-  }
   return {lower, upper, root};
 }
 
@@ -435,16 +392,13 @@ void reconstruct(const Graph &G, int root, std::vector<int> &tree, int td) {
 // Little helper function that returns the treedepth for the given graph.
 std::pair<int, std::vector<int>> treedepth(const Graph &G) {
   cache = SetTrie();
-  heavy_subsets = SetTrie();
   time(&time_start_treedepth);
   int td = std::get<1>(treedepth(G, 1, G.N));
   std::vector<int> tree(G.N, -2);
   std::cerr << "full_graph: treedepth is " << td << "." << std::endl;
   reconstruct(G, -1, tree, td);
-  std::cerr << "There are " << cache.AllSubsets(full_graph).size() <<
-    " subsets in the full cache." << std::endl;
-  std::cerr << "There are " << heavy_subsets.AllSubsets(full_graph).size() <<
-    " subsets in the heavy_subsets cache." << std::endl;
+  std::cerr << "There are " << cache.AllSubsets(full_graph).size()
+            << " subsets in the full cache." << std::endl;
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
   for (auto &v : tree) v++;
   return {td, std::move(tree)};
