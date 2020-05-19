@@ -1,4 +1,6 @@
 #include "treedepth.hpp"
+#include <chrono>
+#include <cmath>
 
 #include "centrality.hpp"
 
