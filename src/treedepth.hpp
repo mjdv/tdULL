@@ -283,9 +283,9 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
       if (upper_sep + sep_size < upper) {
         node->upper_bound = upper = upper_sep + sep_size;
         node->root = root = G.global[separator.vertices[0]];
-        if (upper <= search_lbnd || lower == upper) return {lower, upper, root};
       }
     }
+    if (upper <= search_lbnd || lower == upper) return {lower, upper, root};
 
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {
