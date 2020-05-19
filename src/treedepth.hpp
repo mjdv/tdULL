@@ -267,18 +267,26 @@ class Treedepth {
         return {lower, upper, root};
     }
 
-    int source = -1;
-    for(int i = 0; i < G.N; i++) {
-      if(G.Adj(i).size() == G.max_degree) {
-        source = i;
-        break;
-      }
-    }
-    assert(source >= 0);
-    return DirectedSeparatorLoop(source);
+    return ArticulationLoop();
   }
 
  protected:
+  std::tuple<int, int, int> ArticulationLoop() {
+    auto articulation_points = G.ArticulationPoints();
+    if(articulation_points.size() == 0) {
+      return SeparatorLoop();
+    }
+    int source = -1;
+    int max_degree = 0;
+    for(auto v : articulation_points) {
+      if(G.Adj(v).size() > max_degree) {
+        max_degree = G.Adj(v).size();
+        source = v;
+      }
+    }
+    return DirectedSeparatorLoop(source);
+  }
+
   std::tuple<int, int, int> DirectedSeparatorLoop(int source) {
     int new_lower = G.N;
     VertexIteration(source, new_lower);
