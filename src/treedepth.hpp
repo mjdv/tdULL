@@ -272,7 +272,12 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
     std::sort(separators.begin(), separators.end(),
               [](const Separator &s1, const Separator &s2) {
-                return s1.largest_component < s2.largest_component;
+                return std::pair<int, int>{
+                           s1.largestComponent.first + s1.vertices.size(),
+                           s1.largestComponent.second} <
+                       std::pair<int, int>{
+                           s2.largestComponent.first + s2.vertices.size(),
+                           s2.largestComponent.second};
               });
 
     for (int s = 0; s < separators.size(); s++) {
