@@ -1,7 +1,7 @@
 #!/bin/bash
 INPUTDIR="../input/exact/"
 OUTPUTDIR="../output/exact/"
-for N in $(seq 1 25);
+for N in $(seq 1 28);
 do
     rm main.o
     make BATCHMETHOD=B$N > /dev/null

@@ -285,37 +285,37 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     auto separators = sep_generator.Next(batch_size);
 #elif B5
   // fixed 10*G.N
-  int batch_size = 10*G.N;
+  int batch_size = 10 * G.N;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
 #elif B6
   // fixed 100*G.N
-  int batch_size = 100*G.N;
+  int batch_size = 100 * G.N;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
 #elif B7
   // fixed 1000*G.N
-  int batch_size = 1000*G.N;
+  int batch_size = 1000 * G.N;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
 #elif B8
   // fixed 10000*G.N
-  int batch_size = 10000*G.N;
+  int batch_size = 10000 * G.N;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
 #elif B9
   // fixed 100*full_graph.N/G.N
-  int batch_size = 100*full_graph.N/G.N;
+  int batch_size = 100 * full_graph.N / G.N;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
 #elif B10
   // fixed 1000*full_graph.N/G.N
-  int batch_size = 1000*full_graph.N/G.N;
+  int batch_size = 1000 * full_graph.N / G.N;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
 #elif B11
   // fixed 10000*full_graph.N/G.N
-  int batch_size = 10000*full_graph.N/G.N;
+  int batch_size = 10000 * full_graph.N / G.N;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
 #elif B12
@@ -359,10 +359,10 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     batch_size = std::min(batch_size, 1LL << 17LL);
 #elif B18
   // powers of full_graph.N/G.N (with a factor of 100 for the top level)
-  long long batch_size = 100*full_graph.N/G.N;
+  long long batch_size = 100 * full_graph.N / G.N;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
-    batch_size *= full_graph.N/G.N;
+    batch_size *= full_graph.N / G.N;
     batch_size = std::min(batch_size, 1LL << 17LL);
 #elif B19
   // repeated squaring (start at 100)
@@ -401,7 +401,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   int batch_size = 1;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
-    if(batch_size == 1)
+    if (batch_size == 1)
       batch_size = 1000;
     else
       batch_size = 100000;
@@ -410,16 +410,37 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   int batch_size = 100;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
-    if(batch_size == 100)
+    if (batch_size == 100)
       batch_size = 1000;
     else
       batch_size = 100000;
+#elif B26
+  // powers of 10
+  int batch_size = G.N;
+  while (sep_generator.HasNext()) {
+    auto separators = sep_generator.Next(batch_size);
+    batch_size *= 10;
+    batch_size = std::min(batch_size, 1 << 17);
+#elif B27
+  // powers of 5
+  int batch_size = 10;
+  while (sep_generator.HasNext()) {
+    auto separators = sep_generator.Next(batch_size);
+    batch_size *= 5;
+    batch_size = std::min(batch_size, 1 << 17);
+#elif B28
+  // powers of 20
+  int batch_size = 10;
+  while (sep_generator.HasNext()) {
+    auto separators = sep_generator.Next(batch_size);
+    batch_size *= 20;
+    batch_size = std::min(batch_size, 1 << 17);
 #else
   // default: base 100, *10 every time, what it used to be
   int batch_size = 100;
   while (sep_generator.HasNext()) {
     auto separators = sep_generator.Next(batch_size);
-    batch_size = std::min(1<<17, 10*batch_size);
+    batch_size = std::min(1 << 17, 10 * batch_size);
 #endif
     total_separators += separators.size();
     if (G.N == full_graph.N)
