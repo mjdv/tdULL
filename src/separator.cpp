@@ -78,7 +78,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
 
   // First we contract the graph, the old indices are stored inside the
   // vertices_original member variable.
-  std::tie(G, vertices_original) = G.WithoutSymmetricNeighboorhoods();
+  std::tie(G, vertices_original) = G_original.WithoutSymmetricNeighboorhoods();
   if (G_original.N == full_graph.N)
     std::cerr << "full_graph: contracted graph has " << G.N << " / "
               << G_original.N << " vertices." << std::endl;
