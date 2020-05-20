@@ -388,3 +388,7 @@ std::vector<Separator> SeparatorGeneratorUndirected::Next(int k) {
 
   return std::move(buffer);
 }
+
+SeparatorGenerator2Core::SeparatorGenerator2Core(const Graph &G) {
+
+}

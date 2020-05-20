@@ -33,6 +33,7 @@ class SeparatorGenerator {
   std::vector<bool> sep_mask;
 };
 
+
 class SeparatorGeneratorDirected : public SeparatorGenerator {
  public:
   SeparatorGeneratorDirected(const Graph &G, const int source);
@@ -74,4 +75,23 @@ class SeparatorGeneratorUndirected : public SeparatorGenerator {
   // they aren't processed again. In queue we keep all the ones we have
   // generated, but which we have not yet used to generate new ones.
   std::queue<std::vector<int>> queue;
+};
+
+class SeparatorGenerator2Core : public SeparatorGenerator {
+ public:
+  SeparatorGenerator2Core(const Graph &G);
+
+  bool HasNext() const override;
+
+  std::vector<Separator> Next(int k = 10000) override;
+
+  void clear() {
+    done.clear();
+    queue = {};
+  }
+
+ protected:
+  std::queue<std::pair<std::vector<int>, std::vector<bool>>> queue;
+  const Graph &two_core;
+  SeparatorGeneratorUndirected two_core_gen;
 };
