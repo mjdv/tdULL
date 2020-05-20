@@ -296,6 +296,13 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
       int upper_sep = 0;
       int lower_sep = lower - sep_size;
 
+      // Calculate a trivial lower bound on basis of the largest_component,
+      // and continue if we won't get any improvement.
+      int lower_trivial = separator.largest_component.second /
+                              separator.largest_component.first +
+                          1;
+      if (lower_trivial + sep_size >= new_lower) continue;
+
       // Sort the components of G \ separator on density.
       auto cc = G.WithoutVertices(separator.vertices);
       std::sort(cc.begin(), cc.end(), [](const Graph &c1, const Graph &c2) {
