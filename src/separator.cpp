@@ -69,7 +69,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
   // Complete graphs don't have separators. We want this to return a
   // non-empty vector.
   assert(!G.IsCompleteGraph());
-  if (G.N > 30) {
+  if (G.N > 25) {
     nauty = std::unique_ptr<Nauty>(new Nauty(G));
     if (nauty->num_automorphisms > 1 && nauty->num_automorphisms < 1000000) {
       const auto &automorphisms = nauty->Automorphisms();
