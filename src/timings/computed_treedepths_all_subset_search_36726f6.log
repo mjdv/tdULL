@@ -1,1109 +1,1097 @@
 Computing treedepth of graphs 001 until 199
 
 Graph 001
+6|SUCCEED
+Calculating treedepth for ../input/exact/exact_001.tree
 Initalized a graph having 10 vertices with 15 edges. 
-Calculating treedepth for exact_001.gr
 full_graph: kCore gave a lower bound of 5
 full_graph: treedepth_upper(G) = 6
 full_graph: bounds before separator loop 5 <= td <= 6.
 full_graph: generated total of 15 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 6.
+There are 7 subsets in the full cache.
 Treedepth is: 6
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_001.tree'
-6|SUCCEED
 
 Graph 003
+11|SUCCEED
+Calculating treedepth for ../input/exact/exact_003.tree
 Initalized a graph having 17 vertices with 62 edges. 
-Calculating treedepth for exact_003.gr
 full_graph: kCore gave a lower bound of 10
 full_graph: treedepth_upper(G) = 11
 full_graph: bounds before separator loop 10 <= td <= 11.
 full_graph: generated total of 5 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 11.
+There are 52 subsets in the full cache.
 Treedepth is: 11
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_003.tree'
-11|SUCCEED
 
 Graph 005
+5|SUCCEED
+Calculating treedepth for ../input/exact/exact_005.tree
 Initalized a graph having 20 vertices with 21 edges. 
-Calculating treedepth for exact_005.gr
 full_graph: kCore gave a lower bound of 4
 full_graph: treedepth_upper(G) = 6
 full_graph: bounds before separator loop 5 <= td <= 6.
 full_graph: generated total of 9 separators so far.
-full_graph: separator 0 / 9, consists of 1 vertices, gives `upper == lower == 5`, early exit.
+full_graph: separator 0 / 9 gives `upper == lower == 5`, early exit. Separator has 1 vertices, and largest component is (10, 9).
 full_graph: treedepth is 5.
+There are 3 subsets in the full cache.
 Treedepth is: 5
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_005.tree'
-5|SUCCEED
 
 Graph 007
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_007.tree
 Initalized a graph having 20 vertices with 30 edges. 
-Calculating treedepth for exact_007.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 9
 full_graph: bounds before separator loop 8 <= td <= 9.
 full_graph: generated total of 821 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 9.
+There are 221 subsets in the full cache.
 Treedepth is: 9
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_007.tree'
-9|SUCCEED
 
 Graph 009
+6|SUCCEED
+Calculating treedepth for ../input/exact/exact_009.tree
 Initalized a graph having 21 vertices with 25 edges. 
-Calculating treedepth for exact_009.gr
 full_graph: kCore gave a lower bound of 5
 full_graph: treedepth_upper(G) = 6
 full_graph: bounds before separator loop 5 <= td <= 6.
 full_graph: generated total of 19 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 6.
+There are 17 subsets in the full cache.
 Treedepth is: 6
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_009.tree'
-6|SUCCEED
 
 Graph 011
+5|SUCCEED
+Calculating treedepth for ../input/exact/exact_011.tree
 Initalized a graph having 23 vertices with 24 edges. 
-Calculating treedepth for exact_011.gr
 full_graph: kCore gave a lower bound of 4
 full_graph: treedepth_upper(G) = 5
 full_graph: treedepth is 5.
+There are 4 subsets in the full cache.
 Treedepth is: 5
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_011.tree'
-5|SUCCEED
 
 Graph 013
+7|SUCCEED
+Calculating treedepth for ../input/exact/exact_013.tree
 Initalized a graph having 25 vertices with 46 edges. 
-Calculating treedepth for exact_013.gr
 full_graph: kCore gave a lower bound of 6
 full_graph: treedepth_upper(G) = 11
 full_graph: bounds before separator loop 6 <= td <= 11.
 full_graph: generated total of 19 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 7.
+There are 35 subsets in the full cache.
 Treedepth is: 7
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_013.tree'
-7|SUCCEED
 
 Graph 015
+5|SUCCEED
+Calculating treedepth for ../input/exact/exact_015.tree
 Initalized a graph having 26 vertices with 30 edges. 
-Calculating treedepth for exact_015.gr
 full_graph: kCore gave a lower bound of 4
 full_graph: treedepth_upper(G) = 6
 full_graph: bounds before separator loop 5 <= td <= 6.
 full_graph: generated total of 8 separators so far.
-full_graph: separator 1 / 8, consists of 1 vertices, gives `upper == lower == 5`, early exit.
+full_graph: separator 1 / 8 gives `upper == lower == 5`, early exit. Separator has 1 vertices, and largest component is (13, 15).
 full_graph: treedepth is 5.
+There are 9 subsets in the full cache.
 Treedepth is: 5
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_015.tree'
-5|SUCCEED
 
 Graph 017
+10|SUCCEED
+Calculating treedepth for ../input/exact/exact_017.tree
 Initalized a graph having 26 vertices with 64 edges. 
-Calculating treedepth for exact_017.gr
 full_graph: kCore gave a lower bound of 10
 full_graph: treedepth_upper(G) = 11
 full_graph: bounds before separator loop 10 <= td <= 11.
 full_graph: generated total of 24 separators so far.
-full_graph: separator 16 / 24, consists of 3 vertices, gives `upper == lower == 10`, early exit.
+full_graph: separator 16 / 24 gives `upper == lower == 10`, early exit. Separator has 3 vertices, and largest component is (22, 38).
 full_graph: treedepth is 10.
+There are 151 subsets in the full cache.
 Treedepth is: 10
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_017.tree'
-10|SUCCEED
 
 Graph 019
+7|SUCCEED
+Calculating treedepth for ../input/exact/exact_019.tree
 Initalized a graph having 28 vertices with 57 edges. 
-Calculating treedepth for exact_019.gr
 full_graph: kCore gave a lower bound of 7
 full_graph: treedepth_upper(G) = 8
 full_graph: bounds before separator loop 7 <= td <= 8.
 full_graph: generated total of 27 separators so far.
-full_graph: separator 0 / 27, consists of 2 vertices, gives `upper == lower == 7`, early exit.
+full_graph: separator 0 / 27 gives `upper == lower == 7`, early exit. Separator has 2 vertices, and largest component is (13, 23).
 full_graph: treedepth is 7.
+There are 33 subsets in the full cache.
 Treedepth is: 7
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_019.tree'
-7|SUCCEED
 
 Graph 021
+5|SUCCEED
+Calculating treedepth for ../input/exact/exact_021.tree
 Initalized a graph having 29 vertices with 38 edges. 
-Calculating treedepth for exact_021.gr
 full_graph: kCore gave a lower bound of 5
 full_graph: treedepth_upper(G) = 6
 full_graph: bounds before separator loop 5 <= td <= 6.
 full_graph: generated total of 1045 separators so far.
-full_graph: separator 1024 / 1045, consists of 2 vertices, gives `upper == lower == 5`, early exit.
+full_graph: separator 1024 / 1045 gives `upper == lower == 5`, early exit. Separator has 2 vertices, and largest component is (19, 18).
 full_graph: treedepth is 5.
+There are 33 subsets in the full cache.
 Treedepth is: 5
 Elapsed time is 0.1 seconds.
-Saved the tree to '../output/exact/exact_021.tree'
-5|SUCCEED
 
 Graph 023
+7|SUCCEED
+Calculating treedepth for ../input/exact/exact_023.tree
 Initalized a graph having 30 vertices with 38 edges. 
-Calculating treedepth for exact_023.gr
 full_graph: kCore gave a lower bound of 7
 full_graph: treedepth_upper(G) = 10
 full_graph: bounds before separator loop 7 <= td <= 10.
 full_graph: generated total of 151 separators so far.
-full_graph: separator 15 / 151, consists of 3 vertices, gives `upper == lower == 7`, early exit.
+full_graph: separator 15 / 151 gives `upper == lower == 7`, early exit. Separator has 3 vertices, and largest component is (14, 15).
 full_graph: treedepth is 7.
+There are 117 subsets in the full cache.
 Treedepth is: 7
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_023.tree'
-7|SUCCEED
 
 Graph 025
+8|SUCCEED
+Calculating treedepth for ../input/exact/exact_025.tree
 Initalized a graph having 30 vertices with 51 edges. 
-Calculating treedepth for exact_025.gr
 full_graph: kCore gave a lower bound of 6
 full_graph: treedepth_upper(G) = 12
 full_graph: bounds before separator loop 6 <= td <= 12.
 full_graph: generated total of 35 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 8.
+There are 92 subsets in the full cache.
 Treedepth is: 8
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_025.tree'
-8|SUCCEED
 
 Graph 027
+11|SUCCEED
+Calculating treedepth for ../input/exact/exact_027.tree
 Initalized a graph having 30 vertices with 70 edges. 
-Calculating treedepth for exact_027.gr
 full_graph: kCore gave a lower bound of 11
 full_graph: treedepth_upper(G) = 14
 full_graph: bounds before separator loop 11 <= td <= 14.
 full_graph: generated total of 26 separators so far.
-full_graph: separator 0 / 26, consists of 6 vertices, gives `upper == lower == 11`, early exit.
+full_graph: separator 0 / 26 gives `upper == lower == 11`, early exit. Separator has 6 vertices, and largest component is (14, 16).
 full_graph: treedepth is 11.
+There are 323 subsets in the full cache.
 Treedepth is: 11
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_027.tree'
-11|SUCCEED
 
 Graph 029
+12|SUCCEED
+Calculating treedepth for ../input/exact/exact_029.tree
 Initalized a graph having 32 vertices with 119 edges. 
-Calculating treedepth for exact_029.gr
 full_graph: kCore gave a lower bound of 12
 full_graph: treedepth_upper(G) = 13
 full_graph: bounds before separator loop 12 <= td <= 13.
 full_graph: generated total of 11 separators so far.
-full_graph: separator 1 / 11, consists of 1 vertices, gives `upper == lower == 12`, early exit.
+full_graph: separator 1 / 11 gives `upper == lower == 12`, early exit. Separator has 1 vertices, and largest component is (26, 101).
 full_graph: treedepth is 12.
+There are 45 subsets in the full cache.
 Treedepth is: 12
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_029.tree'
-12|SUCCEED
 
 Graph 031
+11|SUCCEED
+Calculating treedepth for ../input/exact/exact_031.tree
 Initalized a graph having 33 vertices with 78 edges. 
-Calculating treedepth for exact_031.gr
 full_graph: kCore gave a lower bound of 10
 full_graph: treedepth_upper(G) = 11
 full_graph: bounds before separator loop 10 <= td <= 11.
 full_graph: generated total of 12 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 11.
+There are 721 subsets in the full cache.
 Treedepth is: 11
-Elapsed time is 0.1 seconds.
-Saved the tree to '../output/exact/exact_031.tree'
-11|SUCCEED
+Elapsed time is 0 seconds.
 
 Graph 033
+12|SUCCEED
+Calculating treedepth for ../input/exact/exact_033.tree
 Initalized a graph having 34 vertices with 82 edges. 
-Calculating treedepth for exact_033.gr
 full_graph: kCore gave a lower bound of 12
 full_graph: treedepth_upper(G) = 12
 full_graph: treedepth is 12.
+There are 385 subsets in the full cache.
 Treedepth is: 12
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_033.tree'
-12|SUCCEED
 
 Graph 035
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_035.tree
 Initalized a graph having 35 vertices with 70 edges. 
-Calculating treedepth for exact_035.gr
 full_graph: kCore gave a lower bound of 9
 full_graph: treedepth_upper(G) = 12
 full_graph: bounds before separator loop 9 <= td <= 10.
 full_graph: generated total of 28 separators so far.
-full_graph: separator 0 / 28, consists of 2 vertices, gives `upper == lower == 9`, early exit.
+full_graph: separator 0 / 28 gives `upper == lower == 9`, early exit. Separator has 2 vertices, and largest component is (17, 33).
 full_graph: treedepth is 9.
+There are 110 subsets in the full cache.
 Treedepth is: 9
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_035.tree'
-9|SUCCEED
 
 Graph 037
+7|SUCCEED
+Calculating treedepth for ../input/exact/exact_037.tree
 Initalized a graph having 39 vertices with 48 edges. 
-Calculating treedepth for exact_037.gr
 full_graph: kCore gave a lower bound of 6
 full_graph: treedepth_upper(G) = 8
 full_graph: bounds before separator loop 6 <= td <= 8.
 full_graph: generated total of 19 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 7.
+There are 152 subsets in the full cache.
 Treedepth is: 7
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_037.tree'
-7|SUCCEED
 
 Graph 039
+7|SUCCEED
+Calculating treedepth for ../input/exact/exact_039.tree
 Initalized a graph having 40 vertices with 54 edges. 
-Calculating treedepth for exact_039.gr
 full_graph: kCore gave a lower bound of 7
 full_graph: treedepth_upper(G) = 10
 full_graph: bounds before separator loop 7 <= td <= 10.
 full_graph: generated total of 83 separators so far.
-full_graph: separator 59 / 83, consists of 1 vertices, gives `upper == lower == 7`, early exit.
+full_graph: separator 59 / 83 gives `upper == lower == 7`, early exit. Separator has 1 vertices, and largest component is (35, 44).
 full_graph: treedepth is 7.
+There are 84 subsets in the full cache.
 Treedepth is: 7
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_039.tree'
-7|SUCCEED
 
 Graph 041
+5|SUCCEED
+Calculating treedepth for ../input/exact/exact_041.tree
 Initalized a graph having 40 vertices with 79 edges. 
-Calculating treedepth for exact_041.gr
 full_graph: kCore gave a lower bound of 5
 full_graph: treedepth_upper(G) = 5
 full_graph: treedepth is 5.
+There are 29 subsets in the full cache.
 Treedepth is: 5
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_041.tree'
-5|SUCCEED
 
 Graph 043
+14|SUCCEED
+Calculating treedepth for ../input/exact/exact_043.tree
 Initalized a graph having 40 vertices with 129 edges. 
-Calculating treedepth for exact_043.gr
 full_graph: kCore gave a lower bound of 14
 full_graph: treedepth_upper(G) = 18
 full_graph: bounds before separator loop 14 <= td <= 16.
 full_graph: generated total of 664 separators so far.
-full_graph: separator 659 / 664, consists of 3 vertices, gives `upper == lower == 14`, early exit.
+full_graph: separator 659 / 664 gives `upper == lower == 14`, early exit. Separator has 3 vertices, and largest component is (36, 101).
 full_graph: treedepth is 14.
+There are 1236 subsets in the full cache.
 Treedepth is: 14
 Elapsed time is 0.3 seconds.
-Saved the tree to '../output/exact/exact_043.tree'
-14|SUCCEED
 
 Graph 045
+11|SUCCEED
+Calculating treedepth for ../input/exact/exact_045.tree
 Initalized a graph having 41 vertices with 58 edges. 
-Calculating treedepth for exact_045.gr
 full_graph: kCore gave a lower bound of 11
 full_graph: treedepth_upper(G) = 17
 full_graph: bounds before separator loop 11 <= td <= 12.
-full_graph: generated total of 100000 separators so far.
-full_graph: separator 82932 / 100000, consists of 5 vertices, gives `upper == lower == 11`, early exit.
+full_graph: generated total of 100001 separators so far.
+full_graph: separator 82933 / 100001 gives `upper == lower == 11`, early exit. Separator has 5 vertices, and largest component is (21, 25).
 full_graph: treedepth is 11.
+There are 9350 subsets in the full cache.
 Treedepth is: 11
-Elapsed time is 7 seconds.
-Saved the tree to '../output/exact/exact_045.tree'
-11|SUCCEED
+Elapsed time is 6.5 seconds.
 
 Graph 047
+25|SUCCEED
+Calculating treedepth for ../input/exact/exact_047.tree
 Initalized a graph having 41 vertices with 256 edges. 
-Calculating treedepth for exact_047.gr
 full_graph: kCore gave a lower bound of 25
-full_graph: treedepth_upper(G) = 27
+full_graph: treedepth_upper(G) = 28
 full_graph: bounds before separator loop 25 <= td <= 26.
 full_graph: generated total of 4330 separators so far.
-full_graph: separator 4323 / 4330, consists of 9 vertices, gives `upper == lower == 25`, early exit.
+full_graph: separator 4323 / 4330 gives `upper == lower == 25`, early exit. Separator has 9 vertices, and largest component is (31, 130).
 full_graph: treedepth is 25.
+There are 8306 subsets in the full cache.
 Treedepth is: 25
-Elapsed time is 3.4 seconds.
-Saved the tree to '../output/exact/exact_047.tree'
-25|SUCCEED
+Elapsed time is 3.3 seconds.
 
 Graph 049
+10|SUCCEED
+Calculating treedepth for ../input/exact/exact_049.tree
 Initalized a graph having 42 vertices with 73 edges. 
-Calculating treedepth for exact_049.gr
 full_graph: kCore gave a lower bound of 6
 full_graph: treedepth_upper(G) = 12
 full_graph: bounds before separator loop 6 <= td <= 12.
 full_graph: generated total of 2894 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 10.
+There are 1347 subsets in the full cache.
 Treedepth is: 10
-Elapsed time is 0.4 seconds.
-Saved the tree to '../output/exact/exact_049.tree'
-10|SUCCEED
+Elapsed time is 0.2 seconds.
 
 Graph 051
+11|SUCCEED
+Calculating treedepth for ../input/exact/exact_051.tree
 Initalized a graph having 45 vertices with 91 edges. 
-Calculating treedepth for exact_051.gr
 full_graph: kCore gave a lower bound of 11
 full_graph: treedepth_upper(G) = 21
 full_graph: bounds before separator loop 11 <= td <= 13.
 full_graph: generated total of 145 separators so far.
-full_graph: separator 10 / 145, consists of 3 vertices, gives `upper == lower == 11`, early exit.
+full_graph: separator 10 / 145 gives `upper == lower == 11`, early exit. Separator has 3 vertices, and largest component is (24, 42).
 full_graph: treedepth is 11.
+There are 463 subsets in the full cache.
 Treedepth is: 11
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_051.tree'
-11|SUCCEED
 
 Graph 053
+7|SUCCEED
+Calculating treedepth for ../input/exact/exact_053.tree
 Initalized a graph having 46 vertices with 63 edges. 
-Calculating treedepth for exact_053.gr
 full_graph: kCore gave a lower bound of 6
 full_graph: treedepth_upper(G) = 9
 full_graph: bounds before separator loop 6 <= td <= 9.
 full_graph: generated total of 27 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 7.
+There are 67 subsets in the full cache.
 Treedepth is: 7
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_053.tree'
-7|SUCCEED
 
 Graph 055
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_055.tree
 Initalized a graph having 49 vertices with 85 edges. 
-Calculating treedepth for exact_055.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 10
 full_graph: bounds before separator loop 8 <= td <= 10.
 full_graph: generated total of 16 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 9.
+There are 373 subsets in the full cache.
 Treedepth is: 9
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_055.tree'
-9|SUCCEED
 
 Graph 057
+13|SUCCEED
+Calculating treedepth for ../input/exact/exact_057.tree
 Initalized a graph having 50 vertices with 75 edges. 
-Calculating treedepth for exact_057.gr
 full_graph: kCore gave a lower bound of 13
 full_graph: treedepth_upper(G) = 14
 full_graph: bounds before separator loop 13 <= td <= 14.
-full_graph: generated total of 100000 separators so far.
-full_graph: separator 2219 / 100000, consists of 7 vertices, gives `upper == lower == 13`, early exit.
+full_graph: generated total of 100002 separators so far.
+full_graph: separator 2278 / 100002 gives `upper == lower == 13`, early exit. Separator has 7 vertices, and largest component is (22, 28).
 full_graph: treedepth is 13.
+There are 123843 subsets in the full cache.
 Treedepth is: 13
-Elapsed time is 150.1 seconds.
-Saved the tree to '../output/exact/exact_057.tree'
-13|SUCCEED
+Elapsed time is 156.2 seconds.
 
 Graph 059
+42|SUCCEED
+Calculating treedepth for ../input/exact/exact_059.tree
 Initalized a graph having 50 vertices with 525 edges. 
-Calculating treedepth for exact_059.gr
 full_graph: kCore gave a lower bound of 41
 full_graph: treedepth_upper(G) = 42
 full_graph: bounds before separator loop 41 <= td <= 42.
 full_graph: generated total of 61412 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 42.
+There are 85143 subsets in the full cache.
 Treedepth is: 42
-Elapsed time is 34.3 seconds.
-Saved the tree to '../output/exact/exact_059.tree'
-42|SUCCEED
+Elapsed time is 38.3 seconds.
 
 Graph 061
+13|SUCCEED
+Calculating treedepth for ../input/exact/exact_061.tree
 Initalized a graph having 53 vertices with 100 edges. 
-Calculating treedepth for exact_061.gr
 full_graph: kCore gave a lower bound of 12
 full_graph: treedepth_upper(G) = 14
 full_graph: bounds before separator loop 12 <= td <= 14.
 full_graph: generated total of 6694 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 13.
+There are 23568 subsets in the full cache.
 Treedepth is: 13
-Elapsed time is 32.8 seconds.
-Saved the tree to '../output/exact/exact_061.tree'
-13|SUCCEED
+Elapsed time is 22.5 seconds.
 
 Graph 063
+12|SUCCEED
+Calculating treedepth for ../input/exact/exact_063.tree
 Initalized a graph having 55 vertices with 100 edges. 
-Calculating treedepth for exact_063.gr
 full_graph: kCore gave a lower bound of 11
 full_graph: treedepth_upper(G) = 17
 full_graph: bounds before separator loop 11 <= td <= 13.
 full_graph: generated total of 427 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 12.
+There are 2047 subsets in the full cache.
 Treedepth is: 12
-Elapsed time is 1.1 seconds.
-Saved the tree to '../output/exact/exact_063.tree'
-12|SUCCEED
+Elapsed time is 0.6 seconds.
 
 Graph 065
+11|SUCCEED
+Calculating treedepth for ../input/exact/exact_065.tree
 Initalized a graph having 57 vertices with 153 edges. 
-Calculating treedepth for exact_065.gr
 full_graph: kCore gave a lower bound of 11
 full_graph: treedepth_upper(G) = 15
 full_graph: bounds before separator loop 11 <= td <= 15.
 full_graph: generated total of 63 separators so far.
-full_graph: separator 11 / 63, consists of 3 vertices, gives `upper == lower == 11`, early exit.
+full_graph: separator 11 / 63 gives `upper == lower == 11`, early exit. Separator has 3 vertices, and largest component is (33, 67).
 full_graph: treedepth is 11.
+There are 142 subsets in the full cache.
 Treedepth is: 11
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_065.tree'
-11|SUCCEED
 
 Graph 067
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_067.tree
 Initalized a graph having 60 vertices with 72 edges. 
-Calculating treedepth for exact_067.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 14
 full_graph: bounds before separator loop 8 <= td <= 14.
 full_graph: generated total of 187 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 9.
+There are 2068 subsets in the full cache.
 Treedepth is: 9
-Elapsed time is 0.4 seconds.
-Saved the tree to '../output/exact/exact_067.tree'
-9|SUCCEED
+Elapsed time is 0.3 seconds.
 
 Graph 069
+6|SUCCEED
+Calculating treedepth for ../input/exact/exact_069.tree
 Initalized a graph having 60 vertices with 119 edges. 
-Calculating treedepth for exact_069.gr
 full_graph: kCore gave a lower bound of 6
 full_graph: treedepth_upper(G) = 6
 full_graph: treedepth is 6.
+There are 57 subsets in the full cache.
 Treedepth is: 6
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_069.tree'
-6|SUCCEED
 
 Graph 071
+15|SUCCEED
+Calculating treedepth for ../input/exact/exact_071.tree
 Initalized a graph having 61 vertices with 151 edges. 
-Calculating treedepth for exact_071.gr
 full_graph: kCore gave a lower bound of 15
 full_graph: treedepth_upper(G) = 16
 full_graph: bounds before separator loop 15 <= td <= 16.
 full_graph: generated total of 45 separators so far.
-full_graph: separator 0 / 45, consists of 10 vertices, gives `upper == lower == 15`, early exit.
+full_graph: separator 0 / 45 gives `upper == lower == 15`, early exit. Separator has 10 vertices, and largest component is (26, 27).
 full_graph: treedepth is 15.
+There are 5273 subsets in the full cache.
 Treedepth is: 15
 Elapsed time is 0.5 seconds.
-Saved the tree to '../output/exact/exact_071.tree'
-15|SUCCEED
 
 Graph 073
+16|SUCCEED
+Calculating treedepth for ../input/exact/exact_073.tree
 Initalized a graph having 62 vertices with 159 edges. 
-Calculating treedepth for exact_073.gr
 full_graph: kCore gave a lower bound of 16
 full_graph: treedepth_upper(G) = 22
 full_graph: bounds before separator loop 16 <= td <= 22.
 full_graph: generated total of 1281 separators so far.
-full_graph: separator 292 / 1281, consists of 8 vertices, gives `upper == lower == 16`, early exit.
+full_graph: separator 292 / 1281 gives `upper == lower == 16`, early exit. Separator has 8 vertices, and largest component is (29, 54).
 full_graph: treedepth is 16.
+There are 4192 subsets in the full cache.
 Treedepth is: 16
-Elapsed time is 3.8 seconds.
-Saved the tree to '../output/exact/exact_073.tree'
-16|SUCCEED
+Elapsed time is 2.7 seconds.
 
 Graph 075
+Calculating treedepth for ../input/exact/exact_075.tree
 Initalized a graph having 64 vertices with 168 edges. 
-Calculating treedepth for exact_075.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 077
+12|SUCCEED
+Calculating treedepth for ../input/exact/exact_077.tree
 Initalized a graph having 66 vertices with 120 edges. 
-Calculating treedepth for exact_077.gr
 full_graph: kCore gave a lower bound of 9
 full_graph: treedepth_upper(G) = 21
 full_graph: bounds before separator loop 9 <= td <= 21.
 full_graph: generated total of 278 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 12.
+There are 1982 subsets in the full cache.
 Treedepth is: 12
-Elapsed time is 0.8 seconds.
-Saved the tree to '../output/exact/exact_077.tree'
-12|SUCCEED
+Elapsed time is 0.3 seconds.
 
 Graph 079
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_079.tree
 Initalized a graph having 68 vertices with 83 edges. 
-Calculating treedepth for exact_079.gr
 full_graph: kCore gave a lower bound of 9
 full_graph: treedepth_upper(G) = 17
 full_graph: bounds before separator loop 9 <= td <= 17.
 full_graph: generated total of 1679 separators so far.
-full_graph: separator 495 / 1679, consists of 3 vertices, gives `upper == lower == 9`, early exit.
+full_graph: separator 495 / 1679 gives `upper == lower == 9`, early exit. Separator has 3 vertices, and largest component is (36, 39).
 full_graph: treedepth is 9.
+There are 1457 subsets in the full cache.
 Treedepth is: 9
 Elapsed time is 0.3 seconds.
-Saved the tree to '../output/exact/exact_079.tree'
-9|SUCCEED
 
 Graph 081
+7|SUCCEED
+Calculating treedepth for ../input/exact/exact_081.tree
 Initalized a graph having 70 vertices with 79 edges. 
-Calculating treedepth for exact_081.gr
 full_graph: kCore gave a lower bound of 6
 full_graph: treedepth_upper(G) = 9
 full_graph: bounds before separator loop 6 <= td <= 9.
 full_graph: generated total of 61 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 7.
+There are 127 subsets in the full cache.
 Treedepth is: 7
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_081.tree'
-7|SUCCEED
 
 Graph 083
+22|SUCCEED
+Calculating treedepth for ../input/exact/exact_083.tree
 Initalized a graph having 70 vertices with 274 edges. 
-Calculating treedepth for exact_083.gr
 full_graph: kCore gave a lower bound of 22
 full_graph: treedepth_upper(G) = 31
-full_graph: bounds before separator loop 22 <= td <= 31.
-full_graph: generated total of 100000 separators so far.
-full_graph: separator 31520 / 100000, consists of 12 vertices, gives `upper == lower == 22`, early exit.
+full_graph: bounds before separator loop 22 <= td <= 25.
+full_graph: generated total of 100003 separators so far.
+full_graph: separator 31545 / 100003 gives `upper == lower == 22`, early exit. Separator has 12 vertices, and largest component is (30, 81).
 full_graph: treedepth is 22.
+There are 23413 subsets in the full cache.
 Treedepth is: 22
-Elapsed time is 517 seconds.
-Saved the tree to '../output/exact/exact_083.tree'
-22|SUCCEED
+Elapsed time is 491.2 seconds.
 
 Graph 085
+13|SUCCEED
+Calculating treedepth for ../input/exact/exact_085.tree
 Initalized a graph having 72 vertices with 158 edges. 
-Calculating treedepth for exact_085.gr
 full_graph: kCore gave a lower bound of 13
 full_graph: treedepth_upper(G) = 22
 full_graph: bounds before separator loop 13 <= td <= 14.
-full_graph: generated total of 100000 separators so far.
-full_graph: separator 45002 / 100000, consists of 4 vertices, gives `upper == lower == 13`, early exit.
+full_graph: generated total of 100002 separators so far.
+full_graph: separator 45004 / 100002 gives `upper == lower == 13`, early exit. Separator has 4 vertices, and largest component is (34, 67).
 full_graph: treedepth is 13.
+There are 5049 subsets in the full cache.
 Treedepth is: 13
-Elapsed time is 117.7 seconds.
-Saved the tree to '../output/exact/exact_085.tree'
-13|SUCCEED
+Elapsed time is 84.5 seconds.
 
 Graph 087
+13|SUCCEED
+Calculating treedepth for ../input/exact/exact_087.tree
 Initalized a graph having 75 vertices with 304 edges. 
-Calculating treedepth for exact_087.gr
 full_graph: kCore gave a lower bound of 13
 full_graph: treedepth_upper(G) = 15
 full_graph: bounds before separator loop 13 <= td <= 15.
 full_graph: generated total of 11 separators so far.
-full_graph: separator 0 / 11, consists of 1 vertices, gives `upper == lower == 13`, early exit.
+full_graph: separator 0 / 11 gives `upper == lower == 13`, early exit. Separator has 1 vertices, and largest component is (61, 219).
 full_graph: treedepth is 13.
+There are 121 subsets in the full cache.
 Treedepth is: 13
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_087.tree'
-13|SUCCEED
 
 Graph 089
+15|SUCCEED
+Calculating treedepth for ../input/exact/exact_089.tree
 Initalized a graph having 77 vertices with 254 edges. 
-Calculating treedepth for exact_089.gr
 full_graph: kCore gave a lower bound of 15
 full_graph: treedepth_upper(G) = 17
 full_graph: bounds before separator loop 15 <= td <= 17.
 full_graph: generated total of 13 separators so far.
-full_graph: separator 0 / 13, consists of 1 vertices, gives `upper == lower == 15`, early exit.
+full_graph: separator 0 / 13 gives `upper == lower == 15`, early exit. Separator has 1 vertices, and largest component is (61, 208).
 full_graph: treedepth is 15.
+There are 405 subsets in the full cache.
 Treedepth is: 15
 Elapsed time is 0.1 seconds.
-Saved the tree to '../output/exact/exact_089.tree'
-15|SUCCEED
 
 Graph 091
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_091.tree
 Initalized a graph having 80 vertices with 98 edges. 
-Calculating treedepth for exact_091.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 14
 full_graph: bounds before separator loop 8 <= td <= 14.
 full_graph: generated total of 209 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 9.
+There are 1578 subsets in the full cache.
 Treedepth is: 9
 Elapsed time is 0.2 seconds.
-Saved the tree to '../output/exact/exact_091.tree'
-9|SUCCEED
 
 Graph 093
+6|SUCCEED
+Calculating treedepth for ../input/exact/exact_093.tree
 Initalized a graph having 80 vertices with 159 edges. 
-Calculating treedepth for exact_093.gr
 full_graph: kCore gave a lower bound of 6
 full_graph: treedepth_upper(G) = 6
 full_graph: treedepth is 6.
+There are 57 subsets in the full cache.
 Treedepth is: 6
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_093.tree'
-6|SUCCEED
 
 Graph 095
+8|SUCCEED
+Calculating treedepth for ../input/exact/exact_095.tree
 Initalized a graph having 82 vertices with 100 edges. 
-Calculating treedepth for exact_095.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 10
 full_graph: bounds before separator loop 8 <= td <= 10.
 full_graph: generated total of 1258 separators so far.
-full_graph: separator 0 / 1258, consists of 2 vertices, gives `upper == lower == 8`, early exit.
+full_graph: separator 0 / 1258 gives `upper == lower == 8`, early exit. Separator has 2 vertices, and largest component is (40, 47).
 full_graph: treedepth is 8.
+There are 873 subsets in the full cache.
 Treedepth is: 8
 Elapsed time is 0.2 seconds.
-Saved the tree to '../output/exact/exact_095.tree'
-8|SUCCEED
 
 Graph 097
+7|SUCCEED
+Calculating treedepth for ../input/exact/exact_097.tree
 Initalized a graph having 86 vertices with 123 edges. 
-Calculating treedepth for exact_097.gr
 full_graph: kCore gave a lower bound of 7
 full_graph: treedepth_upper(G) = 10
 full_graph: bounds before separator loop 7 <= td <= 10.
 full_graph: generated total of 35 separators so far.
-full_graph: separator 5 / 35, consists of 1 vertices, gives `upper == lower == 7`, early exit.
+full_graph: separator 5 / 35 gives `upper == lower == 7`, early exit. Separator has 1 vertices, and largest component is (68, 95).
 full_graph: treedepth is 7.
+There are 164 subsets in the full cache.
 Treedepth is: 7
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_097.tree'
-7|SUCCEED
 
 Graph 099
+13|SUCCEED
+Calculating treedepth for ../input/exact/exact_099.tree
 Initalized a graph having 88 vertices with 133 edges. 
-Calculating treedepth for exact_099.gr
 full_graph: kCore gave a lower bound of 13
 full_graph: treedepth_upper(G) = 19
 full_graph: bounds before separator loop 13 <= td <= 19.
 full_graph: generated total of 1942 separators so far.
-full_graph: separator 2 / 1942, consists of 4 vertices, gives `upper == lower == 13`, early exit.
+full_graph: separator 2 / 1942 gives `upper == lower == 13`, early exit. Separator has 4 vertices, and largest component is (42, 64).
 full_graph: treedepth is 13.
+There are 20219 subsets in the full cache.
 Treedepth is: 13
-Elapsed time is 32.1 seconds.
-Saved the tree to '../output/exact/exact_099.tree'
-13|SUCCEED
+Elapsed time is 6.5 seconds.
 
 Graph 101
+Calculating treedepth for ../input/exact/exact_101.tree
 Initalized a graph having 90 vertices with 135 edges. 
-Calculating treedepth for exact_101.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 103
+13|SUCCEED
+Calculating treedepth for ../input/exact/exact_103.tree
 Initalized a graph having 92 vertices with 131 edges. 
-Calculating treedepth for exact_103.gr
 full_graph: kCore gave a lower bound of 13
 full_graph: treedepth_upper(G) = 25
 full_graph: bounds before separator loop 13 <= td <= 25.
-full_graph: generated total of 100000 separators so far.
-full_graph: separator 2844 / 100000, consists of 5 vertices, gives `upper == lower == 13`, early exit.
+full_graph: generated total of 100002 separators so far.
+full_graph: separator 2842 / 100002 gives `upper == lower == 13`, early exit. Separator has 5 vertices, and largest component is (44, 57).
 full_graph: treedepth is 13.
+There are 78216 subsets in the full cache.
 Treedepth is: 13
-Elapsed time is 76.2 seconds.
-Saved the tree to '../output/exact/exact_103.tree'
-13|SUCCEED
+Elapsed time is 82.3 seconds.
 
 Graph 105
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_105.tree
 Initalized a graph having 93 vertices with 111 edges. 
-Calculating treedepth for exact_105.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 22
 full_graph: bounds before separator loop 8 <= td <= 22.
 full_graph: generated total of 252 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 9.
+There are 1785 subsets in the full cache.
 Treedepth is: 9
 Elapsed time is 0.4 seconds.
-Saved the tree to '../output/exact/exact_105.tree'
-9|SUCCEED
 
 Graph 107
+11|SUCCEED
+Calculating treedepth for ../input/exact/exact_107.tree
 Initalized a graph having 95 vertices with 121 edges. 
-Calculating treedepth for exact_107.gr
 full_graph: kCore gave a lower bound of 11
 full_graph: treedepth_upper(G) = 11
 full_graph: treedepth is 11.
+There are 16615 subsets in the full cache.
 Treedepth is: 11
-Elapsed time is 28.5 seconds.
-Saved the tree to '../output/exact/exact_107.tree'
-11|SUCCEED
+Elapsed time is 31.6 seconds.
 
 Graph 109
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_109.tree
 Initalized a graph having 98 vertices with 109 edges. 
-Calculating treedepth for exact_109.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 24
 full_graph: bounds before separator loop 8 <= td <= 24.
 full_graph: generated total of 324 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 9.
+There are 4283 subsets in the full cache.
 Treedepth is: 9
 Elapsed time is 1.3 seconds.
-Saved the tree to '../output/exact/exact_109.tree'
-9|SUCCEED
 
 Graph 111
+18|SUCCEED
+Calculating treedepth for ../input/exact/exact_111.tree
 Initalized a graph having 100 vertices with 384 edges. 
-Calculating treedepth for exact_111.gr
 full_graph: kCore gave a lower bound of 18
 full_graph: treedepth_upper(G) = 26
-full_graph: bounds before separator loop 18 <= td <= 26.
+full_graph: bounds before separator loop 18 <= td <= 24.
 full_graph: generated total of 3388 separators so far.
-full_graph: separator 2919 / 3388, consists of 3 vertices, gives `upper == lower == 18`, early exit.
+full_graph: separator 2919 / 3388 gives `upper == lower == 18`, early exit. Separator has 3 vertices, and largest component is (71, 241).
 full_graph: treedepth is 18.
+There are 2174 subsets in the full cache.
 Treedepth is: 18
-Elapsed time is 1.4 seconds.
-Saved the tree to '../output/exact/exact_111.tree'
-18|SUCCEED
+Elapsed time is 1.1 seconds.
 
 Graph 113
+6|SUCCEED
+Calculating treedepth for ../input/exact/exact_113.tree
 Initalized a graph having 102 vertices with 113 edges. 
-Calculating treedepth for exact_113.gr
 full_graph: kCore gave a lower bound of 6
 full_graph: treedepth_upper(G) = 8
 full_graph: bounds before separator loop 6 <= td <= 8.
 full_graph: generated total of 36 separators so far.
-full_graph: separator 1 / 36, consists of 1 vertices, gives `upper == lower == 6`, early exit.
+full_graph: separator 1 / 36 gives `upper == lower == 6`, early exit. Separator has 1 vertices, and largest component is (70, 78).
 full_graph: treedepth is 6.
+There are 92 subsets in the full cache.
 Treedepth is: 6
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_113.tree'
-6|SUCCEED
 
 Graph 115
+12|SUCCEED
+Calculating treedepth for ../input/exact/exact_115.tree
 Initalized a graph having 102 vertices with 144 edges. 
-Calculating treedepth for exact_115.gr
 full_graph: kCore gave a lower bound of 12
 full_graph: treedepth_upper(G) = 21
 full_graph: bounds before separator loop 12 <= td <= 21.
 full_graph: generated total of 6992 separators so far.
-full_graph: separator 1475 / 6992, consists of 1 vertices, gives `upper == lower == 12`, early exit.
+full_graph: separator 1475 / 6992 gives `upper == lower == 12`, early exit. Separator has 1 vertices, and largest component is (66, 88).
 full_graph: treedepth is 12.
+There are 26090 subsets in the full cache.
 Treedepth is: 12
-Elapsed time is 17.9 seconds.
-Saved the tree to '../output/exact/exact_115.tree'
-12|SUCCEED
+Elapsed time is 19.9 seconds.
 
 Graph 117
+Calculating treedepth for ../input/exact/exact_117.tree
 Initalized a graph having 105 vertices with 441 edges. 
-Calculating treedepth for exact_117.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 605.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 119
+Calculating treedepth for ../input/exact/exact_119.tree
 Initalized a graph having 110 vertices with 223 edges. 
-Calculating treedepth for exact_119.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1840.000000 seconds.".
 
 Graph 121
+Calculating treedepth for ../input/exact/exact_121.tree
 Initalized a graph having 112 vertices with 168 edges. 
-Calculating treedepth for exact_121.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1802.000000 seconds.".
 
 Graph 123
+12|SUCCEED
+Calculating treedepth for ../input/exact/exact_123.tree
 Initalized a graph having 113 vertices with 164 edges. 
-Calculating treedepth for exact_123.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCore gave a lower bound of 12
+full_graph: treedepth_upper(G) = 22
+full_graph: bounds before separator loop 12 <= td <= 22.
+full_graph: generated total of 100000 separators so far.
+full_graph: separator 21281 / 100000 gives `upper == lower == 12`, early exit. Separator has 4 vertices, and largest component is (58, 73).
+full_graph: treedepth is 12.
+There are 51825 subsets in the full cache.
+Treedepth is: 12
+Elapsed time is 256.2 seconds.
 
 Graph 125
+10|SUCCEED
+Calculating treedepth for ../input/exact/exact_125.tree
 Initalized a graph having 115 vertices with 161 edges. 
-Calculating treedepth for exact_125.gr
 full_graph: kCore gave a lower bound of 9
 full_graph: treedepth_upper(G) = 13
 full_graph: bounds before separator loop 9 <= td <= 13.
 full_graph: generated total of 48 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 10.
+There are 5107 subsets in the full cache.
 Treedepth is: 10
-Elapsed time is 2.5 seconds.
-Saved the tree to '../output/exact/exact_125.tree'
-10|SUCCEED
+Elapsed time is 1 seconds.
 
 Graph 127
+8|SUCCEED
+Calculating treedepth for ../input/exact/exact_127.tree
 Initalized a graph having 119 vertices with 147 edges. 
-Calculating treedepth for exact_127.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 11
 full_graph: bounds before separator loop 8 <= td <= 11.
 full_graph: generated total of 48 separators so far.
-full_graph: separator 0 / 48, consists of 1 vertices, gives `upper == lower == 8`, early exit.
+full_graph: separator 0 / 48 gives `upper == lower == 8`, early exit. Separator has 1 vertices, and largest component is (81, 101).
 full_graph: treedepth is 8.
+There are 315 subsets in the full cache.
 Treedepth is: 8
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_127.tree'
-8|SUCCEED
 
 Graph 129
+Calculating treedepth for ../input/exact/exact_129.tree
 Initalized a graph having 120 vertices with 240 edges. 
-Calculating treedepth for exact_129.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 131
+Calculating treedepth for ../input/exact/exact_131.tree
 Initalized a graph having 121 vertices with 220 edges. 
-Calculating treedepth for exact_131.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 133
+15|SUCCEED
+Calculating treedepth for ../input/exact/exact_133.tree
 Initalized a graph having 123 vertices with 409 edges. 
-Calculating treedepth for exact_133.gr
 full_graph: kCore gave a lower bound of 15
 full_graph: treedepth_upper(G) = 23
 full_graph: bounds before separator loop 15 <= td <= 23.
 full_graph: generated total of 73 separators so far.
-full_graph: separator 58 / 73, consists of 1 vertices, gives `upper == lower == 15`, early exit.
+full_graph: separator 58 / 73 gives `upper == lower == 15`, early exit. Separator has 1 vertices, and largest component is (121, 386).
 full_graph: treedepth is 15.
+There are 1117 subsets in the full cache.
 Treedepth is: 15
-Elapsed time is 39.9 seconds.
-Saved the tree to '../output/exact/exact_133.tree'
-15|SUCCEED
+Elapsed time is 34.4 seconds.
 
 Graph 135
+Calculating treedepth for ../input/exact/exact_135.tree
 Initalized a graph having 126 vertices with 189 edges. 
-Calculating treedepth for exact_135.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1802.000000 seconds.".
 
 Graph 137
+58|SUCCEED
+Calculating treedepth for ../input/exact/exact_137.tree
 Initalized a graph having 126 vertices with 4100 edges. 
-Calculating treedepth for exact_137.gr
 full_graph: kCore gave a lower bound of 54
 full_graph: treedepth_upper(G) = 72
 full_graph: bounds before separator loop 54 <= td <= 72.
 full_graph: generated total of 107 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 58.
+There are 1066 subsets in the full cache.
 Treedepth is: 58
-Elapsed time is 0.1 seconds.
-Saved the tree to '../output/exact/exact_137.tree'
-58|SUCCEED
+Elapsed time is 0.2 seconds.
 
 Graph 139
+Calculating treedepth for ../input/exact/exact_139.tree
 Initalized a graph having 128 vertices with 266 edges. 
-Calculating treedepth for exact_139.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1804.000000 seconds.".
 
 Graph 141
+13|SUCCEED
+Calculating treedepth for ../input/exact/exact_141.tree
 Initalized a graph having 132 vertices with 191 edges. 
-Calculating treedepth for exact_141.gr
 full_graph: kCore gave a lower bound of 13
 full_graph: treedepth_upper(G) = 28
 full_graph: bounds before separator loop 13 <= td <= 28.
 full_graph: generated total of 66761 separators so far.
-full_graph: separator 3117 / 66761, consists of 4 vertices, gives `upper == lower == 13`, early exit.
+full_graph: separator 3442 / 66761 gives `upper == lower == 13`, early exit. Separator has 4 vertices, and largest component is (64, 90).
 full_graph: treedepth is 13.
+There are 87393 subsets in the full cache.
 Treedepth is: 13
-Elapsed time is 123.1 seconds.
-Saved the tree to '../output/exact/exact_141.tree'
-13|SUCCEED
+Elapsed time is 129.9 seconds.
 
 Graph 143
+16|SUCCEED
+Calculating treedepth for ../input/exact/exact_143.tree
 Initalized a graph having 138 vertices with 447 edges. 
-Calculating treedepth for exact_143.gr
 full_graph: kCore gave a lower bound of 16
 full_graph: treedepth_upper(G) = 35
 full_graph: bounds before separator loop 16 <= td <= 35.
 full_graph: generated total of 50 separators so far.
-full_graph: separator 30 / 50, consists of 1 vertices, gives `upper == lower == 16`, early exit.
+full_graph: separator 30 / 50 gives `upper == lower == 16`, early exit. Separator has 1 vertices, and largest component is (136, 425).
 full_graph: treedepth is 16.
+There are 4555 subsets in the full cache.
 Treedepth is: 16
-Elapsed time is 246.2 seconds.
-Saved the tree to '../output/exact/exact_143.tree'
-16|SUCCEED
+Elapsed time is 211.2 seconds.
 
 Graph 145
-Initalized a graph having 140 vertices with 279 edges. 
-Calculating treedepth for exact_145.gr
-full_graph: kCore gave a lower bound of 7
-full_graph: treedepth_upper(G) = 7
-full_graph: treedepth is 7.
-Treedepth is: 7
-Elapsed time is 0.1 seconds.
-Saved the tree to '../output/exact/exact_145.tree'
 7|SUCCEED
+Calculating treedepth for ../input/exact/exact_145.tree
+Initalized a graph having 140 vertices with 279 edges. 
+full_graph: kCore gave a lower bound of 7
+full_graph: treedepth_upper(G) = 8
+full_graph: bounds before separator loop 7 <= td <= 8.
+full_graph: generated total of 428 separators so far.
+full_graph: separator 94 / 428 gives `upper == lower == 7`, early exit. Separator has 1 vertices, and largest component is (84, 148).
+full_graph: treedepth is 7.
+There are 199 subsets in the full cache.
+Treedepth is: 7
+Elapsed time is 1.6 seconds.
 
 Graph 147
+Calculating treedepth for ../input/exact/exact_147.tree
 Initalized a graph having 142 vertices with 196 edges. 
-Calculating treedepth for exact_147.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 602.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1807.000000 seconds.".
 
 Graph 149
+Calculating treedepth for ../input/exact/exact_149.tree
 Initalized a graph having 146 vertices with 250 edges. 
-Calculating treedepth for exact_149.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 603.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1804.000000 seconds.".
 
 Graph 151
+7|SUCCEED
+Calculating treedepth for ../input/exact/exact_151.tree
 Initalized a graph having 150 vertices with 599 edges. 
-Calculating treedepth for exact_151.gr
 full_graph: kCore gave a lower bound of 7
 full_graph: treedepth_upper(G) = 7
 full_graph: treedepth is 7.
+There are 198 subsets in the full cache.
 Treedepth is: 7
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_151.tree'
-7|SUCCEED
 
 Graph 153
+Calculating treedepth for ../input/exact/exact_153.tree
 Initalized a graph having 152 vertices with 476 edges. 
-Calculating treedepth for exact_153.gr
 full_graph: kCore gave a lower bound of 14
 full_graph: treedepth_upper(G) = 19
-full_graph: bounds before separator loop 14 <= td <= 19.
 
 Graph 155
+Calculating treedepth for ../input/exact/exact_155.tree
 Initalized a graph having 160 vertices with 240 edges. 
-Calculating treedepth for exact_155.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 604.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1804.000000 seconds.".
 
 Graph 157
+11|SUCCEED
+Calculating treedepth for ../input/exact/exact_157.tree
 Initalized a graph having 163 vertices with 195 edges. 
-Calculating treedepth for exact_157.gr
 full_graph: kCore gave a lower bound of 11
 full_graph: treedepth_upper(G) = 28
 full_graph: bounds before separator loop 11 <= td <= 28.
 full_graph: generated total of 4924 separators so far.
-full_graph: separator 5 / 4924, consists of 2 vertices, gives `upper == lower == 11`, early exit.
+full_graph: separator 5 / 4924 gives `upper == lower == 11`, early exit. Separator has 2 vertices, and largest component is (82, 96).
 full_graph: treedepth is 11.
+There are 15382 subsets in the full cache.
 Treedepth is: 11
-Elapsed time is 43.5 seconds.
-Saved the tree to '../output/exact/exact_157.tree'
-11|SUCCEED
+Elapsed time is 45.7 seconds.
 
 Graph 159
+Calculating treedepth for ../input/exact/exact_159.tree
 Initalized a graph having 165 vertices with 522 edges. 
-Calculating treedepth for exact_159.gr
 full_graph: kCore gave a lower bound of 15
 full_graph: treedepth_upper(G) = 21
-full_graph: bounds before separator loop 15 <= td <= 21.
 
 Graph 161
+13|SUCCEED
+Calculating treedepth for ../input/exact/exact_161.tree
 Initalized a graph having 167 vertices with 328 edges. 
-Calculating treedepth for exact_161.gr
 full_graph: kCore gave a lower bound of 13
 full_graph: treedepth_upper(G) = 24
 full_graph: bounds before separator loop 13 <= td <= 24.
 full_graph: generated total of 3085 separators so far.
-full_graph: separator 2764 / 3085, consists of 1 vertices, gives `upper == lower == 13`, early exit.
+full_graph: separator 2764 / 3085 gives `upper == lower == 13`, early exit. Separator has 1 vertices, and largest component is (143, 283).
 full_graph: treedepth is 13.
+There are 10932 subsets in the full cache.
 Treedepth is: 13
-Elapsed time is 10.6 seconds.
-Saved the tree to '../output/exact/exact_161.tree'
-13|SUCCEED
+Elapsed time is 6.1 seconds.
 
 Graph 163
+Calculating treedepth for ../input/exact/exact_163.tree
 Initalized a graph having 170 vertices with 255 edges. 
-Calculating treedepth for exact_163.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 165
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_165.tree
 Initalized a graph having 176 vertices with 186 edges. 
-Calculating treedepth for exact_165.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 14
 full_graph: bounds before separator loop 8 <= td <= 14.
 full_graph: generated total of 6080 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 9.
+There are 14250 subsets in the full cache.
 Treedepth is: 9
-Elapsed time is 3.3 seconds.
-Saved the tree to '../output/exact/exact_165.tree'
-9|SUCCEED
+Elapsed time is 3.6 seconds.
 
 Graph 167
+Calculating treedepth for ../input/exact/exact_167.tree
 Initalized a graph having 180 vertices with 270 edges. 
-Calculating treedepth for exact_167.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 602.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1811.000000 seconds.".
 
 Graph 169
+Calculating treedepth for ../input/exact/exact_169.tree
 Initalized a graph having 181 vertices with 253 edges. 
-Calculating treedepth for exact_169.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1805.000000 seconds.".
 
 Graph 171
+Calculating treedepth for ../input/exact/exact_171.tree
 Initalized a graph having 191 vertices with 283 edges. 
-Calculating treedepth for exact_171.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 173
+Calculating treedepth for ../input/exact/exact_173.tree
 Initalized a graph having 198 vertices with 692 edges. 
-Calculating treedepth for exact_173.gr
 full_graph: kCore gave a lower bound of 16
 full_graph: treedepth_upper(G) = 40
-full_graph: bounds before separator loop 16 <= td <= 40.
 
 Graph 175
+Calculating treedepth for ../input/exact/exact_175.tree
 Initalized a graph having 200 vertices with 300 edges. 
-Calculating treedepth for exact_175.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 177
+9|SUCCEED
+Calculating treedepth for ../input/exact/exact_177.tree
 Initalized a graph having 204 vertices with 248 edges. 
-Calculating treedepth for exact_177.gr
 full_graph: kCore gave a lower bound of 9
 full_graph: treedepth_upper(G) = 16
 full_graph: bounds before separator loop 9 <= td <= 16.
 full_graph: generated total of 284 separators so far.
-full_graph: separator 0 / 284, consists of 1 vertices, gives `upper == lower == 9`, early exit.
+full_graph: separator 0 / 284 gives `upper == lower == 9`, early exit. Separator has 1 vertices, and largest component is (104, 131).
 full_graph: treedepth is 9.
+There are 997 subsets in the full cache.
 Treedepth is: 9
-Elapsed time is 0.6 seconds.
-Saved the tree to '../output/exact/exact_177.tree'
-9|SUCCEED
+Elapsed time is 0.2 seconds.
 
 Graph 179
+Calculating treedepth for ../input/exact/exact_179.tree
 Initalized a graph having 212 vertices with 257 edges. 
-Calculating treedepth for exact_179.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1803.000000 seconds.".
 
 Graph 181
+10|SUCCEED
+Calculating treedepth for ../input/exact/exact_181.tree
 Initalized a graph having 223 vertices with 265 edges. 
-Calculating treedepth for exact_181.gr
 full_graph: kCore gave a lower bound of 9
 full_graph: treedepth_upper(G) = 16
 full_graph: bounds before separator loop 9 <= td <= 16.
 full_graph: generated total of 159 separators so far.
 full_graph: completed entire separator loop.
 full_graph: treedepth is 10.
+There are 4736 subsets in the full cache.
 Treedepth is: 10
-Elapsed time is 4.4 seconds.
-Saved the tree to '../output/exact/exact_181.tree'
-10|SUCCEED
+Elapsed time is 2 seconds.
 
 Graph 183
+Calculating treedepth for ../input/exact/exact_183.tree
 Initalized a graph having 231 vertices with 3465 edges. 
-Calculating treedepth for exact_183.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 185
+Calculating treedepth for ../input/exact/exact_185.tree
 Initalized a graph having 276 vertices with 1187 edges. 
-Calculating treedepth for exact_185.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 619.000000 seconds.".
+full_graph: kCore gave a lower bound of 19
+full_graph: treedepth_upper(G) = 25
 
 Graph 187
+Calculating treedepth for ../input/exact/exact_187.tree
 Initalized a graph having 300 vertices with 450 edges. 
-Calculating treedepth for exact_187.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
+full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 1801.000000 seconds.".
 
 Graph 189
+8|SUCCEED
+Calculating treedepth for ../input/exact/exact_189.tree
 Initalized a graph having 300 vertices with 1199 edges. 
-Calculating treedepth for exact_189.gr
 full_graph: kCore gave a lower bound of 8
 full_graph: treedepth_upper(G) = 8
 full_graph: treedepth is 8.
+There are 221 subsets in the full cache.
 Treedepth is: 8
 Elapsed time is 0 seconds.
-Saved the tree to '../output/exact/exact_189.tree'
-8|SUCCEED
 
 Graph 191
-Initalized a graph having 439 vertices with 873 edges. 
-Calculating treedepth for exact_191.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 603.000000 seconds.".
-
-Graph 193
-Initalized a graph having 449 vertices with 2213 edges. 
-Calculating treedepth for exact_193.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 602.000000 seconds.".
-
-Graph 195
-Initalized a graph having 451 vertices with 587 edges. 
-Calculating treedepth for exact_195.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 601.000000 seconds.".
-
-Graph 197
-Initalized a graph having 469 vertices with 614 edges. 
-Calculating treedepth for exact_197.gr
-full_graph: kCoreFailed! Encountered exception:"Ran out of time, spent 602.000000 seconds.".
-
-Graph 199
-Initalized a graph having 491 vertices with 645 edges. 
-Calculating treedepth for exact_199.gr
