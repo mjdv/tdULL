@@ -78,55 +78,16 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_original)
 
   // First we contract the graph, the old indices are stored inside the
   // vertices_original member variable.
-  {
-    // Find all pairs v, w with N(v) = N(w) or N(v)\{w} = N(w)\{v}.
-    std::vector<int> vertices_contract;
-    std::vector<bool> contracted(G_original.N, false);
+  std::tie(G, vertices_original) = G.WithoutSymmetricNeighboorhoods();
+  if (G_original.N == full_graph.N)
+    std::cerr << "full_graph: contracted graph has " << G.N << " / "
+              << G_original.N << " vertices." << std::endl;
 
-    vertices_contract.reserve(G_original.N);
-    vertices_original.reserve(G_original.N);
-    for (int v = 0; v < G_original.N; v++) {
-      if (contracted[v]) continue;
-      vertices_contract.emplace_back(v);
-      vertices_original.emplace_back(std::vector<int>{v});
-      for (int nb : G_original.adj[v]) in_nbh[nb] = true;
-      for (int w = v + 1; w < G_original.N; w++) {
-        if (G_original.adj[v].size() != G_original.adj[w].size() ||
-            contracted[w])
-          continue;
-
-        // Check if the neighbours of w coincide with that of v.
-        bool contract = true;
-        for (int nb : G_original.adj[w])
-          if (!in_nbh[nb] && nb != v) {
-            contract = false;
-            break;
-          }
-        if (contract) {
-          vertices_original.back().emplace_back(w);
-          contracted[w] = true;
-        }
-      }
-      for (int nb : G_original.adj[v]) in_nbh[nb] = false;
-    }
-
-    // Initialize the contracted graph.
-    if (vertices_contract.size() == G_original.N)
-      G = G_original;
-    else {
-      if (G_original.N == full_graph.N)
-        std::cerr << "full_graph: contracted graph has "
-                  << vertices_contract.size() << " / " << G_original.N
-                  << " vertices." << std::endl;
-
-      G = Graph(G_original, vertices_contract);
-      // Minor edge case.
-      if (G.IsCompleteGraph()) {
-        G = G_original;
-        vertices_original.resize(G.N);
-        for (int v = 0; v < G.N; v++) vertices_original[v] = {v};
-      }
-    }
+  // Minor edge case.
+  if (G.IsCompleteGraph()) {
+    G = G_original;
+    vertices_original.resize(G.N);
+    for (int v = 0; v < G.N; v++) vertices_original[v] = {v};
   }
 
   // Next we generate all the "seeds": we take the neighborhood of a
