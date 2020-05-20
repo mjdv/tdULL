@@ -17,6 +17,7 @@ std::pair<Node *, bool> SetTrie::Insert(const std::vector<int> &word) {
   // Check whether a new set was added to the cache.
   bool inserted = (node->flag_last == false);
   node->flag_last = true;
+  if (inserted) size_++;
   return {node, inserted};
 }
 

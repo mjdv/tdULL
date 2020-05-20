@@ -119,7 +119,7 @@ int max_time_treedepth = 30 * 60;  // A time limit of TEN minuts for now.
 //
 // subset_gap == 0 corresponds to not looking for subsets.
 // subset_gap == INT_MAX corresponds to finding all subsets.
-const int subset_gap = 2;
+const int subset_gap = INT_MAX;
 
 // The function treedepth computes Treedepth bounds on subgraphs of the global
 // graph.
@@ -177,6 +177,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
       return {lower, upper, root};
   }
+
   if (G.N == full_graph.N) std::cerr << "full_graph: kCore";
 
   // Below we calculate the smallest k-core that G can contain. If this is non-
@@ -341,10 +342,10 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         node->upper_bound = upper = upper_sep + sep_size;
         node->root = root = G.global[separator.vertices[0]];
 
-        // Iteratively remove the seperator from G and update bounds.
+        // Iteratively remove the separator from G and update bounds.
         Graph H = G;
         for (int i = 1; i < separator.vertices.size(); i++) {
-          // Get the subgraph after removing seperator[i-1].
+          // Get the subgraph after removing separator[i-1].
           auto cc = H.WithoutVertex(
               H.LocalIndex(G.global[separator.vertices[i - 1]]));
           assert(cc.size() == 1);
@@ -367,11 +368,11 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
                     << separators.size()
                     << " gives `upper == lower == " << lower
                     << "`, early exit. "
-                    << "Sepeartor has " << separator.vertices.size()
+                    << "Separator has " << separator.vertices.size()
                     << " vertices, and largest component is ("
                     << separator.largest_component.first << ", "
                     << separator.largest_component.second << ")." << std::endl;
-        // Choosing seperator already gives us a treedepth decomposition which
+        // Choosing separator already gives us a treedepth decomposition which
         // is good enough (either a sister branch is at least this long, or it
         // matches a previously proved lower bound for this subgraph) so we
         // can use v as our root.
@@ -414,6 +415,8 @@ std::pair<int, std::vector<int>> treedepth(const Graph &G) {
   std::vector<int> tree(G.N, -2);
   std::cerr << "full_graph: treedepth is " << td << "." << std::endl;
   reconstruct(G, -1, tree, td);
+  std::cerr << "There are " << cache.size() << " subsets in the full cache."
+            << std::endl;
   // The reconstruction is 0 based, the output is 1 based indexing, fix.
   for (auto &v : tree) v++;
   return {td, std::move(tree)};
