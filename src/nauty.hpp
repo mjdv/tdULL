@@ -1,3 +1,4 @@
+#pragma once
 #include "graph.hpp"
 
 struct group_struct;

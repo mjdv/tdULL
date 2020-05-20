@@ -1,4 +1,5 @@
 #include "nauty.hpp"
+
 #include <cmath>
 
 extern "C" {
@@ -82,7 +83,8 @@ Nauty::~Nauty() { freegroup(group); }
 std::vector<std::vector<int>> global_automorphisms;
 void StoreAutomorhphism(int *p, int n) {
   global_automorphisms.emplace_back();
-  global_automorphisms.back().assign(n, *p);
+  global_automorphisms.back().reserve(n);
+  for (int i = 0; i < n; i++) global_automorphisms.back().emplace_back(p[i]);
 }
 
 const std::vector<std::vector<int>> &Nauty::Automorphisms() {

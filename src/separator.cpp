@@ -69,6 +69,19 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
   // Complete graphs don't have separators. We want this to return a
   // non-empty vector.
   assert(!G.IsCompleteGraph());
+  if (G.N > 20) {
+    nauty = std::unique_ptr<Nauty>(new Nauty(G));
+    if (nauty->num_automorphisms > 1 && nauty->num_automorphisms < 1000000) {
+      const auto &automorphisms = nauty->Automorphisms();
+      in_automorphisms.resize(G.N);
+      for (int i = 0; i < automorphisms.size(); i++) {
+        const auto &f = automorphisms[i];
+        for (int v = 0; v < f.size(); v++)
+          if (v != f[v]) in_automorphisms[v].emplace_back(i);
+      }
+    } else
+      nauty.reset();
+  }
 
   // First we generate all the "seeds": we take the neighborhood of a
   // point (including the point), take all the connected components in
@@ -137,6 +150,9 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
   static std::vector<int> separator;
 
   std::vector<bool> visited(G.N, false);
+  std::vector<bool> sep_mask_automorphism;
+  std::unordered_set<int> try_automorphisms;
+  if (nauty) sep_mask_automorphism = std::vector<bool>(G.N, false);
 
   while (!queue.empty() && buffer.size() < k) {
     auto cur_separator = queue.front();
@@ -174,9 +190,29 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
         for (auto k : cur_separator) visited[k] = false;
         for (auto k : G.Adj(x)) visited[k] = false;
 
-        // std::sort(separator.begin(), separator.end());
+        // Check whether we already have the separator.
+        bool sep_found = false;
         for (int k : separator) sep_mask[k] = true;
-        if (done.find(sep_mask) == done.end()) {
+        sep_found = done.find(sep_mask) != done.end();
+
+        if (nauty && !sep_found) {
+          // If we have automorphisms, check these as well.
+          try_automorphisms.clear();
+          for (int k : separator)
+            try_automorphisms.insert(in_automorphisms[k].begin(),
+                                     in_automorphisms[k].end());
+
+          for (int i : try_automorphisms) {
+            const auto &fn = nauty->automorphisms[i];
+            for (int k : separator) sep_mask_automorphism[fn[k]] = true;
+            sep_found = done.find(sep_mask_automorphism) != done.end();
+            for (int k : separator) sep_mask_automorphism[fn[k]] = false;
+            if (sep_found) break;
+          }
+        }
+
+        // If we have not found the separator, add it.
+        if (!sep_found) {
           queue.push(separator);
           done.insert(sep_mask);
 
