@@ -5,7 +5,7 @@ OUTPUTDIR="../output/exact/"
 CSVFILE="timings/computed_treedepths_$(git rev-parse --abbrev-ref HEAD)_$(git rev-parse --short HEAD).csv"
 LOGFILE="timings/computed_treedepths_$(git rev-parse --abbrev-ref HEAD)_$(git rev-parse --short HEAD).log"
 
-main main
+make main
 cat /dev/null > ${CSVFILE}
 
 echo "Dumping timings in $CSVFILE";
