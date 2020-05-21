@@ -186,12 +186,15 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   auto cc_core = G.kCore(G.min_degree + 1);
 
   // If we do not have a kcore, simply remove a singly min degree vertex.
-  if (cc_core.empty())
-    for (int v = 0; v < G.N; ++v)
-      if (G.Adj(v).size() == G.min_degree) {
-        cc_core = G.WithoutVertex(v);
-        break;
+  if (cc_core.empty()){
+    std::vector<int> min_degrees = std::vector<int>();
+      for (int v = 0; v < G.N; ++v){
+        if (G.Adj(v).size() == G.min_degree) {
+          min_degrees.push_back(v);
+        }
       }
+      cc_core = G.WithoutVertices(min_degrees);
+  }
   if (!cc_core.empty()) {
     assert(cc_core[0].N < G.N);
 
@@ -263,8 +266,10 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
 
   SeparatorGenerator sep_generator(G);
   size_t total_separators = 0;
+  int batch_size = G.N;
   while (sep_generator.HasNext()) {
-    auto separators = sep_generator.Next(100000);
+    auto separators = sep_generator.Next(batch_size);
+    batch_size = std::min(100000, 100*batch_size);
 
     total_separators += separators.size();
     if (G.N == full_graph.N)
