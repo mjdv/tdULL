@@ -267,7 +267,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   
   std::unique_ptr<SeparatorGenerator> sep_generator;
 
-  if (G.min_degree == 1) {
+  /*if (G.min_degree == 1) {
     int source = -1;
     for (int i = 0; i < G.N; i++) {
       if (G.Adj(i).size() == 1) {
@@ -283,7 +283,9 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   } else {
     sep_generator = std::unique_ptr<SeparatorGenerator>(
         new SeparatorGeneratorUndirected(G));
-  }
+  }*/
+  sep_generator = std::unique_ptr<SeparatorGenerator>(
+      new SeparatorGenerator2Core(G));
 
   size_t total_separators = 0;
   while (sep_generator->HasNext()) {

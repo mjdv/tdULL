@@ -262,7 +262,12 @@ SeparatorGeneratorUndirected::SeparatorGeneratorUndirected(const Graph &G)
 
   // Complete graphs don't have separators. We want this to return a
   // non-empty vector.
-  assert(!G.IsCompleteGraph());
+
+
+  // Temporarily removing this assert for 2Core testing.
+  // assert(!G.IsCompleteGraph());
+  if(G.IsCompleteGraph())
+    return;
 
   // First we generate all the "seeds": we take the neighborhood of a
   // point (including the point), take all the connected components in
@@ -389,6 +394,75 @@ std::vector<Separator> SeparatorGeneratorUndirected::Next(int k) {
   return std::move(buffer);
 }
 
-SeparatorGenerator2Core::SeparatorGenerator2Core(const Graph &G) {
+SeparatorGenerator2Core::SeparatorGenerator2Core(const Graph &G) :
+  SeparatorGenerator(G), two_core(G.kCore(2)[0]), two_core_gen(two_core) {
 
+  std::map<int, int> G_to_local;
+  std::map<int, int> two_core_to_local;
+  G_to_two_core = std::vector<int>(G.N, -1);
+  two_core_to_G = std::vector<int>(two_core.N, -1);
+
+  for(int i = 0; i < G.N; i++) {
+    G_to_local[G.global[i]] = i;
+  }
+  for(int i = 0; i < two_core.N; i++) {
+    two_core_to_local[two_core.global[i]] = i;
+  }
+
+  for(int i = 0; i < two_core.N; i++) {
+    two_core_to_G[i] = G_to_local[two_core.global[i]];
+    G_to_two_core[G_to_local[two_core.global[i]]] = i;
+  }
+
+  std::vector<bool> in_two_core(G.N, false);
+  two_core_adj = std::vector<bool>(G.N, false);
+  for(int i = 0; i < G.N; i++) {
+    if(G_to_two_core[i] != -1) {
+      in_two_core[i] = true;
+      two_core_adj[i] = true;
+      for(int nb : G.Adj(i))
+        two_core_adj[nb] = true;
+    }
+  }
+
+  for(int i = 0; i < G.N; i++) {
+    if(two_core_adj[i]) {
+      buffer.push_back(Separator(G, {i}));
+    }
+  }
+}
+
+bool SeparatorGenerator2Core::HasNext() {
+  if(!buffer.empty())
+    return true;
+  if(!two_core_gen.HasNext())
+    return false;
+  auto separators = Next(1);
+  if(separators.empty())
+    return false;
+  buffer.insert(buffer.end(), separators.begin(), separators.end());
+  return true;
+}
+
+std::vector<Separator> SeparatorGenerator2Core::Next(int k) {
+  while(buffer.size() < k && two_core_gen.HasNext()) {
+    auto two_core_separators = two_core_gen.Next(2*k);
+    for(auto sep : two_core_separators) {
+      bool contains_two_core_adj = false;
+      for(auto v : sep.vertices) {
+        if(two_core_adj[two_core_to_G[v]]) {
+          contains_two_core_adj = true;
+          break;
+        }
+      }
+      if(contains_two_core_adj)
+        continue;
+
+      std::vector<int> sep_in_G_coords(sep.vertices.size());
+      for(int i = 0; i < sep.vertices.size(); i++)
+        sep_in_G_coords[i] = two_core_to_G[sep.vertices[i]];
+      buffer.emplace_back(G, sep_in_G_coords);
+    }
+  }
+  return std::move(buffer);
 }

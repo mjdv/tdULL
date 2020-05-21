@@ -13,7 +13,7 @@ struct Separator {
 
 class SeparatorGenerator {
  public:
-  virtual bool HasNext() const = 0;
+  virtual bool HasNext() = 0;
   virtual std::vector<Separator> Next(int k = 10000) = 0;
   virtual ~SeparatorGenerator() = default;
   SeparatorGenerator(const Graph &G);
@@ -38,7 +38,7 @@ class SeparatorGeneratorDirected : public SeparatorGenerator {
  public:
   SeparatorGeneratorDirected(const Graph &G, const int source);
 
-  bool HasNext() const override { return !queue.empty(); }
+  bool HasNext() override { return !queue.empty(); }
   std::vector<Separator> Next(int k = 10000) override;
 
   void clear() {
@@ -62,7 +62,7 @@ class SeparatorGeneratorUndirected : public SeparatorGenerator {
  public:
   SeparatorGeneratorUndirected(const Graph &G);
 
-  bool HasNext() const override { return !queue.empty(); }
+  bool HasNext() override { return !queue.empty(); }
   std::vector<Separator> Next(int k = 10000) override;
 
   void clear() {
@@ -81,17 +81,19 @@ class SeparatorGenerator2Core : public SeparatorGenerator {
  public:
   SeparatorGenerator2Core(const Graph &G);
 
-  bool HasNext() const override;
+  bool HasNext() override;
 
   std::vector<Separator> Next(int k = 10000) override;
 
   void clear() {
     done.clear();
-    queue = {};
+    two_core_gen.clear();
   }
 
  protected:
-  std::queue<std::pair<std::vector<int>, std::vector<bool>>> queue;
-  const Graph &two_core;
+  std::vector<int> G_to_two_core;
+  std::vector<int> two_core_to_G;
+  std::vector<bool> two_core_adj;
+  const Graph two_core;
   SeparatorGeneratorUndirected two_core_gen;
 };
