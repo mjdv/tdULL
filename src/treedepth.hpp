@@ -321,7 +321,7 @@ class Treedepth {
     const int sep_size = separator.vertices.size();
     const int search_ubnd_sep =
         std::max(1, std::min(search_ubnd - sep_size, upper - sep_size));
-    const int search_lbnd_sep = std::max(search_lbnd - sep_size, 1);
+    int search_lbnd_sep = std::max(search_lbnd - sep_size, 1);
 
     int upper_sep = 0;
     int lower_sep = lower - sep_size;
