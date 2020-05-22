@@ -158,7 +158,7 @@ class Treedepth {
     root = G.global[0];
   }
 
-  inline std::tuple<int, int, int> Calculate(int search_lbnd, int search_ubnd) {
+  std::tuple<int, int, int> Calculate(int search_lbnd, int search_ubnd) {
     // If the trivial bounds suffice, we are done.
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper ||
         search_lbnd > search_ubnd) {
