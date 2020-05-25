@@ -158,7 +158,7 @@ class Treedepth {
     root = G.global[0];
   }
 
-  std::vector<std::vector<int>> separtors_vertices;
+  std::vector<std::vector<int>> separators_vertices;
   std::tuple<int, int, int> Calculate(int search_lbnd, int search_ubnd,
                                       bool store_separators = false) {
     // If the trivial bounds suffice, we are done.
@@ -214,8 +214,8 @@ class Treedepth {
         if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
         kcore_separators.insert(
             kcore_separators.end(),
-            make_move_iterator(treedepth_cc.separtors_vertices.begin()),
-            make_move_iterator(treedepth_cc.separtors_vertices.end()));
+            make_move_iterator(treedepth_cc.separators_vertices.begin()),
+            make_move_iterator(treedepth_cc.separators_vertices.end()));
       }
     }
     if (G.N == full_graph.N)
@@ -279,8 +279,8 @@ class Treedepth {
 
     SeparatorGenerator sep_generator(G);
     if (kcore_separators.size()) {
-      std::vector<int> glob_2_local(full_graph.N, -1);
-      std::vector<bool> sep_mask(G.N, false);
+      static std::vector<int> glob_2_local;
+      glob_2_local.assign(full_graph.N, -1);
       for (int v = 0; v < G.N; v++) glob_2_local[G.global[v]] = v;
       for (auto &kcore_sep : kcore_separators) {
         for (int v = 0; v < kcore_sep.size(); v++)
@@ -288,14 +288,13 @@ class Treedepth {
 
         Separator sep(G, kcore_sep);
         if (sep.fully_minimal) {
-          assert(sep.vertices.size());
-          for (int k : kcore_sep) sep_mask[k] = true;
-          if (!sep_generator.done.count(sep_mask)) {
-            sep_generator.done.insert(sep_mask);
+          for (int k : kcore_sep) sep_generator.sep_mask[k] = true;
+          if (!sep_generator.done.count(sep_generator.sep_mask)) {
+            sep_generator.done.insert(sep_generator.sep_mask);
             sep_generator.queue.push(kcore_sep);
             sep_generator.buffer.emplace_back(std::move(sep));
           }
-          for (int k : kcore_sep) sep_mask[k] = false;
+          for (int k : kcore_sep) sep_generator.sep_mask[k] = false;
         }
       }
     }
@@ -320,13 +319,13 @@ class Treedepth {
                 });
 
       if (store_separators) {
-        separtors_vertices.reserve(separtors_vertices.size() +
-                                   separators.size());
+        separators_vertices.reserve(separators_vertices.size() +
+                                    separators.size());
         for (int s = 0; s < separators.size(); s++) {
-          separtors_vertices.emplace_back();
-          separtors_vertices.back().reserve(separators[s].vertices.size());
+          separators_vertices.emplace_back();
+          separators_vertices.back().reserve(separators[s].vertices.size());
           for (int v : separators[s].vertices)
-            separtors_vertices.back().emplace_back(G.global[v]);
+            separators_vertices.back().emplace_back(G.global[v]);
         }
       }
 
