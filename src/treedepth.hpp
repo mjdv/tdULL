@@ -158,9 +158,9 @@ class Treedepth {
     root = G.global[0];
   }
 
-  std::tuple<int, int, int> Calculate(
-      int search_lbnd, int search_ubnd,
-      std::vector<int> *best_upper_separator = nullptr) {
+  std::vector<std::vector<int>> best_upper_separators;
+  std::tuple<int, int, int> Calculate(int search_lbnd, int search_ubnd,
+                                      bool store_best_separators = false) {
     // If the trivial bounds suffice, we are done.
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper ||
         search_lbnd > search_ubnd) {
@@ -315,7 +315,7 @@ class Treedepth {
         CheckTime();
         const Separator &separator = separators[s];
         SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
-                           best_upper_separator);
+                           store_best_separators);
 
         if (upper <= search_lbnd || lower == upper) {
           if (G.N == full_graph.N)
