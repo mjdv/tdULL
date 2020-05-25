@@ -158,7 +158,9 @@ class Treedepth {
     root = G.global[0];
   }
 
-  std::tuple<int, int, int> Calculate(int search_lbnd, int search_ubnd) {
+  std::vector<std::vector<int>> separtors_vertices;
+  std::tuple<int, int, int> Calculate(int search_lbnd, int search_ubnd,
+                                      bool store_separators = false) {
     // If the trivial bounds suffice, we are done.
     if (search_ubnd <= lower || search_lbnd >= upper || lower == upper ||
         search_lbnd > search_ubnd) {
@@ -190,6 +192,7 @@ class Treedepth {
     // non- empty, we recursively calculate the treedepth on this core first.
     // This should give a nice lower bound pretty rapidly.
     auto cc_core = G.kCore(G.min_degree + 1);
+    std::vector<std::vector<int>> kcore_separators;
 
     // If we do not have a kcore, simply remove a singly min degree vertex.
     if (cc_core.empty())
@@ -205,9 +208,14 @@ class Treedepth {
       std::sort(cc_core.begin(), cc_core.end(),
                 [](auto &c1, auto &c2) { return c1.M / c1.N > c2.M / c2.N; });
       for (const auto &cc : cc_core) {
-        lower = std::max(lower, std::get<0>(Treedepth(cc).Calculate(
-                                    search_lbnd, search_ubnd)));
+        auto treedepth_cc = Treedepth(cc);
+        lower = std::max(lower, std::get<0>(treedepth_cc.Calculate(
+                                    search_lbnd, search_ubnd, true)));
         if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
+        kcore_separators.insert(
+            kcore_separators.end(),
+            make_move_iterator(treedepth_cc.separtors_vertices.begin()),
+            make_move_iterator(treedepth_cc.separtors_vertices.end()));
       }
     }
     if (G.N == full_graph.N)
@@ -270,7 +278,43 @@ class Treedepth {
                 << " <= td <= " << upper << "." << std::endl;
 
     SeparatorGenerator sep_generator(G);
+    if (kcore_separators.size()) {
+      std::vector<int> glob_2_local(full_graph.N, -1);
+      std::vector<bool> sep_mask(G.N, false);
+      for (int v = 0; v < G.N; v++) glob_2_local[G.global[v]] = v;
+      for (auto &kcore_sep : kcore_separators) {
+        for (int v = 0; v < kcore_sep.size(); v++)
+          kcore_sep[v] = glob_2_local[kcore_sep[v]];
+
+        Separator sep(G, kcore_sep);
+        if (sep.fully_minimal) {
+          assert(sep.vertices.size());
+          Graph H = G;
+          for (int i = 0; i < sep.vertices.size(); i++) {
+            // Get the subgraph after removing separator[i-1].
+            auto cc = H.WithoutVertex(H.LocalIndex(G.global[sep.vertices[i]]));
+            if (i + 1 < sep.vertices.size())
+              assert(cc.size() == 1);
+            else
+              assert(cc.size() > 1);
+            H = cc[0];
+          }
+          for (int k : kcore_sep) sep_mask[k] = true;
+          if (!sep_generator.done.count(sep_mask)) {
+            sep_generator.done.insert(sep_mask);
+            sep_generator.queue.push(kcore_sep);
+            sep_generator.buffer.emplace_back(std::move(sep));
+          }
+          for (int k : kcore_sep) sep_mask[k] = false;
+        }
+      }
+    }
+
     size_t total_separators = 0;
+    std::set<std::vector<int>> done_seps;
+    if (G.N == full_graph.N)
+      std::cerr << "full_graph: Initial buffer size: "
+                << sep_generator.buffer.size() << std::endl;
     while (sep_generator.HasNext()) {
       auto separators = sep_generator.Next(100000);
 
@@ -284,9 +328,22 @@ class Treedepth {
                   return s1.largest_component < s2.largest_component;
                 });
 
+      if (store_separators) {
+        separtors_vertices.reserve(separtors_vertices.size() +
+                                   separators.size());
+        for (int s = 0; s < separators.size(); s++) {
+          separtors_vertices.emplace_back();
+          separtors_vertices.back().reserve(separators[s].vertices.size());
+          for (int v : separators[s].vertices)
+            separtors_vertices.back().emplace_back(G.global[v]);
+        }
+      }
+
       for (int s = 0; s < separators.size(); s++) {
         CheckTime();
         const Separator &separator = separators[s];
+        assert(!done_seps.count(separator.vertices));
+        done_seps.insert(separator.vertices);
         SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower);
 
         if (upper <= search_lbnd || lower == upper) {
@@ -300,10 +357,10 @@ class Treedepth {
                       << separator.largest_component.first << ", "
                       << separator.largest_component.second << ")."
                       << std::endl;
-          // Choosing separator already gives us a treedepth decomposition which
-          // is good enough (either a sister branch is at least this long, or it
-          // matches a previously proved lower bound for this subgraph) so we
-          // can use v as our root.
+          // Choosing separator already gives us a treedepth decomposition
+          // which is good enough (either a sister branch is at least this
+          // long, or it matches a previously proved lower bound for this
+          // subgraph) so we can use v as our root.
           return {lower, upper, root};
         }
       }

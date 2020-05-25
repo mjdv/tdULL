@@ -21,7 +21,6 @@ class SeparatorGenerator {
     queue = {};
   }
 
- protected:
   // Reference to the graph for which we are generating separators.
   const Graph &G;
 
