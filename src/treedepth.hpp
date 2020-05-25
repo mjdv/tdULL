@@ -213,7 +213,7 @@ class Treedepth {
             std::max(lower, std::get<0>(Treedepth(cc).Calculate(
                                 search_lbnd, search_ubnd, &kcore_separator)));
         if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
-        if (!kcore_separator.empty())
+        if (kcore_separator.size())
           kcore_separators.emplace_back(std::move(kcore_separator));
       }
     }
@@ -280,7 +280,8 @@ class Treedepth {
       for (int &v : sep_vertices) v = G.LocalIndex(v);
       Separator separator(G, sep_vertices);
       if (separator.fully_minimal) {
-        SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower);
+        SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
+                           best_upper_separator);
 
         if (upper <= search_lbnd || lower == upper) {
           if (G.N == full_graph.N)
