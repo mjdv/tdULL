@@ -8,11 +8,11 @@ filestats = {}
 fns_glob = glob('*csv')
 for fn in fns_glob:
     csv = open(fn)
-    next(csv)
     total_time = 0
     total_solved = 0
     for line in csv:
         cols = line.split(',')
+        if cols[0] == 'fn': continue
         if len(cols) == 4:
             example = cols[0]
             td = int(cols[1])
