@@ -287,8 +287,7 @@ class Treedepth {
                 << " <= td <= " << upper << "." << std::endl;
 
     SeparatorGenerator sep_generator(G);
-    int batch_size = sep_generator.buffer.size();
-
+    bool reused_kcore_separators = false;
     if (kcore_gen_separators.size() || kcore_best_separators.size()) {
       std::vector<int> glob_2_local;
       glob_2_local.assign(full_graph.N, -1);
@@ -303,21 +302,6 @@ class Treedepth {
         // If this is a valid separator, update the generator status.
         Separator sep(G, kcore_sep);
         if (sep.fully_minimal) {
-          for (int k : kcore_sep) sep_generator.sep_mask[k] = true;
-          if (!sep_generator.done.count(sep_generator.sep_mask)) {
-            sep_generator.done.insert(sep_generator.sep_mask);
-            sep_generator.queue.push(kcore_sep);
-          }
-          for (int k : kcore_sep) sep_generator.sep_mask[k] = false;
-
-          // If we are storing the separators, lets do this.
-          if (store_gen_separators) {
-            generated_separators.emplace_back();
-            generated_separators.back().reserve(sep.vertices.size());
-            for (int v : sep.vertices)
-              generated_separators.back().emplace_back(G.global[v]);
-          }
-
           // Do a separator iteration with this separator.
           SeparatorIteration(sep, search_lbnd, search_ubnd, new_lower,
                              store_best_separators);
@@ -334,6 +318,7 @@ class Treedepth {
               best_separators.insert(best_separators.end(),
                                      kcore_best_separators.begin() + i + 1,
                                      kcore_best_separators.end());
+
             // We did not generate any separators, so simply pass the ones
             // from kcore along.
             if (store_gen_separators)
@@ -351,6 +336,7 @@ class Treedepth {
 
         Separator sep(G, kcore_sep);
         if (sep.fully_minimal) {
+          reused_kcore_separators = true;
           for (int k : kcore_sep) sep_generator.sep_mask[k] = true;
           if (!sep_generator.done.count(sep_generator.sep_mask)) {
             sep_generator.done.insert(sep_generator.sep_mask);
@@ -366,10 +352,9 @@ class Treedepth {
     if (G.N == full_graph.N)
       std::cerr << "full_graph: Initial buffer size: "
                 << sep_generator.buffer.size() << std::endl;
-    if (sep_generator.buffer.size() != batch_size)
-      batch_size = sep_generator.buffer.size();
-    else
-      batch_size = 100000;
+
+    int batch_size = 100000;
+    if (reused_kcore_separators) batch_size = sep_generator.buffer.size();
 
     while (sep_generator.HasNext()) {
       auto separators = sep_generator.Next(batch_size);
