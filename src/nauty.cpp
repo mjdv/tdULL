@@ -47,7 +47,11 @@ Nauty::Nauty(const Graph &G, bool canonical_labeling) : G(G) {
   options.getcanon = canonical_labeling;
 
   sparsenauty(&sg, lab, ptn, orbits, &options, &stats, &cg);
-  if (canonical_labeling) canon_hash = hashgraph_sg(&cg, 19883109L);
+  if (canonical_labeling) {
+    canon_hash = hashgraph_sg(&cg, 19883109L);
+    canon_labeling.resize(G.N);
+    for (int i = 0; i < G.N; i++) canon_labeling[i] = lab[i];
+  }
 
   // Store the group structure.
   group = groupptr(true);

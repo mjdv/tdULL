@@ -89,6 +89,7 @@ std::pair<int, int> treedepth_exact(const Graph &G) {
 //   and furthermore each connected component of the subgraph with the root
 //   removed is also in the cache.
 SetTrie cache;
+NautyHashCache hash_cache;
 
 // Cheap treedepth upper bound, useful for simple sanity checks.
 std::pair<int, int> treedepth_upper(const Graph &G) {
@@ -208,7 +209,8 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   if (G.N == full_graph.N)
     std::cerr << " gave a lower bound of " << lower << std::endl;
 
-  Nauty nauty(G, true);
+  Nauty nauty(G, /* canonical labeling */ true);
+
   // If G doesn't exist in the cache, lets add it now, since we will start doing
   // some real work.
   if (node == nullptr) {
@@ -245,6 +247,20 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
         break;
       }
     lower = std::max(lower, treedepth_tree(G.DfsTree(v_max_degree)).first);
+
+    // Try to find this example in the graph hash cache.
+    if (G.N > 20) {
+      auto data = hash_cache.Search(nauty);
+      if (data) {
+        lower = data->td;
+        upper = data->td;
+        for (int v = 0; v < G.N; v++)
+          if (nauty.canon_labeling[v] == data->root) {
+            root = root = G.global[v];
+            break;
+          }
+      }
+    }
 
     // Insert into the cache.
     node = cache.Insert(G).first;
@@ -354,6 +370,16 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
       }
 
       if (upper <= search_lbnd || lower == upper) {
+        if (lower == upper && G.N > 20) {
+          auto hash_node = hash_cache.Insert(nauty);
+          if (hash_node) {
+            hash_node->td = lower;
+            hash_node->root = nauty.canon_labeling[G.LocalIndex(root)];
+          } else
+            std::cerr << "Failed to insert graph of size " << G.N
+                      << " into the hash cache." << std::endl;
+        }
+
         if (G.N == full_graph.N)
           std::cerr << "full_graph: separator " << s << " / "
                     << separators.size()
@@ -374,6 +400,15 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   if (G.N == full_graph.N)
     std::cerr << "full_graph: completed entire separator loop." << std::endl;
   node->lower_bound = lower = std::max(lower, new_lower);
+  if (lower == upper && G.N > 20) {
+    auto hash_node = hash_cache.Insert(nauty);
+    if (hash_node) {
+      hash_node->td = lower;
+      hash_node->root = nauty.canon_labeling[G.LocalIndex(root)];
+    } else
+      std::cerr << "Failed to insert graph of size " << G.N
+                << " into the hash cache." << std::endl;
+  }
   return {lower, upper, root};
 }
 

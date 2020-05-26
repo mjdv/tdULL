@@ -21,9 +21,9 @@ struct Nauty {
   std::vector<int> orbits;
   std::vector<std::vector<int>> automorphisms;
   long canon_hash = 0;
+  std::vector<int> canon_labeling;
   sparsegraph cg;
 
- protected:
   const Graph &G;
   group_struct *group = nullptr;
 };
@@ -53,7 +53,11 @@ class NautyHashCache {
     NautyHashData &data = it->second;
 
     // Check if the stored graphs coincide.
-    assert(aresame_sg(&nauty.cg, &data.cg));
+    if (!aresame_sg(&nauty.cg, &data.cg)) {
+      std::cerr << "Hash collision for graph of size " << nauty.G.N
+                << std::endl;
+      return nullptr;
+    }
 
     return &data;
   }
