@@ -343,8 +343,7 @@ class Treedepth {
       }
 
       // The best separators from kcore did not yield an early exit.
-      // Now simply initialize the generator with the rest of the kcore
-      // separators.
+      // Now initialize the generator with the rest of the kcore separators.
       for (auto &kcore_sep : kcore_gen_separators) {
         for (int v = 0; v < kcore_sep.size(); v++)
           kcore_sep[v] = glob_2_local[kcore_sep[v]];
