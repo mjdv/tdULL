@@ -288,7 +288,7 @@ class Treedepth {
 
     SeparatorGenerator sep_generator(G);
 
-    if (kcore_gen_separators.size()) {
+    if (kcore_gen_separators.size() || kcore_best_separators.size()) {
       std::vector<int> glob_2_local;
       glob_2_local.assign(full_graph.N, -1);
       for (int v = 0; v < G.N; v++) glob_2_local[G.global[v]] = v;
@@ -309,7 +309,15 @@ class Treedepth {
           }
           for (int k : kcore_sep) sep_generator.sep_mask[k] = false;
 
-          // Do try out this separator.
+          // If we are storing the separators, lets do this.
+          if (store_gen_separators) {
+            generated_separators.emplace_back();
+            generated_separators.back().reserve(sep.vertices.size());
+            for (int v : sep.vertices)
+              generated_separators.back().emplace_back(G.global[v]);
+          }
+
+          // Do a separator iteration with this separator.
           SeparatorIteration(sep, search_lbnd, search_ubnd, new_lower,
                              store_best_separators);
 
