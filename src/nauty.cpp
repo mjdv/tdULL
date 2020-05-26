@@ -1,4 +1,5 @@
 #include "nauty.hpp"
+
 #include <cmath>
 
 extern "C" {
@@ -8,8 +9,9 @@ extern "C" {
 #include "../third_party/nauty/traces.h"
 }
 
-Nauty::Nauty(const Graph &G) : G(G) {
+Nauty::Nauty(const Graph &G, bool canonical_labeling) : G(G) {
   SG_DECL(sg);
+  SG_INIT(cg);
   DYNALLSTAT(size_t, sg_v, sg_v_sz);
   DYNALLSTAT(int, sg_d, sg_d_sz);
   DYNALLSTAT(int, sg_e, sg_e_sz);
@@ -40,10 +42,12 @@ Nauty::Nauty(const Graph &G) : G(G) {
 
   DEFAULTOPTIONS_SPARSEGRAPH(options);
   statsblk stats;
-  // options.getcanon = false;
   options.userautomproc = groupautomproc;
   options.userlevelproc = grouplevelproc;
-  sparsenauty(&sg, lab, ptn, orbits, &options, &stats, NULL);
+  options.getcanon = canonical_labeling;
+
+  sparsenauty(&sg, lab, ptn, orbits, &options, &stats, &cg);
+  if (canonical_labeling) canon_hash = hashgraph_sg(&cg, 19883109L);
 
   // Store the group structure.
   group = groupptr(true);
@@ -77,7 +81,10 @@ Nauty::Nauty(const Graph &G) : G(G) {
   }
 }
 
-Nauty::~Nauty() { freegroup(group); }
+Nauty::~Nauty() {
+  freegroup(group);
+  SG_FREE(cg);
+}
 
 std::vector<std::vector<int>> global_automorphisms;
 void StoreAutomorhphism(int *p, int n) {

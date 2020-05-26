@@ -9,6 +9,7 @@
 #include "centrality.hpp"
 #include "exact_cache.hpp"
 #include "graph.hpp"
+#include "nauty.hpp"
 #include "separator.hpp"
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
@@ -207,6 +208,7 @@ std::tuple<int, int, int> treedepth(const Graph &G, int search_lbnd,
   if (G.N == full_graph.N)
     std::cerr << " gave a lower bound of " << lower << std::endl;
 
+  Nauty nauty(G, true);
   // If G doesn't exist in the cache, lets add it now, since we will start doing
   // some real work.
   if (node == nullptr) {
