@@ -287,6 +287,7 @@ class Treedepth {
                 << " <= td <= " << upper << "." << std::endl;
 
     SeparatorGenerator sep_generator(G);
+    int batch_size = sep_generator.buffer.size();
 
     if (kcore_gen_separators.size() || kcore_best_separators.size()) {
       std::vector<int> glob_2_local;
@@ -365,7 +366,11 @@ class Treedepth {
     if (G.N == full_graph.N)
       std::cerr << "full_graph: Initial buffer size: "
                 << sep_generator.buffer.size() << std::endl;
-    int batch_size = sep_generator.buffer.size();
+    if (sep_generator.buffer.size() != batch_size)
+      batch_size = sep_generator.buffer.size();
+    else
+      batch_size = 100000;
+
     while (sep_generator.HasNext()) {
       auto separators = sep_generator.Next(batch_size);
       batch_size = 100000;
