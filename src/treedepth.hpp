@@ -417,8 +417,21 @@ class Treedepth {
         // Get the subgraph after removing separator[i-1].
         auto cc =
             H.WithoutVertex(H.LocalIndex(G.global[separator.vertices[i - 1]]));
-        assert(cc.size() == 1);
-        H = cc[0];
+        assert(cc.size());
+        if (cc.size() == 1)
+          H = std::move(cc[0]);
+        else {
+          // We have multiple components, stop if all are single vertices.
+          if (cc.size() == H.N - 1) break;
+          for (auto &&ccc : cc)
+            if (ccc.N > 1) {
+              // Sanity check that there is only one non single vertex
+              // component.
+              assert(cc.size() + ccc.N == H.N);
+              H = std::move(ccc);
+              break;
+            }
+        }
         auto [node_H, inserted_H] = cache.Insert(H);
 
         // Now if H was new to the cache, or we have better bounds, lets
