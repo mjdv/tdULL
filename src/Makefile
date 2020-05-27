@@ -63,7 +63,7 @@ exact_caches/exact_cache_8.bin: exact_caches/exact_cache_8.bin.gz
 
 nauty.a:
 	cd ../third_party/nauty && ./configure
-	make -C ../third_party/nauty -j4 nauty
+	make -C ../third_party/nauty -j1 nauty
 	cp ../third_party/nauty/nauty.a  .
 
 %.o : %.cpp
