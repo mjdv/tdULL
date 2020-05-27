@@ -262,14 +262,48 @@ class Treedepth {
         return {lower, upper, root};
     }
 
-    // Main loop: try every separator as a set of roots.
+    // Main loop: we define H to be the graph of G without its leaves. We
+    // recur over all the FMS of H; we hope that this will give us equally good
+    // elimination trees for G.
     // new_lower tries to find a new treedepth lower bound on this subgraph.
     int new_lower = G.N;
     if (G.N == full_graph.N)
       std::cerr << "full_graph: bounds before separator loop " << lower
                 << " <= td <= " << upper << "." << std::endl;
 
-    SeparatorGenerator sep_generator(G);
+    std::vector<int> leaves;
+    for(int i = 0; i < G.N; i++) {
+      if(G.Adj(i).size() == 1) {
+        leaves.push_back(i);
+      }
+    }
+    Graph H;
+    if(leaves.size() == 0) {
+      H = G;
+    }
+    else {
+      H = G.WithoutVertices(leaves)[0];
+      if(H.IsCompleteGraph()) {
+        // We can't generate separators on complete graphs, but that's fine.
+        // There are only two cases here: every vertex of H has a leaf attached
+        // in G (then the treedepth is |H| + 1) or at least one vertex of H
+        // does not have a leaf attached in G (then the treedepth is |H|).
+        for(int i = 0; i < H.N; i++) {
+          if(G.Adj(G.LocalIndex(H.global[i])).size() == H.N - 1) {
+            node->upper_bound = upper = H.N;
+            node->lower_bound = lower = H.N;
+            node->root = root = H.global[(i + 1) % H.N];
+            return {lower, upper, root};
+          }
+        }
+        node->upper_bound = upper = H.N + 1;
+        node->lower_bound = lower = H.N + 1;
+        node->root = root = H.global[0];
+        return {lower, upper, root};
+      }
+    }
+
+    SeparatorGenerator sep_generator(H);
     size_t total_separators = 0;
     while (sep_generator.HasNext()) {
       auto separators = sep_generator.Next(100000);
@@ -286,7 +320,10 @@ class Treedepth {
 
       for (int s = 0; s < separators.size(); s++) {
         CheckTime();
-        const Separator &separator = separators[s];
+        Separator &separator = separators[s];
+        for(int i = 0; i < separator.vertices.size(); i++) {
+          separator.vertices[i] = G.LocalIndex(H.global[separator.vertices[i]]);
+        }
         SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower);
 
         if (upper <= search_lbnd || lower == upper) {
@@ -366,8 +403,26 @@ class Treedepth {
         // Get the subgraph after removing separator[i-1].
         auto cc =
             H.WithoutVertex(H.LocalIndex(G.global[separator.vertices[i - 1]]));
-        assert(cc.size() == 1);
-        H = cc[0];
+        
+        // Ugly, needs fixing.
+        if(cc.size() != 1) {
+          int bct = 0;
+          for(auto ccc : cc) {
+            if(ccc.N > 1) {
+              H = ccc;
+              bct++;
+            }
+          }
+          assert(bct < 2);
+          if(bct == 0) {
+            H = cc[0];
+          }
+        }
+        else {
+          H = cc[0];
+        }
+        // End ugly.
+        
         auto [node_H, inserted_H] = cache.Insert(H);
 
         // Now if H was new to the cache, or we have better bounds, lets

@@ -43,6 +43,8 @@ Graph::Graph() {}
 
 // Create a Graph of G with the given (local) vertices
 Graph::Graph(const Graph &G, std::vector<int> &sub_vertices) : Graph() {
+  if(G.N <= sub_vertices.size())
+    std::cerr << G.N << " " << sub_vertices.size() << std::endl;
   assert(G.N > sub_vertices.size());  // This is silly.
   N = sub_vertices.size();
   global.reserve(sub_vertices.size());
