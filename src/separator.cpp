@@ -68,7 +68,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_orig)
   // Contract the graph.
   std::tie(G, vertices_original) = G_orig.WithoutSymmetricNeighboorhoods();
   if (G.IsCompleteGraph()) G = G_orig;
-  if (vertices_original.size() == G_orig.N) vertices_original.clear();
+  if (G.N == G_orig.N) vertices_original.clear();
   if (G_orig.N == full_graph.N)
     std::cerr << "full_graph: separator contracted graph has " << G.N << " /  "
               << G_orig.N << " vertices." << std::endl;
