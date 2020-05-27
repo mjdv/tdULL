@@ -9,8 +9,8 @@
 // It also writes some info to the Separator struct: the number of vertices
 // and edges in the components that remain when removing this separator from
 // the graph.
-Separator::Separator(const Graph &G, std::vector<int> &&vertices)
-    : vertices(std::move(vertices)), fully_minimal(true) {
+Separator::Separator(const Graph &G, std::vector<int> &&vtices)
+    : vertices(std::move(vtices)), fully_minimal(true) {
   // Shared datastructure.
   static std::stack<int> component;
 
@@ -68,7 +68,7 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G_orig)
   // Contract the graph.
   std::tie(G, vertices_original) = G_orig.WithoutSymmetricNeighboorhoods();
   if (G.IsCompleteGraph()) G = G_orig;
-  if (vertices_original.size() == G_orig.N) vertices_original.clear();
+  if (G.N == G_orig.N) vertices_original.clear();
   if (G_orig.N == full_graph.N)
     std::cerr << "full_graph: separator contracted graph has " << G.N << " /  "
               << G_orig.N << " vertices." << std::endl;
