@@ -21,9 +21,11 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
     in_sep[s] = true;
   }
 
+  int num_components = 0;
   for (int i = 0; i < G.N; i++) {
     if (!visited[i] && !in_sep[i] && G.Adj(i).size() > 1) {
       assert(component.empty());
+      num_components++;
 
       int comp_N = 1;
       int comp_M = 0;
@@ -57,6 +59,8 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
       largest_component = std::max(largest_component, {comp_N, comp_M / 2});
     }
   }
+  assert(num_components);
+  if (num_components == 1) fully_minimal = false;
 }
 
 SeparatorGenerator::SeparatorGenerator(const Graph &G)
