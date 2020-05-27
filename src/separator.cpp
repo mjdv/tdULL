@@ -64,7 +64,7 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
 }
 
 SeparatorGenerator::SeparatorGenerator(const Graph &G)
-    : G(G), in_nbh(G.N, false), sep_mask(G.N, false) {
+    : G(G), in_nbh(G.N, false), sep_mask(G.N) {
   // Datatypes that will be reused.
   static std::stack<int> component;
   static std::vector<int> separator;
