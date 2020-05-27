@@ -1,5 +1,6 @@
 #pragma once
-//#include <parallel_hashmap/phmap.h>
+#include <parallel_hashmap/phmap.h>
+
 #include <unordered_set>
 
 #include "graph.hpp"
@@ -24,7 +25,6 @@ class SeparatorGenerator {
     queue = {};
   }
 
- protected:
   // Reference to the graph for which we are generating separators.
   const Graph &G;
 
