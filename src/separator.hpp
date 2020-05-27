@@ -7,9 +7,12 @@
 struct Separator {
   std::vector<int> vertices;
   std::pair<int, int> largest_component;
+
+  // NOTE: This is either a fully minimal separator, or it is not fully minimal
+  // but the non-minimality comes from leaves being cut off.
   bool fully_minimal = false;
 
-  Separator(const Graph &G, const std::vector<int> &vertices);
+  Separator(const Graph &G, std::vector<int> &&vertices);
 };
 
 class SeparatorGenerator {
@@ -26,7 +29,11 @@ class SeparatorGenerator {
 
  protected:
   // Reference to the graph for which we are generating separators.
-  const Graph &G;
+  const Graph &G_orig;
+
+  // Contracted graph.
+  Graph G;
+  std::vector<std::vector<int>> vertices_original;
 
   // In done we keep the seperators we have already enqueued, to make sure
   // they aren't processed again. In queue we keep all the ones we have
