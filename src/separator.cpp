@@ -9,8 +9,8 @@
 // It also writes some info to the Separator struct: the number of vertices
 // and edges in the components that remain when removing this separator from
 // the graph.
-Separator::Separator(const Graph &G, std::vector<int> &&vertices)
-    : vertices(std::move(vertices)), fully_minimal(true) {
+Separator::Separator(const Graph &G, std::vector<int> &&vtices)
+    : vertices(std::move(vtices)), fully_minimal(true) {
   // Shared datastructure.
   static std::stack<int> component;
 
