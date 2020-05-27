@@ -1,5 +1,5 @@
 
-CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native -DNDEBUG
 
 N=001
 F=001
