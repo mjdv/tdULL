@@ -398,8 +398,21 @@ class Treedepth {
         // Get the subgraph after removing separator[i-1].
         auto cc =
             H.WithoutVertex(H.LocalIndex(G.global[separator.vertices[i - 1]]));
-        assert(cc.size() == 1);
-        H = cc[0];
+        //assert(cc.size() == 1);
+        if(cc.size() > 1) {
+          for(auto ccc : cc) {
+            if(ccc.N > 1) {
+              H = ccc;
+              break;
+            }
+          }
+          if(H.N == G.N) {
+            H = cc[0];
+          }
+        }
+        else {
+          H = cc[0];
+        }
         auto [node_H, inserted_H] = cache.Insert(H);
 
         // Now if H was new to the cache, or we have better bounds, lets
