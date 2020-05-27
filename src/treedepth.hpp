@@ -277,9 +277,9 @@ class Treedepth {
       std::cerr << "full_graph: bounds before separator loop " << lower
                 << " <= td <= " << upper << "." << std::endl;
 
-    for (auto &sep_vertices : kcore_best_separators) {
+    for (auto &&sep_vertices : kcore_best_separators) {
       for (int &v : sep_vertices) v = G.LocalIndex(v);
-      Separator separator(G, sep_vertices);
+      Separator separator(G, std::move(sep_vertices));
       if (separator.fully_minimal) {
         SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
                            store_best_separators);
@@ -298,15 +298,7 @@ class Treedepth {
       }
     }
 
-    // Contract the graph.
-    auto [G_contract, vertices_original] = G.WithoutSymmetricNeighboorhoods();
-    if (G_contract.IsCompleteGraph()) G_contract = G;
-    if (vertices_original.size() == G.N) vertices_original.clear();
-    if (G.N == full_graph.N)
-      std::cerr << "full_graph: separator contracted graph has " << G_contract.N
-                << " /  " << G.N << " vertices." << std::endl;
-
-    SeparatorGenerator sep_generator(G_contract);
+    SeparatorGenerator sep_generator(G);
     size_t total_separators = 0;
     while (sep_generator.HasNext()) {
       auto separators = sep_generator.Next(100000);
@@ -315,17 +307,6 @@ class Treedepth {
       if (G.N == full_graph.N)
         std::cerr << "full_graph: generated total of " << total_separators
                   << " separators so far." << std::endl;
-
-      // If we contracted the graph, find the original vertices.
-      if (vertices_original.size())
-        for (auto &separator : separators) {
-          std::vector<int> sep_vertices_original;
-          sep_vertices_original.reserve(separator.vertices.size());
-          for (int v : separator.vertices)
-            for (int v_ori : vertices_original[v])
-              sep_vertices_original.emplace_back(v_ori);
-          separator.vertices = std::move(sep_vertices_original);
-        }
 
       std::sort(separators.begin(), separators.end(),
                 [](const Separator &s1, const Separator &s2) {
