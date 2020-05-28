@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <cassert>
 #include <climits>
 #include <deque>
 #include <iostream>
@@ -38,10 +39,18 @@ struct Graph {
       const std::vector<int> &sub_vertices) const;
 
   // Get the adjacency list for a given vertex.
-  const std::vector<int> &Adj(int v) const;
+  inline const std::vector<int> &Adj(int v) const {
+    assert(v >= 0 && v < N && adj.size() == N);
+    return adj[v];
+  }
 
   // Get the local coordinate for a given vertex.
-  int LocalIndex(int global_index) const;
+  inline int LocalIndex(int global_index) const {
+    for (int v_local = 0; v_local < N; ++v_local) {
+      if (global[v_local] == global_index) return v_local;
+    }
+    assert(false);
+  }
 
   // Checks if the subset in vertices is a connected subset of the graph.
   bool ConnectedSubset(const std::vector<int> vertices) const;
@@ -81,19 +90,19 @@ struct Graph {
   std::vector<int> ArticulationPoints() const;
 
   // Returns whether this is a complete graph.
-  bool IsCompleteGraph() const { return N * (N - 1) == 2 * M; }
+  inline bool IsCompleteGraph() const { return N * (N - 1) == 2 * M; }
 
   // Returns whether this is a path graph.
-  bool IsPathGraph() const { return (N - 1 == M) && (max_degree < 3); }
+  inline bool IsPathGraph() const { return (N - 1 == M) && (max_degree < 3); }
 
   // Returns whether this is a star graph.
-  bool IsStarGraph() const { return (N - 1 == M) && (M == max_degree); }
+  inline bool IsStarGraph() const { return (N - 1 == M) && (M == max_degree); }
 
   // Returns whether this is a cycle graph.
-  bool IsCycleGraph() const { return (M == N) && (max_degree == 2); }
+  inline bool IsCycleGraph() const { return (M == N) && (max_degree == 2); }
 
   // Returns whether this is a tree.
-  bool IsTreeGraph() const { return N - 1 == M; }
+  inline bool IsTreeGraph() const { return N - 1 == M; }
 
   // Explicit conversion to vector of ints.
   operator std::vector<int>() const {

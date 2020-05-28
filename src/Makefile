@@ -1,6 +1,5 @@
-
 BATCHMETHOD=B1
-CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native -D$(BATCHMETHOD)
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native -D$(BATCHMETHOD) -I../third_party/parallel-hashmap
 
 N=001
 F=001
@@ -64,7 +63,7 @@ exact_caches/exact_cache_8.bin: exact_caches/exact_cache_8.bin.gz
 
 nauty.a:
 	cd ../third_party/nauty && ./configure
-	make -C ../third_party/nauty -j4 nauty
+	make -C ../third_party/nauty -j1 nauty
 	cp ../third_party/nauty/nauty.a  .
 
 %.o : %.cpp
