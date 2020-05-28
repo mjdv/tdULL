@@ -59,6 +59,12 @@ Separator::Separator(const Graph &G, std::vector<int> &&vtices)
       largest_component = std::max(largest_component, {comp_N, comp_M / 2});
     }
   }
+
+  // Also count single leaves as components.
+  if (G.min_degree == 1)
+    for (int i = 0; i < G.N; i++)
+      if (G.Adj(i).size() == 1 && !visited[i] && !in_sep[i]) num_components++;
+
   assert(num_components);
   if (num_components == 1) fully_minimal = false;
 }
