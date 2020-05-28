@@ -64,7 +64,7 @@ Separator::Separator(const Graph &G, std::vector<int> &&vtices)
 }
 
 SeparatorGenerator::SeparatorGenerator(const Graph &G_orig)
-    : G_orig(G_orig), in_nbh(G_orig.N, false), sep_mask(G_orig.N, false) {
+    : G_orig(G_orig), in_nbh(G_orig.N, false), sep_mask(G_orig.N) {
   // Contract the graph.
   std::tie(G, vertices_original) = G_orig.WithoutSymmetricNeighboorhoods();
   if (G.IsCompleteGraph()) G = G_orig;
@@ -175,9 +175,9 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
 
   std::vector<bool> visited(G.N, false);
   std::vector<int> sep_vertices_original;
-  std::vector<bool> sep_mask_automorphism;
+  decltype(sep_mask) sep_mask_automorphism;
   std::unordered_set<int> try_automorphisms;
-  if (nauty) sep_mask_automorphism = std::vector<bool>(G.N, false);
+  if (nauty) sep_mask_automorphism = decltype(sep_mask)(G.N);
 
   while (!queue.empty() && buffer.size() < k) {
     auto cur_separator = queue.front();

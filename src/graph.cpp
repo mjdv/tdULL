@@ -180,18 +180,6 @@ std::vector<Graph> Graph::ConnectedGraphs(
   return cc;
 }
 
-const std::vector<int> &Graph::Adj(int v) const {
-  assert(v >= 0 && v < N && adj.size() == N);
-  return adj[v];
-}
-
-int Graph::LocalIndex(int global_index) const {
-  for (int v_local = 0; v_local < N; ++v_local) {
-    if (global[v_local] == global_index) return v_local;
-  }
-  assert(false);
-}
-
 bool Graph::ConnectedSubset(const std::vector<int> vertices) const {
   static std::stack<int> s;
   assert(s.empty());
