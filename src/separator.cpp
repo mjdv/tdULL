@@ -110,8 +110,6 @@ SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G,
     component.push(j);
     visited[j] = true;
 
-    std::vector<bool> in_separator(G.N, false);
-
     while (!component.empty()) {
       int cur = component.top();
       component.pop();
@@ -119,7 +117,7 @@ SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G,
       for (int nb : G.Adj(cur)) {
         if (!visited[nb]) {
           if (in_nbh[nb]) {
-            in_separator[nb] = true;
+            sep_mask[nb] = true;
             separator.push_back(nb);
           } else {
             component.push(nb);
@@ -139,7 +137,7 @@ SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G,
       component.pop();
 
       for (int nb : G.Adj(cur)) {
-        if (!source_comp[nb] && !in_separator[nb]) {
+        if (!source_comp[nb] && !sep_mask[nb]) {
           source_comp[nb] = true;
           component.push(nb);
         }
@@ -149,15 +147,13 @@ SeparatorGeneratorDirected::SeparatorGeneratorDirected(const Graph &G,
     for (auto k : neighborhood) visited[k] = false;
 
     // std::sort(separator.begin(), separator.end());
-    for (int k : separator) sep_mask[k] = true;
+    // for (int k : separator) sep_mask[k] = true;
     if (done.find(sep_mask) == done.end()) {
-      queue.push(make_pair(separator, source_comp));
+      queue.emplace(separator, std::move(source_comp));
       done.insert(sep_mask);
 
       Separator sep(G, separator);
-      if (sep.fully_minimal) {
-        buffer.emplace_back(std::move(sep));
-      }
+      if (sep.fully_minimal) buffer.emplace_back(std::move(sep));
     }
     for (int k : separator) sep_mask[k] = false;
   }
@@ -168,13 +164,12 @@ std::vector<Separator> SeparatorGeneratorDirected::Next(int k) {
   static std::stack<int> component;
   static std::vector<int> separator;
 
-  std::vector<bool> visited(G.N, false);
-
   while (!queue.empty() && buffer.size() < k) {
-    auto [cur_separator, cur_source_comp] = queue.front();
+    auto [cur_separator, cur_source_comp] = std::move(queue.front());
     queue.pop();
 
     for (int x : cur_separator) {
+      std::vector<bool> visited(G.N, false);
       for (int j : cur_separator) in_nbh[j] = true;
 
       // If we can only reach source_comp vertices from here, skip.
@@ -217,7 +212,6 @@ std::vector<Separator> SeparatorGeneratorDirected::Next(int k) {
             }
           }
         }
-
         for (auto k : cur_separator) visited[k] = false;
         for (auto k : G.Adj(x)) visited[k] = false;
 
@@ -245,7 +239,7 @@ std::vector<Separator> SeparatorGeneratorDirected::Next(int k) {
             }
           }
 
-          queue.push(make_pair(separator, new_source_comp));
+          queue.emplace(separator, std::move(new_source_comp));
           done.insert(sep_mask);
 
           Separator sep(G, separator);
@@ -256,7 +250,6 @@ std::vector<Separator> SeparatorGeneratorDirected::Next(int k) {
 
       for (int j : cur_separator) in_nbh[j] = false;
       for (int j : G.Adj(x)) in_nbh[j] = false;
-      for (int j = 0; j < G.N; j++) visited[j] = false;
     }
   }
 
@@ -343,7 +336,7 @@ std::vector<Separator> SeparatorGeneratorUndirected::Next(int k) {
   std::vector<bool> visited(G.N, false);
 
   while (!queue.empty() && buffer.size() < k) {
-    auto cur_separator = queue.front();
+    auto cur_separator = std::move(queue.front());
     queue.pop();
 
     for (int x : cur_separator) {

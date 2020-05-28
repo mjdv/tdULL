@@ -306,21 +306,20 @@ class Treedepth {
     std::unique_ptr<SeparatorGenerator> sep_generator;
     if (G.min_degree == 1) {
       int source = -1;
-      for (int i = 0; i < G.N; i++) {
-        if (G.Adj(i).size() == 1) {
-          source = i;
+      for (int v = 0; v < G.N; v++) {
+        if (G.Adj(v).size() == 1) {
+          source = v;
           break;
         }
       }
       if (G.N == full_graph.N)
-        std::cerr << "Doing full graph directed." << std::endl;
+        std::cerr << "full_graph: Directed separator generation." << std::endl;
 
       sep_generator = std::unique_ptr<SeparatorGenerator>(
           new SeparatorGeneratorDirected(G, source));
-    } else {
+    } else
       sep_generator = std::unique_ptr<SeparatorGenerator>(
           new SeparatorGeneratorUndirected(G));
-    }
 
     size_t total_separators = 0;
     while (sep_generator->HasNext()) {

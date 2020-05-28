@@ -8,6 +8,20 @@
 // Helper function to verify that the given seperators are indeed fully minimal,
 // and that the sizes of the components are correct :-).
 void TestSeparators(const Graph &G, const std::vector<Separator> &seps) {
+  // If we have a leaf, test the directed separator generator.
+  if (G.min_degree == 1) {
+    int source = -1;
+    for (int v = 0; v < G.N; v++) {
+      if (G.Adj(v).size() == 1) {
+        source = v;
+        break;
+      }
+    }
+    SeparatorGeneratorDirected sep_gen(G, source);
+    auto seps_direct = sep_gen.Next();
+    assert(seps_direct.size() == seps.size());
+  }
+
   for (const auto &sep : seps) {
     // First check that the given graph is indeed fully minimal.
     Graph H = G;
@@ -158,7 +172,7 @@ int main() {
   }
 
   std::cout << "If we do the same with SeparatorGeneratorDirected with node 0"
-    << " we get:" << std::endl;
+            << " we get:" << std::endl;
   auto dir_gen2 = SeparatorGeneratorDirected(full_graph, 0);
   auto dir_v_ams2 = dir_gen2.Next(1'000'000);
   for (auto v : dir_v_ams2) {
@@ -183,7 +197,7 @@ int main() {
   }
 
   std::cout << "If we do the same with SeparatorGeneratorDirected with a leaf "
-    << "(5), we get:" << std::endl;
+            << "(5), we get:" << std::endl;
   auto dir_gen3 = SeparatorGeneratorDirected(full_graph, 5);
   auto dir_v_ams3 = dir_gen3.Next(1'000'000);
   for (auto v : dir_v_ams3) {
