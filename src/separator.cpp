@@ -64,7 +64,7 @@ Separator::Separator(const Graph &G, std::vector<int> &&vtices)
 }
 
 SeparatorGenerator::SeparatorGenerator(const Graph &G_orig)
-    : G_orig(G_orig), in_nbh(G_orig.N, false), sep_mask(G_orig.N, false) {
+    : G_orig(G_orig), in_nbh(G_orig.N, false), sep_mask(G_orig.N) {
   // Contract the graph.
   std::tie(G, vertices_original) = G_orig.WithoutSymmetricNeighboorhoods();
   if (G.IsCompleteGraph()) G = G_orig;

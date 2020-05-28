@@ -1,4 +1,13 @@
 #pragma once
+#define BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS
+#include <boost/dynamic_bitset.hpp>
+#include <boost/functional/hash.hpp>
+
+#include <parallel_hashmap/phmap.h>
+#include <bitset>
+
+#include <unordered_set>
+
 #include "graph.hpp"
 
 struct Separator {
@@ -24,7 +33,6 @@ class SeparatorGenerator {
     queue = {};
   }
 
- protected:
   // Reference to the graph for which we are generating separators.
   const Graph &G_orig;
 
@@ -36,12 +44,21 @@ class SeparatorGenerator {
   // they aren't processed again. In queue we keep all the ones we have
   // generated, but which we have not yet used to generate new ones.
   std::queue<std::vector<int>> queue;
-  std::unordered_set<std::vector<bool>> done;
+  struct BitsetHash {
+    template <typename Block, typename Allocator>
+    inline size_t operator()(
+        const boost::dynamic_bitset<Block, Allocator> &a) const BOOST_NOEXCEPT {
+      std::size_t res = boost::hash_value(a.m_num_bits);
+      boost::hash_combine(res, a.m_bits);
+      return res;
+    }
+  };
+  phmap::flat_hash_set<boost::dynamic_bitset<>, BitsetHash> done;
 
   // In buffer we will keep all the (fully minimal) generated separators.
   std::vector<Separator> buffer;
 
   // Shared datatypes.
   std::vector<bool> in_nbh;
-  std::vector<bool> sep_mask;
+  boost::dynamic_bitset<> sep_mask;
 };
