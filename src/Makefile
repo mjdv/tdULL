@@ -1,5 +1,5 @@
 
-CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native
+CPPFLAGS=-std=c++17 -O3 -Wall -g -Wno-sign-compare -march=native -I../third_party/parallel-hashmap
 
 N=001
 F=001
