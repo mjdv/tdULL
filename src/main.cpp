@@ -13,16 +13,34 @@ int main(int argc, char** argv) {
 
   auto start = std::chrono::steady_clock::now();
   try {
-    //    auto seperator_gen = SeparatorGenerator(full_graph_as_sub);
+    //    auto seperator_gen = SeparatorGenerator(full_graph);
+    //    std::cerr << typeid(seperator_gen.done).name() << std::endl;
     //    size_t total_count = 0;
+    //    auto last_print = std::chrono::steady_clock::now();
     //    while (seperator_gen.HasNext()) {
-    //      total_count += seperator_gen.Next(100000).size();
-    //      time(&end);
-    //      std::cerr << "Total number of separators is " << total_count
-    //                << ". Speed is " << double(total_count) / difftime(end,
-    //                start)
-    //                << " seps / s.\n";
+    //      total_count += seperator_gen.Next(10).size();
+    //      if (std::chrono::duration<double>(std::chrono::steady_clock::now() -
+    //                                        last_print)
+    //              .count() > 15) {
+    //        last_print = std::chrono::steady_clock::now();
+    //        double time_elapsed = std::chrono::duration<double>(
+    //                                  std::chrono::steady_clock::now() -
+    //                                  start) .count();
+    //        std::cerr << "Total time spent: " << 0.1 * std::round(10 *
+    //        time_elapsed)
+    //                  << "s. Total number of separators is " << total_count
+    //                  << ". Speed is " << double(total_count) / time_elapsed
+    //                  << " seps / s.\n";
+    //      }
     //    }
+    //    double time_elapsed =
+    //        std::chrono::duration<double>(std::chrono::steady_clock::now() -
+    //        start)
+    //            .count();
+    //    std::cerr << "Total number of separators is " << total_count
+    //              << ". Total time is " << time_elapsed << "s. Speed is "
+    //              << double(total_count) / time_elapsed << " seps / s.\n";
+    //    return 0;
 
     auto [td, tree] = treedepth(full_graph);
     double time_elapsed =
