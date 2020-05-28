@@ -23,7 +23,7 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
 
   int num_components = 0;
   for (int i = 0; i < G.N; i++) {
-    if (!visited[i] && !in_sep[i]) {
+    if (!visited[i] && !in_sep[i] && G.Adj(i).size() > 1) {
       assert(component.empty());
       num_components++;
 
