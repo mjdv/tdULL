@@ -44,7 +44,7 @@ class SeparatorGenerator {
     template <typename Block, typename Allocator>
     inline size_t operator()(
         const boost::dynamic_bitset<Block, Allocator> &a) const BOOST_NOEXCEPT {
-      std::size_t res = hash_value(a.m_num_bits);
+      std::size_t res = boost::hash_value(a.m_num_bits);
       boost::hash_combine(res, a.m_bits);
       return res;
     }
