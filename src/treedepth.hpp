@@ -112,7 +112,7 @@ std::pair<int, int> treedepth_upper(const Graph &G) {
 
 // Global variable keeping track of the time we've spent so far, and the limit.
 time_t time_start_treedepth;
-int max_time_treedepth = 31 * 60;  // A time limit of TEN minuts for now.
+int max_time_treedepth = INT_MAX;  // No time limit.
 
 // If we look for subsets, how much may those subsets differ from the set we
 // are considering?
@@ -186,21 +186,22 @@ class Treedepth {
         return {lower, upper, root};
     }
 
-    if (G.N == full_graph.N) std::cerr << "full_graph: kCore";
+    if (G.N == full_graph.N) std::cerr << "full_graph: kCore" << std::flush;
 
     // Below we calculate the smallest k-core that G can contain. If this is
     // non- empty, we recursively calculate the treedepth on this core first.
     // This should give a nice lower bound pretty rapidly.
+    int v_min_degree = -1;
+    for (int v = 0; v < G.N; ++v)
+      if (G.Adj(v).size() == G.min_degree) {
+        v_min_degree = v;
+        break;
+      }
     auto cc_core = G.kCore(G.min_degree + 1);
     std::vector<std::vector<int>> kcore_best_separators;
 
     // If we do not have a kcore, simply remove a singly min degree vertex.
-    if (cc_core.empty())
-      for (int v = 0; v < G.N; ++v)
-        if (G.Adj(v).size() == G.min_degree) {
-          cc_core = G.WithoutVertex(v);
-          break;
-        }
+    if (cc_core.empty()) cc_core = G.WithoutVertex(v_min_degree);
     if (!cc_core.empty()) {
       assert(cc_core[0].N < G.N);
 
@@ -209,9 +210,23 @@ class Treedepth {
                 [](auto &c1, auto &c2) { return c1.M / c1.N > c2.M / c2.N; });
       for (const auto &cc : cc_core) {
         Treedepth treedepth_cc(cc);
-        lower = std::max(lower, std::get<0>(treedepth_cc.Calculate(
-                                    search_lbnd, search_ubnd, true)));
-        if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
+        auto [lower_cc, upper_cc, root_cc] = treedepth_cc.Calculate(
+            std::max(lower, search_lbnd), std::min(upper, search_ubnd), true);
+
+        if (lower_cc > lower) {
+          lower = lower_cc;
+          if (node) node->lower_bound = lower;
+        }
+        if (upper_cc + G.N - cc.N < upper) {
+          upper = upper_cc + G.N - cc.N;
+          root = G.global[v_min_degree];
+          if (node) {
+            node->upper_bound = upper;
+            node->root = root;
+          }
+        }
+        if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
+          return {lower, upper, root};
         kcore_best_separators.insert(
             kcore_best_separators.end(),
             make_move_iterator(treedepth_cc.best_upper_separators.begin()),
@@ -501,7 +516,7 @@ class Treedepth {
         SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
                            store_best_separators);
 
-        if (upper <= search_lbnd || lower == upper) {
+        if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
           if (G.N == full_graph.N)
             std::cerr << "full_graph: separator " << s << " / "
                       << separators.size()
@@ -533,8 +548,8 @@ class Treedepth {
                                  bool store_best_separators = false) {
     const int sep_size = separator.vertices.size();
     const int search_ubnd_sep =
-        std::max(1, std::min(search_ubnd - sep_size, upper - sep_size));
-    int search_lbnd_sep = std::max(search_lbnd - sep_size, 1);
+        std::max(1, std::min(search_ubnd, upper) - sep_size);
+    int search_lbnd_sep = std::max(1, std::max(search_lbnd, lower) - sep_size);
 
     int upper_sep = 0;
     int lower_sep = lower - sep_size;
@@ -567,6 +582,9 @@ class Treedepth {
         return;
     }
     new_lower = std::min(new_lower, lower_sep + sep_size);
+
+    // If we find a new lower bound, update the cache accordingly :-).
+    if (lower_sep > lower) node->lower_bound = lower = lower_sep;
 
     // If we find a new upper bound, update the cache accordingly :-).
     if (upper_sep + sep_size < upper) {
