@@ -191,16 +191,17 @@ class Treedepth {
     // Below we calculate the smallest k-core that G can contain. If this is
     // non- empty, we recursively calculate the treedepth on this core first.
     // This should give a nice lower bound pretty rapidly.
+    int v_min_degree = -1;
+    for (int v = 0; v < G.N; ++v)
+      if (G.Adj(v).size() == G.min_degree) {
+        v_min_degree = v;
+        break;
+      }
     auto cc_core = G.kCore(G.min_degree + 1);
     std::vector<std::vector<int>> kcore_best_separators;
 
     // If we do not have a kcore, simply remove a singly min degree vertex.
-    if (cc_core.empty())
-      for (int v = 0; v < G.N; ++v)
-        if (G.Adj(v).size() == G.min_degree) {
-          cc_core = G.WithoutVertex(v);
-          break;
-        }
+    if (cc_core.empty()) cc_core = G.WithoutVertex(v_min_degree);
     if (!cc_core.empty()) {
       assert(cc_core[0].N < G.N);
 
@@ -209,10 +210,23 @@ class Treedepth {
                 [](auto &c1, auto &c2) { return c1.M / c1.N > c2.M / c2.N; });
       for (const auto &cc : cc_core) {
         Treedepth treedepth_cc(cc);
-        lower = std::max(lower, std::get<0>(treedepth_cc.Calculate(
-                                    std::max(lower, search_lbnd),
-                                    std::min(upper, search_ubnd), true)));
-        if (search_ubnd <= lower || lower == upper) return {lower, upper, root};
+        auto [lower_cc, upper_cc, root_cc] = treedepth_cc.Calculate(
+            std::max(lower, search_lbnd), std::min(upper, search_ubnd), true);
+
+        if (lower_cc > lower) {
+          lower = lower_cc;
+          if (node) node->lower_bound = lower;
+        }
+        if (upper_cc + G.N - cc.N < upper) {
+          upper = upper_cc + G.N - cc.N;
+          root = G.global[v_min_degree];
+          if (node) {
+            node->upper_bound = upper;
+            node->root = root;
+          }
+        }
+        if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
+          return {lower, upper, root};
         kcore_best_separators.insert(
             kcore_best_separators.end(),
             make_move_iterator(treedepth_cc.best_upper_separators.begin()),
