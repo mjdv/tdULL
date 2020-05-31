@@ -192,16 +192,27 @@ class Treedepth {
     // non- empty, we recursively calculate the treedepth on this core first.
     // This should give a nice lower bound pretty rapidly.
     int v_min_degree = -1;
-    for (int v = 0; v < G.N; ++v)
-      if (G.Adj(v).size() == G.min_degree) {
-        v_min_degree = v;
-        break;
-      }
     auto cc_core = G.kCore(G.min_degree + 1);
     std::vector<std::vector<int>> kcore_best_separators;
 
     // If we do not have a kcore, simply remove a singly min degree vertex.
-    if (cc_core.empty()) cc_core = G.WithoutVertex(v_min_degree);
+    if (cc_core.empty()) {
+      int v_glob_min_degree = full_graph.N;
+      for (int v = 0; v < G.N; ++v)
+        if (G.Adj(v).size() == G.min_degree &&
+            G.global[v] < v_glob_min_degree) {
+          v_min_degree = v;
+          v_glob_min_degree = G.global[v];
+        }
+      cc_core = G.WithoutVertex(v_min_degree);
+    } else {
+      for (int v = 0; v < G.N; ++v)
+        if (G.Adj(v).size() == G.min_degree) {
+          v_min_degree = v;
+          break;
+        }
+    }
+
     if (!cc_core.empty()) {
       assert(cc_core[0].N < G.N);
 
