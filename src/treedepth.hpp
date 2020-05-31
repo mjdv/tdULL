@@ -341,7 +341,7 @@ class Treedepth {
 
       for (int s = 0; s < separators.size(); s++) {
         CheckTime();
-        const Separator &separator = separators[s];
+        Separator &separator = separators[s];
         SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
                            store_best_separators);
 
@@ -371,9 +371,8 @@ class Treedepth {
   }
 
   // Returns whether this separator gave a lowering of the treedepth.
-  inline void SeparatorIteration(const Separator &separator,
-                                 const int search_lbnd, const int search_ubnd,
-                                 int &new_lower,
+  inline void SeparatorIteration(Separator &separator, const int search_lbnd,
+                                 const int search_ubnd, int &new_lower,
                                  bool store_best_separators = false) {
     const int sep_size = separator.vertices.size();
     const int search_ubnd_sep =
@@ -417,6 +416,8 @@ class Treedepth {
 
     // If we find a new upper bound, update the cache accordingly :-).
     if (upper_sep + sep_size < upper) {
+      std::sort(separator.vertices.begin(), separator.vertices.end(),
+                [&](int v1, int v2) { return G.global[v1] < G.global[v2]; });
       best_upper_separators.clear();
       node->upper_bound = upper = upper_sep + sep_size;
       node->root = root = G.global[separator.vertices[0]];
