@@ -180,33 +180,22 @@ std::vector<Graph> Graph::ConnectedGraphs(
   return cc;
 }
 
-const std::vector<int> &Graph::Adj(int v) const {
-  /*std::cout << "\n\n";
-  std::cout << v << " " << N << " " << adj.size() << std::endl;
-  std::cout << "\n\n";*/
-  assert(v >= 0 && v < N && adj.size() == N);
-  return adj[v];
-}
-
-int Graph::LocalIndex(int global_index) const {
-  for (int v_local = 0; v_local < N; ++v_local) {
-    if (global[v_local] == global_index) return v_local;
-  }
-  assert(false);
-}
-
-bool Graph::ConnectedSubset(const std::vector<int> &vertices) const {
+bool Graph::ConnectedSubset(const std::vector<int> vertices) const {
+  static std::stack<int> s;
+  assert(s.empty());
   assert(vertices.size());
 
+  std::vector<bool> in_vertices(N, false);
+  for (int v : vertices) in_vertices[v] = true;
+
   std::vector<bool> visited(N, false);
-  std::stack<int> s;
   s.push(vertices[0]);
   visited[vertices[0]] = true;
   while (s.size()) {
     int cur = s.top();
     s.pop();
     for (int nb : Adj(cur)) {
-      if (!visited[nb]) {
+      if (!visited[nb] && in_vertices[nb]) {
         visited[nb] = true;
         s.push(nb);
       }
@@ -221,12 +210,6 @@ bool Graph::ConnectedSubset(const std::vector<int> &vertices) const {
 Graph Graph::Contract(const std::vector<int> &contractors) const {
   assert(ConnectedSubset(contractors));
 
-  /*std::cout << "Contracting a graph with " << N << " nodes.\n";
-  std::cout << "Going to contract vertices: ";
-  for(auto v: contractors)
-    std::cout << v << " ";
-  std::cout << std::endl;*/
-
   std::vector<bool> in_contractors(N, false);
   for (auto v : contractors) in_contractors[v] = true;
 
@@ -234,11 +217,9 @@ Graph Graph::Contract(const std::vector<int> &contractors) const {
   contracted.N = N - ((int)contractors.size()) + 1;
   contracted.global.reserve(contracted.N);
 
-  // Is this what I need later?
+  // Mappings between contracted and old indices.
   std::vector<int> local_to_contracted_local(N, -1);
   std::vector<int> contracted_local_to_local(contracted.N, -1);
-
-  // std::cout << "Basic setup done.\n";
 
   for (int i = 0; i < N; i++) {
     if (!in_contractors[i]) {
@@ -249,23 +230,18 @@ Graph Graph::Contract(const std::vector<int> &contractors) const {
     }
   }
 
-  // std::cout << "Created all but one of global.\n";
-
   std::vector<int> original_contractors;
   for (int contractor : contractors)
     for (int original_contractor : global_to_vertices[global[contractor]])
       original_contractors.push_back(original_contractor);
 
   contracted.global.push_back(GetIndex(original_contractors));
-
-  // std::cout << "Created the global entry for the contracted vertex.\n";
-
-  // std::cout << "Going to fill contracted.adj.\n";
-  contracted.adj = std::vector<std::vector<int>>(contracted.N);
+  contracted.adj.resize(contracted.N);
 
   // Adjacency list for non-contracted vertices.
   for (int i = 0; i < contracted.N - 1; i++) {
     bool connected_to_contractors = false;
+    contracted.adj[i].reserve(Adj(contracted_local_to_local[i]).size());
     for (int nb : Adj(contracted_local_to_local[i])) {
       if (in_contractors[nb]) {
         if (!connected_to_contractors) {
@@ -283,8 +259,6 @@ Graph Graph::Contract(const std::vector<int> &contractors) const {
 
   assert(contracted.M % 2 == 0);
   contracted.M /= 2;
-
-  // std::cout << "Found " << contracted.M << " edges.\n";
 
   for (int i = 0; i < contracted.N; i++) {
     contracted.min_degree =
@@ -351,6 +325,77 @@ std::vector<Graph> Graph::WithoutVertex(int w) const {
   }
   // Reset the visited field.
   return cc;
+}
+
+std::pair<Graph, std::vector<std::vector<int>>>
+Graph::WithoutSymmetricNeighboorhoods() const {
+  // Find all pairs v, w with N(v) = N(w) or N(v)\{w} = N(w)\{v}.
+  std::vector<int> vertices_contract;
+  std::vector<std::vector<int>> vertices_original;
+  std::vector<bool> contracted(N, false);
+  std::vector<bool> in_nbh(N, false);
+
+  vertices_contract.reserve(N);
+  vertices_original.reserve(N);
+  for (int v = 0; v < N; v++) {
+    if (contracted[v]) continue;
+    vertices_contract.emplace_back(v);
+    vertices_original.emplace_back(std::vector<int>{v});
+    for (int nb : adj[v]) in_nbh[nb] = true;
+    for (int w = v + 1; w < N; w++) {
+      if (adj[v].size() != adj[w].size() || contracted[w]) continue;
+
+      // Check if the neighbours of w coincide with that of v.
+      bool contract = true;
+      for (int nb : adj[w])
+        if (!in_nbh[nb] && nb != v) {
+          contract = false;
+          break;
+        }
+      if (contract) {
+        vertices_original.back().emplace_back(w);
+        contracted[w] = true;
+      }
+    }
+    for (int nb : adj[v]) in_nbh[nb] = false;
+  }
+
+  if (vertices_contract.size() < N)
+    return {Graph(*this, vertices_contract), std::move(vertices_original)};
+  else
+    return {*this, std::move(vertices_original)};
+}
+
+std::vector<int> Graph::NonDominatedVertices(
+    const std::vector<int> &vertices) const {
+  std::vector<int> result;
+  result.reserve(vertices.size());
+  std::vector<bool> in_nbh(N, false);
+  std::vector<bool> dominated(N, false);
+  for (int v_prime : vertices) {
+    bool contract = false;
+    for (int nb : adj[v_prime]) in_nbh[nb] = true;
+    for (int v : vertices) {
+      if (adj[v].size() > adj[v_prime].size()) continue;
+      // We want v' < v.
+      if (adj[v].size() == adj[v_prime].size() && v_prime >= v) continue;
+      if (dominated[v]) continue;
+      bool subset = true;
+      for (int nb : adj[v])
+        if (!in_nbh[nb] && nb != v_prime) {
+          subset = false;
+          break;
+        }
+      if (subset) {
+        // N(v) \ v' \subset N(v') \ v
+        dominated[v] = true;
+      }
+    }
+    for (int nb : adj[v_prime]) in_nbh[nb] = false;
+  }
+  for (int v : vertices)
+    if (!dominated[v]) result.emplace_back(v);
+  return result;
 }
 
 std::vector<int> Graph::Bfs(int root) const {
@@ -420,25 +465,26 @@ Graph Graph::DfsTree(int root) const {
 
   Graph result;
   result.N = N;
-  // result.mask = mask;
   result.global.reserve(N);
   result.adj.resize(N);
 
-  static std::vector<int> stack;
-  stack.push_back(root);
-  visited[root] = true;
+  static std::vector<std::pair<int, int>> stack;
+  stack.emplace_back(root, -1);
+
   while (!stack.empty()) {
-    int v = stack.back();
+    auto [v, prev] = stack.back();
     stack.pop_back();
+    if (visited[v]) continue;
+    if (prev != -1) {
+      result.adj[v].push_back(prev);
+      result.adj[prev].push_back(v);
+    }
+    visited[v] = true;
     result.global.emplace_back(global[v]);
     for (int nghb : Adj(v))
-      if (!visited[nghb]) {
-        stack.push_back(nghb);
-        result.adj[v].push_back(nghb);
-        result.adj[nghb].push_back(v);
-        visited[nghb] = true;
-      }
+      if (!visited[nghb]) stack.emplace_back(nghb, v);
   }
+
   result.M = N - 1;
   int total_edges = 0;
   for (int v = 0; v < result.N; v++) {
@@ -484,6 +530,51 @@ int Graph::MMD() const {
     vertices_left--;
   }
   return maxmin;
+}
+void ArticulationPointsHelper(const Graph &G, int u, int &d,
+                              std::vector<bool> &visited,
+                              std::vector<int> &depth, std::vector<int> &low,
+                              std::vector<int> &parent,
+                              std::vector<int> &result) {
+  int children = 0;
+  visited[u] = true;
+
+  depth[u] = d;
+  low[u] = d;
+  d++;
+
+  bool is_ap = false;
+
+  for (int v : G.Adj(u)) {
+    if (!visited[v]) {
+      children++;
+      parent[v] = u;
+      ArticulationPointsHelper(G, v, d, visited, depth, low, parent, result);
+      low[u] = std::min(low[u], low[v]);
+      if (low[v] >= depth[u]) is_ap = true;
+    } else if (v != parent[u]) {
+      low[u] = std::min(low[u], depth[v]);
+    }
+  }
+  if ((parent[u] == -1 && children > 1) || (parent[u] != -1 && is_ap))
+    result.push_back(u);
+}
+
+std::vector<int> Graph::ArticulationPoints() const {
+  std::vector<int> parent(N, -1);
+  std::vector<int> depth(N, INT_MAX);
+  std::vector<int> low(N, INT_MAX);
+  std::vector<bool> visited(N, false);
+  int d = 0;
+
+  std::vector<int> result;
+  for (int u = 0; u < N; u++) {
+    if (!visited[u])
+      ArticulationPointsHelper(*this, u, d, visited, depth, low, parent,
+                               result);
+  }
+
+  return result;
 }
 
 std::vector<Graph> Graph::kCore(int k) const {
@@ -584,7 +675,7 @@ void LoadGraph(std::istream &stream) {
     vertices_to_global[i_vec] = i;
   }
 
-  std::cout << "Initalized a graph having " << full_graph.N << " vertices with "
+  std::cerr << "Initalized a graph having " << full_graph.N << " vertices with "
             << full_graph.M << " edges. " << std::endl;
 }
 
@@ -599,207 +690,4 @@ int GetIndex(std::vector<int> &vertices) {
     return new_index;
   }
   return it->second;
-}
-
-SeparatorGenerator::SeparatorGenerator(const Graph &G)
-    : G(G), in_nbh(G.N, false) {
-  // Complete graphs don't have separators. We want this to return a non-empty
-  // vector.
-  assert(!G.IsCompleteGraph());
-
-  // Datatypes that will be reused.
-  std::stack<int> component;
-  std::vector<int> separator;
-  std::vector<bool> sep_mask(G.N, false);
-  std::vector<bool> visited(G.N, false);
-
-  // First we generate all the "seeds": we take the neighborhood of a point
-  // (including the point), take all the connected components in the
-  // complement, and then take the neighborhoods of those components. Each of
-  // those is a minimal separator (in fact, one that separates the original
-  // point).
-  std::vector<int> neighborhood;
-  for (int i = 0; i < G.N; i++) {
-    if (G.Adj(i).size() == G.N - 1) continue;
-    neighborhood.clear();
-    neighborhood.push_back(i);
-    neighborhood.insert(neighborhood.end(), G.Adj(i).begin(), G.Adj(i).end());
-
-    for (int v : neighborhood) in_nbh[v] = true;
-
-    // Now we start off by enqueueing all neighborhoods of connected components
-    // in the complement of this neighborhood.
-    for (int j = 0; j < G.N; j++) {
-      if (in_nbh[j] || visited[j]) continue;
-
-      // Reset shared datastructures.
-      assert(component.empty());
-      separator.clear();
-
-      component.push(j);
-      visited[j] = true;
-
-      while (!component.empty()) {
-        int cur = component.top();
-        component.pop();
-
-        for (int nb : G.Adj(cur)) {
-          if (!visited[nb]) {
-            if (in_nbh[nb]) {
-              separator.push_back(nb);
-            } else {
-              component.push(nb);
-            }
-            visited[nb] = true;
-          }
-        }
-      }
-
-      for (auto k : neighborhood) visited[k] = false;
-
-      // std::sort(separator.begin(), separator.end());
-      for (int k : separator) sep_mask[k] = true;
-      if (done.find(sep_mask) == done.end()) {
-        queue.push(separator);
-        done.insert(sep_mask);
-      }
-      for (int k : separator) sep_mask[k] = false;
-    }
-
-    for (int j = 0; j < G.N; j++) visited[j] = false;
-    for (int v : neighborhood) in_nbh[v] = false;
-  }
-}
-
-std::vector<Separator> SeparatorGenerator::Next(int k) {
-  // Datatypes that will be reused.
-  std::stack<int> component;
-  std::vector<int> separator;
-  std::vector<bool> sep_mask(G.N, false);
-  std::vector<bool> visited(G.N, false);
-
-  std::vector<Separator> result;
-  while (!queue.empty() && result.size() < k) {
-    auto cur_separator = queue.front();
-    queue.pop();
-
-    for (int x : cur_separator) {
-      for (int j : G.Adj(x)) in_nbh[j] = true;
-      for (int j : cur_separator) in_nbh[j] = true;
-
-      for (int j = 0; j < G.N; j++) {
-        if (in_nbh[j] || visited[j]) continue;
-        // Reset shared datastructures.
-        assert(component.empty());
-        separator.clear();
-
-        component.push(j);
-        visited[j] = true;
-
-        while (!component.empty()) {
-          int cur = component.top();
-          component.pop();
-
-          for (int nb : G.Adj(cur)) {
-            if (!visited[nb]) {
-              if (in_nbh[nb]) {
-                separator.push_back(nb);
-              } else {
-                component.push(nb);
-              }
-              visited[nb] = true;
-            }
-          }
-        }
-
-        for (auto k : cur_separator) visited[k] = false;
-        for (auto k : G.Adj(x)) visited[k] = false;
-
-        // std::sort(separator.begin(), separator.end());
-        for (int k : separator) sep_mask[k] = true;
-        if (done.find(sep_mask) == done.end()) {
-          queue.push(separator);
-          done.insert(sep_mask);
-        }
-        for (int k : separator) sep_mask[k] = false;
-      }
-
-      for (int j : cur_separator) in_nbh[j] = false;
-      for (int j : G.Adj(x)) in_nbh[j] = false;
-      for (int j = 0; j < G.N; j++) visited[j] = false;
-    }
-
-    // Finally, there is the following problem: this algorithm generates all
-    // _minimal a,b-separators_, for each pair of vertices a, b in G. These are
-    // a strict superset of what we are after: it may be that a set S is a
-    // minimal a,b-separator, yet it still has a strict subset which is a
-    // separator: it just may be that there is a c,d-separator which is a
-    // strict subset.
-    //
-    // Fortunately, checking whether or not this is the case is relatively
-    // fast.
-
-    Separator sep;
-    sep.vertices = std::move(cur_separator);
-    if (FullyMinimal(sep)) result.push_back(std::move(sep));
-  }
-
-  return result;
-}
-
-// Checks whether or not the separator of G given by separator is "truly
-// minimal": it contains no separator as a strict subset. (Name subject to
-// change.)
-//
-// It also writes some info to the Separator struct: the number of vertices
-// and edges in the components that remain when removing this separator from
-// the graph.
-bool SeparatorGenerator::FullyMinimal(Separator &separator) const {
-  // Shared datastructure.
-  static std::stack<int> component;
-
-  std::vector<bool> visited(G.N, false);
-  std::vector<bool> in_sep(G.N, false);
-  for (int s : separator.vertices) {
-    assert(s < G.N);
-    in_sep[s] = true;
-  }
-
-  for (int i = 0; i < G.N; i++) {
-    if (!visited[i] && !in_sep[i]) {
-      assert(component.empty());
-
-      int comp_N = 1;
-      int comp_M = 0;
-
-      component.push(i);
-      visited[i] = true;
-      while (component.size()) {
-        int cur = component.top();
-        component.pop();
-        for (int nb : G.Adj(cur)) {
-          if (!in_sep[nb]) {
-            comp_M++;
-            if (!visited[nb]) {
-              comp_N++;
-              component.push(nb);
-            }
-          }
-          visited[nb] = true;
-        }
-      }
-      for (int s : separator.vertices) {
-        if (!visited[s]) {
-          // This connected component dit not hit this vertex, so we can
-          // remove this vertex and have a separator left; so this separator
-          // is not fully minimal.
-          return false;
-        }
-        visited[s] = false;
-      }
-      separator.comp.push_back({comp_N, comp_M});
-    }
-  }
-
-  return true;
 }

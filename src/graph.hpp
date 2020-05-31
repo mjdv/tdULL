@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <cassert>
 #include <climits>
 #include <deque>
 #include <iostream>
@@ -38,13 +39,21 @@ struct Graph {
       const std::vector<int> &sub_vertices) const;
 
   // Get the adjacency list for a given vertex.
-  const std::vector<int> &Adj(int v) const;
+  inline const std::vector<int> &Adj(int v) const {
+    assert(v >= 0 && v < N && adj.size() == N);
+    return adj[v];
+  }
 
   // Get the local coordinate for a given vertex.
-  int LocalIndex(int global_index) const;
+  inline int LocalIndex(int global_index) const {
+    for (int v_local = 0; v_local < N; ++v_local) {
+      if (global[v_local] == global_index) return v_local;
+    }
+    return -1;
+  }
 
   // Checks if the subset in vertices is a connected subset of the graph.
-  bool ConnectedSubset(const std::vector<int> &vertices) const;
+  bool ConnectedSubset(const std::vector<int> vertices) const;
 
   // Contract the vertices in `contractors` into a single vertex. Assumes that
   // `contractors` forms a connected subset of vertices.
@@ -55,6 +64,16 @@ struct Graph {
 
   // Create a connected components of the subgraph without the given vertex.
   std::vector<Graph> WithoutVertex(int v) const;
+
+  // Removes all vertices w > v for which  N(w) = N(v) or N(w)\v = N(v)\w.
+  // It returns the smaller, and for each vertex in the new graph
+  // a list of vertices in the old graph that share the same neighboorhood.
+  std::pair<Graph, std::vector<std::vector<int>>>
+  WithoutSymmetricNeighboorhoods() const;
+
+  // Returns a sublist of the vertices that are not dominated by a vertex
+  // in the list.
+  std::vector<int> NonDominatedVertices(const std::vector<int> &vertices) const;
 
   // Recursively removes all vertices with deg < 2.
   Graph TwoCore() const;
@@ -72,21 +91,23 @@ struct Graph {
 
   // Compute the MMD for this graph.
   int MMD() const;
+  // Computes a list of all articulation points.
+  std::vector<int> ArticulationPoints() const;
 
   // Returns whether this is a complete graph.
-  bool IsCompleteGraph() const { return N * (N - 1) == 2 * M; }
+  inline bool IsCompleteGraph() const { return N * (N - 1) == 2 * M; }
 
   // Returns whether this is a path graph.
-  bool IsPathGraph() const { return (N - 1 == M) && (max_degree < 3); }
+  inline bool IsPathGraph() const { return (N - 1 == M) && (max_degree < 3); }
 
   // Returns whether this is a star graph.
-  bool IsStarGraph() const { return (N - 1 == M) && (M == max_degree); }
+  inline bool IsStarGraph() const { return (N - 1 == M) && (M == max_degree); }
 
   // Returns whether this is a cycle graph.
-  bool IsCycleGraph() const { return (M == N) && (max_degree == 2); }
+  inline bool IsCycleGraph() const { return (M == N) && (max_degree == 2); }
 
   // Returns whether this is a tree.
-  bool IsTreeGraph() const { return N - 1 == M; }
+  inline bool IsTreeGraph() const { return N - 1 == M; }
 
   // Explicit conversion to vector of ints.
   operator std::vector<int>() const {
@@ -105,52 +126,3 @@ extern std::map<std::vector<int>, int> vertices_to_global;
 
 // This initalizes the above global variables, important!
 void LoadGraph(std::istream &stream);
-
-struct Separator {
-  std::vector<int> vertices;
-  std::vector<std::pair<int, int>> comp;
-
-  Separator() {}
-  Separator(std::vector<int> &&vertices) : vertices(std::move(vertices)) {}
-
-  std::pair<int, int> maxCompSize() const {
-    int best_comp = 0;
-    int best_M = 0;
-    for (auto [N, M] : comp)
-      if (N > best_comp) {
-        best_comp = N;
-        best_M = M;
-      }
-
-    return {best_comp, best_M};
-  }
-};
-
-class SeparatorGenerator {
- public:
-  SeparatorGenerator(const Graph &G);
-
-  bool HasNext() const { return !queue.empty(); }
-  std::vector<Separator> Next(int k = 10000);
-
-  void clear() {
-    done.clear();
-    queue = {};
-  }
-
- protected:
-  // Helper function.
-  bool FullyMinimal(Separator &) const;
-
-  // Reference to the graph for which we are generating separators.
-  const Graph &G;
-
-  // In done we keep the seperators we have already enqueued, to make sure they
-  // aren't processed again.
-  // In queue we keep all the ones we have generated, but which we have not yet
-  // used to generate new ones.
-  std::queue<std::vector<int>> queue;
-  std::unordered_set<std::vector<bool>> done;
-
-  std::vector<bool> in_nbh;
-};

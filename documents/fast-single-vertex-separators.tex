@@ -1,0 +1,89 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb}
+\title{Fast single vertex separators}
+\author{Mees}
+\begin{document}
+\maketitle
+Idea: it seems we cannot get out of generating ``most'' separators. Thus we want to generate
+separators more quickly. This is one approach that might gain some time.
+
+Let $G$ be a graph. We treat $G$ as the set of its vertices, using notation like $H \subseteq
+G$ for subsets of vertices; we treat those as subgraphs, with the understanding that all
+subgraphs are induced.
+
+A set $S \subseteq G$ is a \emph{separator} if $G \setminus S$ is disconnected. If $a, b \in
+G$, then $S$ (not containing $a, b$) is called an $a, b$-separator if $a, b$ are in different
+components in $G \setminus S$. If furthermore there is no subset $S' \subsetneq S$ such that
+$S'$ is an $a, b$-separator, then we call $S$ a \emph{minimal} $a, b$-separator. We call a
+separator $S$ a minimal separator if there are $a, b$ such that $S$ is a minimal $a,
+b$-separator. We call a set $S$ a \emph{fully minimal} separator if there is no $S' \subsetneq
+S$ such that $S'$ is a separator. (Note that a separator may be minimal without being fully
+minimal.)
+
+If $X \subseteq G$ is a set, then we write
+\[
+    N(X) = \{v \in G \mid \exists w \in X(vEw)\} \setminus X
+\]
+for the \emph{neighborhood} of the set $X$. We write $N(v)$ for $N(\{v\})$. If $S$ is a
+separator, then $C(S)$ is the set of all connected components of $G \setminus S$, and $C(S)_a$
+is the component containing vertex $a$.
+
+Given a graph $G$ we can make a directed graph whose nodes are all the minimal separators of
+$G$, where the outgoing edges from a separator $S$ go towards all the separators of $G$ that
+can be created by the following procedure:
+\begin{itemize}
+    \item Choose a vertex $x \in S$. Create the set $S_x = S \cup N(x)$.
+    \item Choose a connected component $H$ in $C(S_x)$.
+    \item Then $N(H) \subseteq S_x$ is a minimal separator.
+\end{itemize}
+Thus, from a minimal separator we can generate new minimal separators by generating all the
+$S_x$, and generating a new separator $N(H)$ from each component of $G \setminus S_x$.
+
+Our current algorithm works on this graph: we pick some minimal separators as starting points,
+and do a graph traversal (BFS, DFS) to find all minimal separators. We have a theorem saying
+that this gives all of them.
+
+The minimal separators we start with are:
+\[
+    \{N(H) \mid H \in C(N(v) \cup \{v\}), v \in G\}.
+\]
+
+(What we actually want are \emph{fully minimal} separators. It is not really important for this
+document, but a separator $S$ is fully minimal if and only if for each $H$ in $C(S)$, $N(H) =
+S$. You can check this in linear time by finding $N(H)$ for each $H$ and checking that it is
+always equal to $S$.)
+
+I propose the following adaptation of this algorithm. Instead of starting from every vertex, we
+start only from the vertex $a$. And instead of growing in any direction -- adding all of $N(x)$
+for a vertex $x \in S$ -- we grow only ``away from $a$''. I have not yet proved that this will
+give us all the separators we need, but my inuition says that it will.
+
+Thus we fix a specific vertex $a$, and we form a graph now consisting only of all minimal $a,
+b$-separators, where $b$ is any vertex. Note that this is precisely the set of minimal
+separators that do not contain $a$. As our starting separators, we choose only
+\[
+    \{N(H) \mid H \in C(N(a) \cup \{a\})\}.
+\]
+Then, the outgoing edges from a separator $S$ are given by the separators you can generate with
+the following procedure:
+\begin{itemize}
+    \item Choose a vertex $x \in S$. Create the set
+        \[
+            S_x = S \cup \{v \in N(x) \mid v \notin C(S)_a\}.
+        \]
+    \item Choose a connected component $H$ in $C(S_x)$ that is not $C(S_x)_a$.
+    \item Then $N(H) \subseteq S_x$ is a minimal separator.
+\end{itemize}
+The idea is: because we do not generate ``back-and-forth'', you avoid generating the same
+separator as often. And if we keep track of $C(S)_a$ together with the separator $S$, we can
+skip some of the DFS-es.
+
+Now, this idea may give some meaningful improvements, but the real interesting part would be
+this: if we can use a dynamic connectivity data structure, we can keep track not only of
+$C(S)_a$, but in fact of all connected components in $C(S)$, and this saves us almost all of
+the DFS-es that we have to do. Then we if we do the graph traversal of our separator graph with
+a depth first search, then we can do our search moving up and down the search tree every time,
+making only minor changes to the connectivity data structure, which may be very fast. (But
+that's going to be, to put it mildly, very complicated, and depends strongly on how effective
+the dynamic connectivity data structure is \emph{in practice}.)
+\end{document}
