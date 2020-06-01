@@ -187,7 +187,7 @@ class Treedepth {
     }
 
     // Recursively contract all vertices with min degree.
-    if (G.N == full_graph.N) std::cout << "full_graph::contract" << std::flush;
+    if (G.N == full_graph.N) std::cerr << "full_graph::contract" << std::flush;
     std::vector<std::vector<int>> kcore_best_separators;
     {
       Graph H = G;
@@ -316,32 +316,41 @@ class Treedepth {
       std::cerr << "full_graph: bounds before separator loop " << lower
                 << " <= td <= " << upper << "." << std::endl;
 
-    for (auto &sep_vertices : kcore_best_separators) {
-      bool valid = true;
-      for (int &v : sep_vertices) {
-        v = G.LocalIndex(v);
-        if (v == -1) {
-          valid = false;
-          break;
-        }
-      }
-      if (!valid) continue;
+    if (kcore_best_separators.size()) {
+      boost::dynamic_bitset<> in_global_coords(full_graph.N);
+      std::vector<int> G_uncontracted;
+      G_uncontracted.reserve(G.N);
+      for (int v = 0; v < G.N; v++)
+        G_uncontracted.emplace_back(global_to_vertices[G.global[v]][0]);
 
-      Separator separator(G, sep_vertices);
-      if (separator.fully_minimal) {
-        SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
-                           store_best_separators);
+      for (int k = 0; k < kcore_best_separators.size(); k++) {
+        auto &sep_vertices = kcore_best_separators[k];
+        in_global_coords.reset();
+        for (auto v : sep_vertices)
+          for (auto x : global_to_vertices[v]) in_global_coords[x] = true;
 
-        if (upper <= search_lbnd || lower == upper) {
-          if (G.N == full_graph.N)
-            std::cerr << "full_graph: separator from kcore gives `upper == "
-                         "lower == "
-                      << lower << "`, early exit. " << std::endl;
-          // Choosing separator already gives us a treedepth decomposition
-          // which is good enough (either a sister branch is at least this
-          // long, or it matches a previously proved lower bound for this
-          // subgraph) so we can use v as our root.
-          return {lower, upper, root};
+        std::vector<int> my_sep_vertices;
+        my_sep_vertices.reserve(sep_vertices.size());
+        for (int v = 0; v < G.N; v++)
+          if (in_global_coords[G_uncontracted[v]])
+            my_sep_vertices.emplace_back(v);
+
+        Separator separator(G, my_sep_vertices);
+        if (separator.fully_minimal) {
+          SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
+                             store_best_separators);
+
+          if (upper <= search_lbnd || lower == upper) {
+            if (G.N == full_graph.N)
+              std::cerr << "full_graph: separator from kcore gives `upper == "
+                           "lower == "
+                        << lower << "`, early exit. " << std::endl;
+            // Choosing separator already gives us a treedepth decomposition
+            // which is good enough (either a sister branch is at least this
+            // long, or it matches a previously proved lower bound for this
+            // subgraph) so we can use v as our root.
+            return {lower, upper, root};
+          }
         }
       }
     }
