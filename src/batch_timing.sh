@@ -1,8 +1,7 @@
 #!/bin/bash
 INPUTDIR="../input/exact/"
 OUTPUTDIR="../output/exact/"
-strats=(2 3 4 5 10 11 13 14 18 22)
-for N in $strats;
+for N in 2 3 4 5 10 11 13 14 18 22;
 do
     rm main.o
     make BATCHMETHOD=B$N > /dev/null
