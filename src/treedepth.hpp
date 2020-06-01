@@ -188,6 +188,7 @@ class Treedepth {
 
     // Simply do kcore
     std::vector<std::vector<int>> kcore_best_separators;
+    std::pair<int, int> contracted_edge{-1, -1};
     int v_min_degree = -1;
     int v_glob_min_degree = INT_MAX;
     for (int v = 0; v < G.N; ++v)
@@ -263,8 +264,10 @@ class Treedepth {
           best_nghb_global = G.global[nghb];
         }
       }
+      assert(best_nghb > -1);
       for (int w : G.Adj(v_min_degree)) full_graph_mask[w] = false;
       H = G.Contract({v_min_degree, best_nghb});
+      contracted_edge = {v_min_degree, best_nghb};
 
       Treedepth treedepth_H(H);
       auto [lower_H, upper_H, root_H] = treedepth_H.Calculate(
@@ -350,15 +353,18 @@ class Treedepth {
                 << " <= td <= " << upper << "." << std::endl;
 
     for (auto &sep_vertices : kcore_best_separators) {
-      bool valid = true;
+      bool has_contracted_edge = false;
       for (int &v : sep_vertices) {
         v = G.LocalIndex(v);
         if (v == -1) {
-          valid = false;
-          break;
+          assert(!has_contracted_edge);
+          // This *must* be the contracted vertex.
+          v = contracted_edge.first;
+          has_contracted_edge = true;
         }
       }
-      if (!valid) continue;
+      if (has_contracted_edge)
+        sep_vertices.emplace_back(contracted_edge.second);
 
       Separator separator(G, sep_vertices);
       if (separator.fully_minimal) {
