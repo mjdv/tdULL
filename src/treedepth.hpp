@@ -240,31 +240,43 @@ class Treedepth {
       // Recursively contract all vertices with min degree.
       if (G.N == full_graph.N)
         std::cout << "full_graph::contract" << std::flush;
-      Graph H;
+      Graph H = G;
 
-      // Contract v_min_degree with a neighbour with the most common
-      // neighbours.
-      for (int w : G.Adj(v_min_degree)) full_graph_mask[w] = true;
-      int best_nghb = -1;
-      int best_nghb_global = INT_MAX;
-      int best_nghb_common = INT_MAX;
-      for (int nghb : G.Adj(v_min_degree)) {
-        int nghb_common = 0;
-        for (int w : G.Adj(nghb))
-          if (full_graph_mask[w]) nghb_common++;
-        if (nghb_common < best_nghb_common) {
-          best_nghb = nghb;
-          best_nghb_global = G.global[nghb];
-          best_nghb_common = nghb_common;
+      while (H.min_degree == G.min_degree) {
+        int v_min_degree = -1;
+        int v_glob_min_degree = INT_MAX;
+        for (int v = 0; v < H.N; ++v)
+          if (H.Adj(v).size() == G.min_degree &&
+              H.global[v] < v_glob_min_degree) {
+            v_min_degree = v;
+            v_glob_min_degree = H.global[v];
+          }
+        // Contract v_min_degree with a neighbour with the most common
+        // neighbours.
+        for (int w : H.Adj(v_min_degree)) full_graph_mask[w] = true;
+        int best_nghb = -1;
+        int best_nghb_global = INT_MAX;
+        int best_nghb_common = INT_MAX;
+        for (int nghb : H.Adj(v_min_degree)) {
+          int nghb_common = 0;
+          for (int w : H.Adj(nghb))
+            if (full_graph_mask[w]) nghb_common++;
+          if (nghb_common < best_nghb_common) {
+            best_nghb = nghb;
+            best_nghb_global = H.global[nghb];
+            best_nghb_common = nghb_common;
+          }
+          if (nghb_common == best_nghb_common &&
+              H.global[nghb] < best_nghb_global) {
+            best_nghb = nghb;
+            best_nghb_global = H.global[nghb];
+          }
         }
-        if (nghb_common == best_nghb_common &&
-            G.global[nghb] < best_nghb_global) {
-          best_nghb = nghb;
-          best_nghb_global = G.global[nghb];
-        }
+        // Contract $v$ with the neighbour sharing the least number of
+        // edges.
+        for (int w : H.Adj(v_min_degree)) full_graph_mask[w] = false;
+        H = H.Contract({v_min_degree, best_nghb});
       }
-      for (int w : G.Adj(v_min_degree)) full_graph_mask[w] = false;
-      H = G.Contract({v_min_degree, best_nghb});
 
       Treedepth treedepth_H(H);
       auto [lower_H, upper_H, root_H] = treedepth_H.Calculate(
@@ -276,6 +288,12 @@ class Treedepth {
       }
       if (upper_H + G.N - H.N < upper) {
         upper = upper_H + G.N - H.N;
+        int v_min_degree = -1;
+        for (int v = 0; v < G.N; ++v)
+          if (G.Adj(v).size() == G.min_degree) {
+            v_min_degree = v;
+            break;
+          }
         root = G.global[v_min_degree];
         if (node) {
           node->upper_bound = upper;
@@ -288,7 +306,6 @@ class Treedepth {
           kcore_best_separators.end(),
           make_move_iterator(treedepth_H.best_upper_separators.begin()),
           make_move_iterator(treedepth_H.best_upper_separators.end()));
-
       if (G.N == full_graph.N)
         std::cerr << " gave a lower bound of " << lower << std::endl;
     }
@@ -349,32 +366,41 @@ class Treedepth {
       std::cerr << "full_graph: bounds before separator loop " << lower
                 << " <= td <= " << upper << "." << std::endl;
 
-    for (auto &sep_vertices : kcore_best_separators) {
-      bool valid = true;
-      for (int &v : sep_vertices) {
-        v = G.LocalIndex(v);
-        if (v == -1) {
-          valid = false;
-          break;
-        }
-      }
-      if (!valid) continue;
+    if (kcore_best_separators.size()) {
+      boost::dynamic_bitset<> in_global_coords(full_graph.N);
+      std::vector<int> G_uncontracted;
+      G_uncontracted.reserve(G.N);
+      for (int v = 0; v < G.N; v++)
+        G_uncontracted.emplace_back(global_to_vertices[G.global[v]][0]);
 
-      Separator separator(G, sep_vertices);
-      if (separator.fully_minimal) {
-        SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
-                           store_best_separators);
+      for (int k = 0; k < kcore_best_separators.size(); k++) {
+        auto &sep_vertices = kcore_best_separators[k];
+        in_global_coords.reset();
+        for (auto v : sep_vertices)
+          for (auto x : global_to_vertices[v]) in_global_coords[x] = true;
 
-        if (upper <= search_lbnd || lower == upper) {
-          if (G.N == full_graph.N)
-            std::cerr << "full_graph: separator from kcore gives `upper == "
-                         "lower == "
-                      << lower << "`, early exit. " << std::endl;
-          // Choosing separator already gives us a treedepth decomposition
-          // which is good enough (either a sister branch is at least this
-          // long, or it matches a previously proved lower bound for this
-          // subgraph) so we can use v as our root.
-          return {lower, upper, root};
+        std::vector<int> my_sep_vertices;
+        my_sep_vertices.reserve(sep_vertices.size());
+        for (int v = 0; v < G.N; v++)
+          if (in_global_coords[G_uncontracted[v]])
+            my_sep_vertices.emplace_back(v);
+
+        Separator separator(G, my_sep_vertices);
+        if (separator.num_components > 1) {
+          SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
+                             store_best_separators);
+
+          if (upper <= search_lbnd || lower == upper) {
+            if (G.N == full_graph.N)
+              std::cerr << "full_graph: separator from kcore gives `upper == "
+                           "lower == "
+                        << lower << "`, early exit. " << std::endl;
+            // Choosing separator already gives us a treedepth decomposition
+            // which is good enough (either a sister branch is at least this
+            // long, or it matches a previously proved lower bound for this
+            // subgraph) so we can use v as our root.
+            return {lower, upper, root};
+          }
         }
       }
     }
@@ -669,16 +695,23 @@ class Treedepth {
           H = std::move(cc[0]);
         else {
           // We have multiple components, stop if all are single vertices.
+          bool stop = false;
           if (cc.size() == H.N - 1) break;
           for (auto &&ccc : cc)
             if (ccc.N > 1) {
               // Sanity check that there is only one non single vertex
               // component.
-              assert(cc.size() + ccc.N == H.N);
+              if (cc.size() + ccc.N != H.N) {
+                assert(!separator.fully_minimal);
+                stop = true;
+                break;
+              }
               H = std::move(ccc);
               break;
             }
+          if (stop) break;
         }
+
         auto [node_H, inserted_H] = cache.Insert(H);
 
         // Now if H was new to the cache, or we have better bounds, lets
