@@ -303,8 +303,7 @@ class Treedepth {
       std::cerr << "full_graph: bounds before separator loop " << lower
                 << " <= td <= " << upper << "." << std::endl;
 
-    for (int k = 0; k < kcore_best_separators.size(); k++) {
-      auto &sep_vertices = kcore_best_separators[k];
+    for (auto &sep_vertices : kcore_best_separators) {
       for (int &v : sep_vertices) v = G.LocalIndex(v);
       Separator separator(G, sep_vertices);
       if (separator.fully_minimal) {
@@ -320,11 +319,6 @@ class Treedepth {
           // which is good enough (either a sister branch is at least this
           // long, or it matches a previously proved lower bound for this
           // subgraph) so we can use v as our root.
-          best_upper_separators.reserve(best_upper_separators.size() +
-                                        kcore_best_separators.size() - k);
-          for (int l = k + 1; l < kcore_best_separators.size(); l++)
-            best_upper_separators.emplace_back(
-                std::move(kcore_best_separators[l]));
           return {lower, upper, root};
         }
       }
