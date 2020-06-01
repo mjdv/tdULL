@@ -231,6 +231,7 @@ Graph Graph::Contract(const std::vector<int> &contractors) const {
   }
 
   std::vector<int> original_contractors;
+  original_contractors.reserve(contractors.size() * 2);
   for (int contractor : contractors)
     for (int original_contractor : global_to_vertices[global[contractor]])
       original_contractors.push_back(original_contractor);
@@ -497,6 +498,40 @@ Graph Graph::DfsTree(int root) const {
   return result;
 }
 
+int Graph::gamma_R() const {
+  size_t gamma_R = N;
+  for (int v = 0; v < N; v++) {
+    for (int nghb_v : Adj(v)) full_graph_mask[nghb_v] = true;
+    for (int w = v + 1; w < N; w++)
+      if (!full_graph_mask[w])
+        gamma_R = std::min(gamma_R, std::max(Adj(v).size(), Adj(w).size()));
+    for (int nghb_v : Adj(v)) full_graph_mask[nghb_v] = false;
+  }
+  return int(gamma_R);
+}
+
+int Graph::MMD() const {
+  int maxmin = 0;
+  std::vector<std::vector<int>> adj_H = adj;
+  int vertices_left = N;
+  while (vertices_left > 2) {
+    int min_deg = N;
+    int min_v = -1;
+    for (int v = 0; v < N; v++)
+      if (adj_H[v].size() < min_deg) {
+        min_deg = adj_H[v].size();
+        min_v = v;
+      }
+    maxmin = std::max(maxmin, min_deg);
+    for (int w : adj_H[min_v]) {
+      adj_H[w].erase(std::remove(adj_H[w].begin(), adj_H[w].end(), min_v),
+                     adj_H[w].end());
+    }
+    adj_H[min_v].clear();
+    vertices_left--;
+  }
+  return maxmin;
+}
 void ArticulationPointsHelper(const Graph &G, int u, int &d,
                               std::vector<bool> &visited,
                               std::vector<int> &depth, std::vector<int> &low,
