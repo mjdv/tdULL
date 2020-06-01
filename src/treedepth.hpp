@@ -189,33 +189,40 @@ class Treedepth {
     // Recursively contract all vertices with min degree.
     if (G.N == full_graph.N) std::cout << "full_graph::contract" << std::flush;
     std::vector<std::vector<int>> kcore_best_separators;
-    int v_min_degree = -1;
-    for (int v = 0; v < G.N; ++v)
-      if (G.Adj(v).size() == G.min_degree) {
-        v_min_degree = v;
-        break;
-      }
     {
+      int v_min_degree = -1;
+      int v_glob_min_degree = INT_MAX;
+      for (int v = 0; v < G.N; ++v)
+        if (G.Adj(v).size() == G.min_degree &&
+            G.global[v] < v_glob_min_degree) {
+          v_min_degree = v;
+          v_glob_min_degree = G.global[v];
+        }
       Graph H;
-      for (int v = 0; v < G.N; v++) {
-        if (G.Adj(v).size() == G.min_degree) {
-          for (int w : G.Adj(v)) full_graph_mask[w] = true;
-          int best_nghb = -1;
-          int best_nghb_common = 99999;
-          for (int nghb : G.Adj(v)) {
-            int nghb_common = 0;
-            for (int w : G.Adj(nghb))
-              if (full_graph_mask[w]) nghb_common++;
-            if (nghb_common < best_nghb_common) {
-              best_nghb = nghb;
-              best_nghb_common = nghb_common;
-            }
-          }
-          for (int w : G.Adj(v)) full_graph_mask[w] = false;
-          H = G.Contract({v, best_nghb});
-          break;
+
+      // Contract v_min_degree with a neighbour with the most common neighbours.
+      for (int w : G.Adj(v_min_degree)) full_graph_mask[w] = true;
+      int best_nghb = -1;
+      int best_nghb_global = INT_MAX;
+      int best_nghb_common = INT_MAX;
+      for (int nghb : G.Adj(v_min_degree)) {
+        int nghb_common = 0;
+        for (int w : G.Adj(nghb))
+          if (full_graph_mask[w]) nghb_common++;
+        if (nghb_common < best_nghb_common) {
+          best_nghb = nghb;
+          best_nghb_global = G.global[nghb];
+          best_nghb_common = nghb_common;
+        }
+        if (nghb_common == best_nghb_common &&
+            G.global[nghb] < best_nghb_global) {
+          best_nghb = nghb;
+          best_nghb_global = G.global[nghb];
         }
       }
+      for (int w : G.Adj(v_min_degree)) full_graph_mask[w] = false;
+      H = G.Contract({v_min_degree, best_nghb});
+
       //  Graph H = G;
       //  int min_degree = H.min_degree;
       //  std::vector<std::pair<int, int>> contract;
