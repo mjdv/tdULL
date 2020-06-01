@@ -190,68 +190,44 @@ class Treedepth {
     if (G.N == full_graph.N) std::cout << "full_graph::contract" << std::flush;
     std::vector<std::vector<int>> kcore_best_separators;
     {
-      int v_min_degree = -1;
-      int v_glob_min_degree = INT_MAX;
-      for (int v = 0; v < G.N; ++v)
-        if (G.Adj(v).size() == G.min_degree &&
-            G.global[v] < v_glob_min_degree) {
-          v_min_degree = v;
-          v_glob_min_degree = G.global[v];
-        }
-      Graph H;
+      Graph H = G;
 
-      // Contract v_min_degree with a neighbour with the most common neighbours.
-      for (int w : G.Adj(v_min_degree)) full_graph_mask[w] = true;
-      int best_nghb = -1;
-      int best_nghb_global = INT_MAX;
-      int best_nghb_common = INT_MAX;
-      for (int nghb : G.Adj(v_min_degree)) {
-        int nghb_common = 0;
-        for (int w : G.Adj(nghb))
-          if (full_graph_mask[w]) nghb_common++;
-        if (nghb_common < best_nghb_common) {
-          best_nghb = nghb;
-          best_nghb_global = G.global[nghb];
-          best_nghb_common = nghb_common;
+      while (H.min_degree == G.min_degree) {
+        int v_min_degree = -1;
+        int v_glob_min_degree = INT_MAX;
+        for (int v = 0; v < H.N; ++v)
+          if (H.Adj(v).size() == G.min_degree &&
+              H.global[v] < v_glob_min_degree) {
+            v_min_degree = v;
+            v_glob_min_degree = H.global[v];
+          }
+        // Contract v_min_degree with a neighbour with the most common
+        // neighbours.
+        for (int w : H.Adj(v_min_degree)) full_graph_mask[w] = true;
+        int best_nghb = -1;
+        int best_nghb_global = INT_MAX;
+        int best_nghb_common = INT_MAX;
+        for (int nghb : H.Adj(v_min_degree)) {
+          int nghb_common = 0;
+          for (int w : H.Adj(nghb))
+            if (full_graph_mask[w]) nghb_common++;
+          if (nghb_common < best_nghb_common) {
+            best_nghb = nghb;
+            best_nghb_global = H.global[nghb];
+            best_nghb_common = nghb_common;
+          }
+          if (nghb_common == best_nghb_common &&
+              H.global[nghb] < best_nghb_global) {
+            best_nghb = nghb;
+            best_nghb_global = H.global[nghb];
+          }
         }
-        if (nghb_common == best_nghb_common &&
-            G.global[nghb] < best_nghb_global) {
-          best_nghb = nghb;
-          best_nghb_global = G.global[nghb];
-        }
+        // Contract $v$ with the neighbour sharing the least number of
+        // edges.
+        for (int w : H.Adj(v_min_degree)) full_graph_mask[w] = false;
+        H = H.Contract({v_min_degree, best_nghb});
       }
-      for (int w : G.Adj(v_min_degree)) full_graph_mask[w] = false;
-      H = G.Contract({v_min_degree, best_nghb});
 
-      //  Graph H = G;
-      //  int min_degree = H.min_degree;
-      //  std::vector<std::pair<int, int>> contract;
-      //  while (H.min_degree == min_degree) {
-      //    for (int v = 0; v < H.N; v++) {
-      //      if (H.Adj(v).size() == min_degree) {
-      //        for (int nghb_v : G.Adj(v)) full_graph_mask[nghb_v] = true;
-      //        int best_nghb = -1;
-      //        int best_nghb_common = 99999;
-
-      //        // Calculate the number of common neighbours around v.
-      //        for (int w : H.Adj(v)) {
-      //          int common_nghb = 0;
-      //          for (int w : H.Adj(w))
-      //            if (full_graph_mask[w]) common_nghb++;
-      //          if (common_nghb < best_nghb_common) {
-      //            best_nghb = w;
-      //            best_nghb_common = common_nghb;
-      //          }
-      //        }
-      //        for (int nghb_v : G.Adj(v)) full_graph_mask[nghb_v] = false;
-
-      //        // Contract $v$ with the neighbour sharing the least number of
-      //        // edges.
-      //        H = H.Contract({v, best_nghb});
-      //        break;
-      //      }
-      //    }
-      //  }
       Treedepth treedepth_H(H);
       auto [lower_H, upper_H, root_H] = treedepth_H.Calculate(
           std::max(lower, search_lbnd), std::min(upper, search_ubnd), true);
@@ -262,6 +238,12 @@ class Treedepth {
       }
       if (upper_H + G.N - H.N < upper) {
         upper = upper_H + G.N - H.N;
+        int v_min_degree = -1;
+        for (int v = 0; v < G.N; ++v)
+          if (G.Adj(v).size() == G.min_degree) {
+            v_min_degree = v;
+            break;
+          }
         root = G.global[v_min_degree];
         if (node) {
           node->upper_bound = upper;
