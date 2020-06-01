@@ -386,7 +386,7 @@ class Treedepth {
             my_sep_vertices.emplace_back(v);
 
         Separator separator(G, my_sep_vertices);
-        if (separator.fully_minimal) {
+        if (separator.num_components > 1) {
           SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
                              store_best_separators);
 
@@ -513,16 +513,23 @@ class Treedepth {
           H = std::move(cc[0]);
         else {
           // We have multiple components, stop if all are single vertices.
+          bool stop = false;
           if (cc.size() == H.N - 1) break;
           for (auto &&ccc : cc)
             if (ccc.N > 1) {
               // Sanity check that there is only one non single vertex
               // component.
-              assert(cc.size() + ccc.N == H.N);
+              if (cc.size() + ccc.N != H.N) {
+                assert(!separator.fully_minimal);
+                stop = true;
+                break;
+              }
               H = std::move(ccc);
               break;
             }
+          if (stop) break;
         }
+
         auto [node_H, inserted_H] = cache.Insert(H);
 
         // Now if H was new to the cache, or we have better bounds, lets
