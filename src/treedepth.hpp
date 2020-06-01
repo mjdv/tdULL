@@ -354,6 +354,10 @@ class Treedepth {
 
     if (kcore_best_separators.size()) {
       boost::dynamic_bitset<> in_global_coords(full_graph.N);
+      std::vector<int> G_uncontracted;
+      G_uncontracted.reserve(G.N);
+      for (int v = 0; v < G.N; v++)
+        G_uncontracted.emplace_back(global_to_vertices[G.global[v]][0]);
 
       for (int k = 0; k < kcore_best_separators.size(); k++) {
         auto &sep_vertices = kcore_best_separators[k];
@@ -363,10 +367,9 @@ class Treedepth {
 
         std::vector<int> my_sep_vertices;
         my_sep_vertices.reserve(sep_vertices.size());
-        for (int v = 0; v < G.N; v++) {
-          if (in_global_coords[global_to_vertices[G.global[v]][0]])
+        for (int v = 0; v < G.N; v++)
+          if (in_global_coords[G_uncontracted[v]])
             my_sep_vertices.emplace_back(v);
-        }
 
         Separator separator(G, my_sep_vertices);
         if (separator.fully_minimal) {
