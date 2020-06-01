@@ -186,10 +186,60 @@ class Treedepth {
         return {lower, upper, root};
     }
 
-    // Recursively contract all vertices with min degree.
-    if (G.N == full_graph.N) std::cerr << "full_graph::contract" << std::flush;
+    // Simply do kcore
     std::vector<std::vector<int>> kcore_best_separators;
-    {
+    int v_min_degree = -1;
+    int v_glob_min_degree = INT_MAX;
+    for (int v = 0; v < G.N; ++v)
+      if (G.Adj(v).size() == G.min_degree && G.global[v] < v_glob_min_degree) {
+        v_min_degree = v;
+        v_glob_min_degree = G.global[v];
+      }
+
+    if (G.min_degree == 1) {
+      if (G.N == full_graph.N) std::cerr << "full_graph: kCore" << std::flush;
+      // Below we calculate the smallest k-core that G can contain. If this is
+      // non- empty, we recursively calculate the treedepth on this core first.
+      // This should give a nice lower bound pretty rapidly.
+      auto cc_core = G.kCore(G.min_degree + 1);
+
+      if (!cc_core.empty()) {
+        assert(cc_core[0].N < G.N);
+
+        // Sort the components on density.
+        std::sort(cc_core.begin(), cc_core.end(),
+                  [](auto &c1, auto &c2) { return c1.M / c1.N > c2.M / c2.N; });
+        for (const auto &cc : cc_core) {
+          Treedepth treedepth_cc(cc);
+          auto [lower_cc, upper_cc, root_cc] = treedepth_cc.Calculate(
+              std::max(lower, search_lbnd), std::min(upper, search_ubnd), true);
+
+          if (lower_cc > lower) {
+            lower = lower_cc;
+            if (node) node->lower_bound = lower;
+          }
+          if (upper_cc + G.N - cc.N < upper) {
+            upper = upper_cc + G.N - cc.N;
+            root = G.global[v_min_degree];
+            if (node) {
+              node->upper_bound = upper;
+              node->root = root;
+            }
+          }
+          if (search_ubnd <= lower || search_lbnd >= upper || lower == upper)
+            return {lower, upper, root};
+          kcore_best_separators.insert(
+              kcore_best_separators.end(),
+              make_move_iterator(treedepth_cc.best_upper_separators.begin()),
+              make_move_iterator(treedepth_cc.best_upper_separators.end()));
+        }
+      }
+      if (G.N == full_graph.N)
+        std::cerr << " gave a lower bound of " << lower << std::endl;
+    } else {
+      // Recursively contract all vertices with min degree.
+      if (G.N == full_graph.N)
+        std::cout << "full_graph::contract" << std::flush;
       Graph H = G;
 
       while (H.min_degree == G.min_degree) {
@@ -256,9 +306,9 @@ class Treedepth {
           kcore_best_separators.end(),
           make_move_iterator(treedepth_H.best_upper_separators.begin()),
           make_move_iterator(treedepth_H.best_upper_separators.end()));
+      if (G.N == full_graph.N)
+        std::cerr << " gave a lower bound of " << lower << std::endl;
     }
-    if (G.N == full_graph.N)
-      std::cerr << " gave a lower bound of " << lower << std::endl;
 
     // If G doesn't exist in the cache, lets add it now, since we will start
     // doing some real work.
