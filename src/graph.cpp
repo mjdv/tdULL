@@ -1,11 +1,14 @@
 #include "graph.hpp"
 
+#include <parallel_hashmap/phmap.h>
+
 #include <cassert>
 
 Graph full_graph;
 std::vector<bool> full_graph_mask;
 std::vector<std::vector<int>> global_to_vertices;
-std::map<std::vector<int>, int> vertices_to_global;
+phmap::parallel_flat_hash_map<std::vector<int>, int, VectorIntHash>
+    vertices_to_global;
 
 int GetIndex(std::vector<int> &vertices);
 
@@ -667,8 +670,8 @@ Graph Graph::TwoCore() const {
 void LoadGraph(std::istream &stream) {
   full_graph = Graph(stream);
 
-  global_to_vertices = std::vector<std::vector<int>>();
-  vertices_to_global = std::map<std::vector<int>, int>();
+  global_to_vertices.clear();
+  vertices_to_global.clear();
 
   for (int i = 0; i < full_graph.N; i++) {
     std::vector<int> i_vec = {i};

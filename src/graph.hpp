@@ -1,5 +1,8 @@
 #pragma once
+#include <parallel_hashmap/phmap.h>
+
 #include <algorithm>
+#include <boost/functional/hash.hpp>
 #include <cassert>
 #include <climits>
 #include <deque>
@@ -8,6 +11,7 @@
 #include <queue>
 #include <set>
 #include <stack>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -117,12 +121,20 @@ struct Graph {
   }
 };
 
+struct VectorIntHash {
+  inline size_t operator()(const std::vector<int> &a) const {
+    std::size_t res = boost::hash_value(a.size());
+    boost::hash_combine(res, a);
+    return res;
+  }
+};
 extern Graph full_graph;                   // The full graph.
 extern std::vector<bool> full_graph_mask;  // Global variable to be reused.
 
 // For going from global coordinates to sets of original vertices, and back.
 extern std::vector<std::vector<int>> global_to_vertices;
-extern std::map<std::vector<int>, int> vertices_to_global;
+extern phmap::parallel_flat_hash_map<std::vector<int>, int, VectorIntHash>
+    vertices_to_global;
 
 // This initalizes the above global variables, important!
 void LoadGraph(std::istream &stream);

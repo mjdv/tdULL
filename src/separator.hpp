@@ -1,11 +1,10 @@
 #pragma once
 #define BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS
+#include <parallel_hashmap/phmap.h>
+
+#include <bitset>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/functional/hash.hpp>
-
-#include <parallel_hashmap/phmap.h>
-#include <bitset>
-
 #include <unordered_set>
 
 #include "graph.hpp"
