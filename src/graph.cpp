@@ -231,7 +231,7 @@ Graph Graph::Contract(const std::vector<int> &contractors) const {
   }
 
   std::vector<int> original_contractors;
-  original_contractors.reserve(contractors * 2);
+  original_contractors.reserve(contractors.size() * 2);
   for (int contractor : contractors)
     for (int original_contractor : global_to_vertices[global[contractor]])
       original_contractors.push_back(original_contractor);
