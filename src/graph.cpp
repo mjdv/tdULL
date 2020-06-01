@@ -1,14 +1,11 @@
 #include "graph.hpp"
 
-#include <parallel_hashmap/phmap.h>
-
 #include <cassert>
 
 Graph full_graph;
 std::vector<bool> full_graph_mask;
 std::vector<std::vector<int>> global_to_vertices;
-phmap::parallel_flat_hash_map<std::vector<int>, int, VectorIntHash>
-    vertices_to_global;
+std::map<std::vector<int>, int> vertices_to_global;
 
 int GetIndex(std::vector<int> &vertices);
 

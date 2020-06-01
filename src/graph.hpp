@@ -1,5 +1,4 @@
 #pragma once
-#include <parallel_hashmap/phmap.h>
 
 #include <algorithm>
 #include <boost/functional/hash.hpp>
@@ -133,8 +132,7 @@ extern std::vector<bool> full_graph_mask;  // Global variable to be reused.
 
 // For going from global coordinates to sets of original vertices, and back.
 extern std::vector<std::vector<int>> global_to_vertices;
-extern phmap::parallel_flat_hash_map<std::vector<int>, int, VectorIntHash>
-    vertices_to_global;
+extern std::map<std::vector<int>, int> vertices_to_global;
 
 // This initalizes the above global variables, important!
 void LoadGraph(std::istream &stream);
