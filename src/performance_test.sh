@@ -14,7 +14,7 @@ for f in exact_001.gr exact_003.gr exact_005.gr exact_007.gr exact_009.gr exact_
 do
     printf "\nGraph ${f}\n"
     printf "\nGraph ${f}\n" >> $LOGFILE
-    timeout 30m ./main < ${INPUTDIR}${f} > /dev/null 2> /tmp/output$$ && printf "${f}," >> $CSVFILE && tail -1 /tmp/output$$ >> $CSVFILE;
+    timeout 31m ./main < ${INPUTDIR}${f} > /dev/null 2> /tmp/output$$ && printf "${f}," >> $CSVFILE && tail -1 /tmp/output$$ >> $CSVFILE;
     sed -e '$d' /tmp/output$$
     sed -e '$d' /tmp/output$$ >> $LOGFILE
 done
