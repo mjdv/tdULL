@@ -49,7 +49,7 @@ struct Graph {
     for (int v_local = 0; v_local < N; ++v_local) {
       if (global[v_local] == global_index) return v_local;
     }
-    assert(false);
+    return -1;
   }
 
   // Checks if the subset in vertices is a connected subset of the graph.
@@ -86,6 +86,11 @@ struct Graph {
   Graph BfsTree(int root) const;
   Graph DfsTree(int root) const;
 
+  // Compute the gamma_R for this graph.
+  int gamma_R() const;
+
+  // Compute the MMD for this graph.
+  int MMD() const;
   // Computes a list of all articulation points.
   std::vector<int> ArticulationPoints() const;
 
