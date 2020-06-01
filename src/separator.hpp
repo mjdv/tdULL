@@ -16,6 +16,7 @@ struct Separator {
   // NOTE: This is either a fully minimal separator, or it is not fully minimal
   // but the non-minimality comes from leaves being cut off.
   bool fully_minimal = false;
+  size_t num_components;
 
   Separator(const Graph &G, const std::vector<int> &vertices);
 };
