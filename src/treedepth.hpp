@@ -13,6 +13,7 @@
 #include "set_trie.hpp"
 #include "treedepth_tree.hpp"
 
+
 // Trivial treedepth implementation, useful for simple sanity checks.
 int treedepth_trivial(const Graph &G) {
   if (G.N == 1) return 1;
@@ -362,9 +363,10 @@ class Treedepth {
     // Main loop: try every separator as a set of roots.
     // new_lower tries to find a new treedepth lower bound on this subgraph.
     int new_lower = G.N;
-    if (G.N == full_graph.N)
+    if (G.N == full_graph.N){
       std::cerr << "full_graph: bounds before separator loop " << lower
                 << " <= td <= " << upper << "." << std::endl;
+    }
 
     if (kcore_best_separators.size()) {
       boost::dynamic_bitset<> in_global_coords(full_graph.N);
@@ -391,10 +393,11 @@ class Treedepth {
                              store_best_separators);
 
           if (upper <= search_lbnd || lower == upper) {
-            if (G.N == full_graph.N)
+            if (G.N == full_graph.N){
               std::cerr << "full_graph: separator from kcore gives `upper == "
                            "lower == "
                         << lower << "`, early exit. " << std::endl;
+            }
             // Choosing separator already gives us a treedepth decomposition
             // which is good enough (either a sister branch is at least this
             // long, or it matches a previously proved lower bound for this
@@ -402,13 +405,92 @@ class Treedepth {
             return {lower, upper, root};
           }
         }
+        else{
+          // The separator is not fully minimal
+          // just do a quick check if you can easily match the upper bound
+          const int sep_size = separator.vertices.size();
+          const int search_ubnd_sep =
+            std::max(1, std::min(search_ubnd, upper) - sep_size);
+          int search_lbnd_sep = std::max(1, std::max(search_lbnd, lower) - sep_size);
+
+          int upper_sep = 0;
+          int lower_sep = lower - sep_size;
+          // Sort the components of G \ separator on density.
+          auto cc = G.WithoutVertices(separator.vertices);
+          std::sort(cc.begin(), cc.end(), [](const Graph &c1, const Graph &c2) {
+              return c1.M / c1.N > c2.M / c2.N;
+              });
+
+          for (auto &&H : cc) {
+            auto tuple = Treedepth(H).Calculate(search_lbnd_sep, search_ubnd_sep);
+
+            const int lower_H = std::get<0>(tuple);
+            const int upper_H = std::get<1>(tuple);
+
+            upper_sep = std::max(upper_sep, upper_H);
+            lower_sep = std::max(lower_sep, lower_H);
+            search_lbnd_sep = std::max(search_lbnd_sep, lower_H);
+
+          }
+
+          // If we find a new upper bound, update the cache accordingly :-).
+          if (upper_sep + sep_size < upper) {
+            best_upper_separators.clear();
+            node->upper_bound = upper = upper_sep + sep_size;
+            node->root = root = G.global[separator.vertices[0]];
+
+            // Iteratively remove the separator from G and update bounds.
+            Graph H = G;
+            for (int i = 1; i < separator.vertices.size(); i++) {
+              // Get the subgraph after removing separator[i-1].
+              auto cc =
+                H.WithoutVertex(H.LocalIndex(G.global[separator.vertices[i - 1]]));
+              assert(cc.size());
+              if (cc.size() == 1)
+                H = std::move(cc[0]);
+              else {
+                // We have multiple components, stop if all are single vertices.
+                if (cc.size() == H.N - 1) break;
+                for (auto &&ccc : cc)
+                  if (ccc.N > 1) {
+                    // Sanity check that there is only one non single vertex
+                    // component.
+                    assert(cc.size() + ccc.N == H.N);
+                    H = std::move(ccc);
+                    break;
+                  }
+              }
+              auto [node_H, inserted_H] = cache.Insert(H);
+
+              // Now if H was new to the cache, or we have better bounds, lets
+              // update!
+              if (inserted_H || (upper - i < node_H->upper_bound)) {
+                node_H->upper_bound = upper - i;
+                node_H->root = G.global[separator.vertices[i]];
+              }
+            }
+            if (upper <= search_lbnd || lower == upper) {
+              if (G.N == full_graph.N){
+                std::cerr << "full_graph: non-minimal separator from kcore gives `upper == "
+                  "lower == "
+                  << lower << "`, early exit. " << std::endl;
+              }
+              // Choosing separator already gives us a treedepth decomposition
+              // which is good enough (either a sister branch is at least this
+              // long, or it matches a previously proved lower bound for this
+              // subgraph) so we can use v as our root.
+              return {lower, upper, root};
+            }
+          }
+        }
       }
     }
 
     SeparatorGenerator sep_generator(G);
     size_t total_separators = 0;
+    int batch_size = 10*G.N;
     while (sep_generator.HasNext()) {
-      auto separators = sep_generator.Next(100000);
+      auto separators = sep_generator.Next(batch_size);
 
       total_separators += separators.size();
       if (G.N == full_graph.N)
@@ -427,7 +509,7 @@ class Treedepth {
                            store_best_separators);
 
         if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
-          if (G.N == full_graph.N)
+          if (G.N == full_graph.N){
             std::cerr << "full_graph: separator " << s << " / "
                       << separators.size()
                       << " gives `upper == lower == " << lower
@@ -437,6 +519,13 @@ class Treedepth {
                       << separator.largest_component.first << ", "
                       << separator.largest_component.second << ")."
                       << std::endl;
+
+            std::cerr << "separator " << std::endl;
+            for(auto v: separator.vertices){
+              std::cerr << " " << (v+1);
+            }
+            std::cerr << std::endl;
+          }
           // Choosing separator already gives us a treedepth decomposition
           // which is good enough (either a sister branch is at least this
           // long, or it matches a previously proved lower bound for this
