@@ -391,10 +391,6 @@ class Treedepth {
       auto separators = sep_generator.Next(10000);
 
       total_separators += separators.size();
-      if (G.N == full_graph.N)
-        std::cerr << "full_graph: generated total of " << total_separators
-                  << " separators so far." << std::endl;
-
       std::sort(separators.begin(), separators.end(),
                 [](const Separator &s1, const Separator &s2) {
                   return s1.largest_component < s2.largest_component;
@@ -407,7 +403,9 @@ class Treedepth {
                            store_best_separators);
 
         if (search_ubnd <= lower || search_lbnd >= upper || lower == upper) {
-          if (G.N == full_graph.N)
+          if (G.N == full_graph.N) {
+            std::cerr << "full_graph: generated total of " << total_separators
+                      << " separators so far." << std::endl;
             std::cerr << "full_graph: separator " << s << " / "
                       << separators.size()
                       << " gives `upper == lower == " << lower
@@ -417,16 +415,20 @@ class Treedepth {
                       << separator.largest_component.first << ", "
                       << separator.largest_component.second << ")."
                       << std::endl;
-          // Choosing separator already gives us a treedepth decomposition
-          // which is good enough (either a sister branch is at least this
-          // long, or it matches a previously proved lower bound for this
-          // subgraph) so we can use v as our root.
+          }
+          // Choosing separator already gives us a treedepth decomposition which
+          // is good enough (either a sister branch is at least this long, or it
+          // matches a previously proved lower bound for this subgraph) so we
+          // can use v as our root.
           return {lower, upper, root};
         }
       }
     }
-    if (G.N == full_graph.N)
+    if (G.N == full_graph.N) {
+      std::cerr << "full_graph: generated total of " << total_separators
+                << " separators so far." << std::endl;
       std::cerr << "full_graph: completed entire separator loop." << std::endl;
+    }
     node->lower_bound = lower = std::max(lower, new_lower);
     return {lower, upper, root};
   }
