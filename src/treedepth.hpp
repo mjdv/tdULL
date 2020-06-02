@@ -388,7 +388,7 @@ class Treedepth {
     SeparatorGenerator sep_generator(G);
     size_t total_separators = 0;
     while (sep_generator.HasNext()) {
-      auto separators = sep_generator.Next(10000);
+      auto separators = sep_generator.Next(1000);
 
       total_separators += separators.size();
       if (G.N == full_graph.N)
