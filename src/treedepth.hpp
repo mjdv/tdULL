@@ -189,15 +189,16 @@ class Treedepth {
     // Simply do kcore
     std::vector<std::vector<int>> kcore_best_separators;
     std::pair<int, int> contracted_edge{-1, -1};
-    int v_min_degree = -1;
-    int v_glob_min_degree = INT_MAX;
-    for (int v = 0; v < G.N; ++v)
-      if (G.Adj(v).size() == G.min_degree && G.global[v] < v_glob_min_degree) {
-        v_min_degree = v;
-        v_glob_min_degree = G.global[v];
-      }
-
     if (G.min_degree == 1) {
+      int v_min_degree = -1;
+      int v_glob_min_degree = INT_MAX;
+      for (int v = 0; v < G.N; ++v)
+        if (G.Adj(v).size() == G.min_degree &&
+            G.global[v] < v_glob_min_degree) {
+          v_min_degree = v;
+          v_glob_min_degree = G.global[v];
+        }
+
       if (G.N == full_graph.N) std::cerr << "full_graph: kCore" << std::flush;
       // Below we calculate the smallest k-core that G can contain. If this is
       // non- empty, we recursively calculate the treedepth on this core first.
@@ -243,31 +244,47 @@ class Treedepth {
         std::cout << "full_graph::contract" << std::flush;
       Graph H;
 
-      // Contract v_min_degree with a neighbour with the most common
-      // neighbours.
-      for (int w : G.Adj(v_min_degree)) full_graph_mask[w] = true;
-      int best_nghb = -1;
-      int best_nghb_global = INT_MAX;
-      int best_nghb_common = INT_MAX;
-      for (int nghb : G.Adj(v_min_degree)) {
-        int nghb_common = 0;
-        for (int w : G.Adj(nghb))
-          if (full_graph_mask[w]) nghb_common++;
-        if (nghb_common < best_nghb_common) {
-          best_nghb = nghb;
-          best_nghb_global = G.global[nghb];
-          best_nghb_common = nghb_common;
+      int v_min_degree = -1;
+      int v_nghb_min_degree = -1;
+      int v_nghb_common_min_degree = INT_MAX;
+      int v_glob_min_degree = INT_MAX;
+      for (int v = 0; v < G.N; ++v)
+        if (G.Adj(v).size() == G.min_degree) {
+          // Contract v with a neighbour with the most common
+          // neighbours.
+          for (int w : G.Adj(v)) full_graph_mask[w] = true;
+          int best_nghb = -1;
+          int best_nghb_global = INT_MAX;
+          int best_nghb_common = INT_MAX;
+          for (int nghb : G.Adj(v)) {
+            int nghb_common = 0;
+            for (int w : G.Adj(nghb))
+              if (full_graph_mask[w]) nghb_common++;
+            if (nghb_common < best_nghb_common) {
+              best_nghb = nghb;
+              best_nghb_global = G.global[nghb];
+              best_nghb_common = nghb_common;
+            }
+            if (nghb_common == best_nghb_common &&
+                G.global[nghb] < best_nghb_global) {
+              best_nghb = nghb;
+              best_nghb_global = G.global[nghb];
+            }
+          }
+          assert(best_nghb > -1);
+          for (int w : G.Adj(v)) full_graph_mask[w] = false;
+
+          if (best_nghb_common < v_nghb_common_min_degree ||
+              (best_nghb_common == v_nghb_common_min_degree &&
+               v_glob_min_degree < G.global[v])) {
+            v_min_degree = v;
+            v_glob_min_degree = G.global[v];
+            v_nghb_common_min_degree = best_nghb_common;
+            v_nghb_min_degree = best_nghb;
+          }
         }
-        if (nghb_common == best_nghb_common &&
-            G.global[nghb] < best_nghb_global) {
-          best_nghb = nghb;
-          best_nghb_global = G.global[nghb];
-        }
-      }
-      assert(best_nghb > -1);
-      for (int w : G.Adj(v_min_degree)) full_graph_mask[w] = false;
-      H = G.Contract({v_min_degree, best_nghb});
-      contracted_edge = {v_min_degree, best_nghb};
+      H = G.Contract({v_min_degree, v_nghb_min_degree});
+      contracted_edge = {v_min_degree, v_nghb_min_degree};
 
       Treedepth treedepth_H(H);
       auto [lower_H, upper_H, root_H] = treedepth_H.Calculate(
