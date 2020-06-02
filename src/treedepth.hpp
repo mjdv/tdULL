@@ -241,7 +241,7 @@ class Treedepth {
     } else {
       // Recursively contract all vertices with min degree.
       if (G.N == full_graph.N)
-        std::cout << "full_graph::contract" << std::flush;
+        std::cerr << "full_graph::contract" << std::flush;
       Graph H;
 
       int v_min_degree = -1;
