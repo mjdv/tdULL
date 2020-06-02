@@ -7,6 +7,14 @@ Venetië, Mees de Vries and Jan Westerdiep. It is a tool for computing the exact
 
 ## Usage
 
+This tool uses the C++ Boost library. For detailed installation instructions,
+see [the Boost website](https://www.boost.org/).
+
+This tool uses Gregory Popovitch's [parallel hash
+map](https://github.com/greg7mdp/parallel-hashmap). After cloning the
+repository, before compiling, run `git init submodule` and then `git submodule
+update` to include this code.
+
 To build the tool, navigate to the `src` directory and run `make`. This
 produces an executable called `main`, which can be used to compute treedepth:
 it expects a graph in the [PACE Challenge input
