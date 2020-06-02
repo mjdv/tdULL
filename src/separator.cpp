@@ -21,7 +21,7 @@ Separator::Separator(const Graph &G, std::vector<int> &&vtices)
     in_sep[s] = true;
   }
 
-  int num_components = 0;
+  num_components = 0;
   for (int i = 0; i < G.N; i++) {
     if (!visited[i] && !in_sep[i] && G.Adj(i).size() > 1) {
       assert(component.empty());
