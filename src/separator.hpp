@@ -1,11 +1,10 @@
 #pragma once
 #define BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS
+#include <parallel_hashmap/phmap.h>
+
+#include <bitset>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/functional/hash.hpp>
-
-#include <parallel_hashmap/phmap.h>
-#include <bitset>
-
 #include <unordered_set>
 
 #include "graph.hpp"
@@ -17,8 +16,9 @@ struct Separator {
   // NOTE: This is either a fully minimal separator, or it is not fully minimal
   // but the non-minimality comes from leaves being cut off.
   bool fully_minimal = false;
+  size_t num_components;
 
-  Separator(const Graph &G, const std::vector<int> &vertices);
+  Separator(const Graph &G, std::vector<int> &&vertices);
 };
 
 class SeparatorGenerator {
@@ -34,7 +34,11 @@ class SeparatorGenerator {
   }
 
   // Reference to the graph for which we are generating separators.
-  const Graph &G;
+  const Graph &G_orig;
+
+  // Contracted graph.
+  Graph G;
+  std::vector<std::vector<int>> vertices_original;
 
   // In done we keep the seperators we have already enqueued, to make sure
   // they aren't processed again. In queue we keep all the ones we have

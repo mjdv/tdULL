@@ -9,8 +9,8 @@
 // It also writes some info to the Separator struct: the number of vertices
 // and edges in the components that remain when removing this separator from
 // the graph.
-Separator::Separator(const Graph &G, const std::vector<int> &vertices)
-    : vertices(vertices), fully_minimal(true) {
+Separator::Separator(const Graph &G, std::vector<int> &&vtices)
+    : vertices(std::move(vtices)), fully_minimal(true) {
   // Shared datastructure.
   static std::stack<int> component;
 
@@ -21,7 +21,7 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
     in_sep[s] = true;
   }
 
-  int num_components = 0;
+  num_components = 0;
   for (int i = 0; i < G.N; i++) {
     if (!visited[i] && !in_sep[i] && G.Adj(i).size() > 1) {
       assert(component.empty());
@@ -69,12 +69,21 @@ Separator::Separator(const Graph &G, const std::vector<int> &vertices)
   if (num_components == 1) fully_minimal = false;
 }
 
-SeparatorGenerator::SeparatorGenerator(const Graph &G)
-    : G(G), in_nbh(G.N, false), sep_mask(G.N) {
+SeparatorGenerator::SeparatorGenerator(const Graph &G_orig)
+    : G_orig(G_orig), in_nbh(G_orig.N, false), sep_mask(G_orig.N) {
+  // Contract the graph.
+  std::tie(G, vertices_original) = G_orig.WithoutSymmetricNeighboorhoods();
+  if (G.IsCompleteGraph()) G = G_orig;
+  if (G.N == G_orig.N) vertices_original.clear();
+  if (G_orig.N == full_graph.N)
+    std::cerr << "full_graph: separator contracted graph has " << G.N << " /  "
+              << G_orig.N << " vertices." << std::endl;
+
   // Datatypes that will be reused.
   static std::stack<int> component;
   static std::vector<int> separator;
   static std::vector<int> neighborhood;
+  std::vector<int> sep_vertices_original;
 
   // Complete graphs don't have separators. We want this to return a
   // non-empty vector.
@@ -130,7 +139,15 @@ SeparatorGenerator::SeparatorGenerator(const Graph &G)
         queue.push(separator);
         done.insert(sep_mask);
 
-        Separator sep(G, separator);
+        if (vertices_original.size()) {
+          sep_vertices_original.clear();
+          for (int k : separator)
+            for (int v_ori : vertices_original[k])
+              sep_vertices_original.emplace_back(v_ori);
+        } else
+          sep_vertices_original = separator;
+
+        Separator sep(G_orig, std::move(sep_vertices_original));
         if (sep.fully_minimal) buffer.emplace_back(std::move(sep));
       }
       for (int k : separator) sep_mask[k] = false;
@@ -147,6 +164,7 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
   static std::vector<int> separator;
 
   std::vector<bool> visited(G.N, false);
+  std::vector<int> sep_vertices_original;
 
   while (!queue.empty() && buffer.size() < k) {
     auto cur_separator = queue.front();
@@ -190,7 +208,16 @@ std::vector<Separator> SeparatorGenerator::Next(int k) {
           queue.push(separator);
           done.insert(sep_mask);
 
-          Separator sep(G, separator);
+          // If we contracted the graph, find the original vertices.
+          if (vertices_original.size()) {
+            sep_vertices_original.clear();
+            for (int k : separator)
+              for (int v_ori : vertices_original[k])
+                sep_vertices_original.emplace_back(v_ori);
+          } else
+            sep_vertices_original = separator;
+
+          Separator sep(G_orig, std::move(sep_vertices_original));
           if (sep.fully_minimal) buffer.emplace_back(std::move(sep));
         }
         for (int k : separator) sep_mask[k] = false;
