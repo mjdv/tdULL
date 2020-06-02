@@ -383,7 +383,7 @@ class Treedepth {
       if (has_contracted_edge)
         sep_vertices.emplace_back(contracted_edge.second);
 
-      Separator separator(G, sep_vertices);
+      Separator separator(G, std::move(sep_vertices));
       if (separator.num_components > 1) {
         SeparatorIteration(separator, search_lbnd, search_ubnd, new_lower,
                            store_best_separators);
